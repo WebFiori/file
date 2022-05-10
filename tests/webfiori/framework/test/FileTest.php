@@ -18,9 +18,9 @@ class FileTest extends TestCase {
     public function test00() {
         $file = new File();
         $this->assertEquals('',$file->getName());
-        $this->assertEquals('',$file->getPath());
+        $this->assertEquals('',$file->getDir());
         $this->assertEquals(-1,$file->getID());
-        $this->assertNull($file->getRawData());
+        $this->assertEquals('', $file->getRawData());
         $this->assertEquals('application/octet-stream',$file->getFileMIMEType());
         $file->setId(100);
         $this->assertEquals(100, $file->getID());
@@ -30,11 +30,11 @@ class FileTest extends TestCase {
      * @test
      */
     public function test01() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $this->assertEquals('text-file.txt',$file->getName());
-        $this->assertEquals(ROOT_DIR.DS.'tests'.DS.'entity',$file->getPath());
+        $this->assertEquals(ROOT_DIR.DS.'tests'.DS.'files',$file->getDir());
         $this->assertEquals(-1,$file->getID());
-        $this->assertNull($file->getRawData());
+        $this->assertEquals('', $file->getRawData());
         $this->assertEquals('text/plain',$file->getFileMIMEType());
 
         return $file;
@@ -91,7 +91,7 @@ class FileTest extends TestCase {
         $file = new File('hello.txt', ROOT_DIR);
         $this->expectException(FileException::class);
         $this->expectExceptionMessage("No data is set to write.");
-        $file->write();
+        $file->write(false, true);
     }
     /**
      * @test
@@ -106,7 +106,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testRead02() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read(0, $file->getSize());
         $this->assertEquals('Testing the class \'File\'.', $file->getRawData());
     }
@@ -116,7 +116,7 @@ class FileTest extends TestCase {
     public function testRead03() {
         $this->expectException(FileException::class);
         $this->expectExceptionMessage('Reached end of file while trying to read 26 byte(s).');
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read(0, $file->getSize() + 1);
     }
     /**
@@ -125,14 +125,14 @@ class FileTest extends TestCase {
     public function testRead04() {
         $this->expectException(FileException::class);
         $this->expectExceptionMessage('Reached end of file while trying to read 6 byte(s).');
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read(20, $file->getSize() + 1);
     }
     /**
      * @test
      */
     public function testRead05() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read(20, $file->getSize());
         $this->assertEquals('ile\'.', $file->getRawData());
     }
@@ -140,7 +140,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testRead06() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read(2, $file->getSize());
         $this->assertEquals('sting the class \'File\'.', $file->getRawData());
     }
@@ -148,7 +148,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testRead07() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read(2, 4);
         $this->assertEquals('st', $file->getRawData());
     }
@@ -194,7 +194,7 @@ class FileTest extends TestCase {
                 . '"id":-1,'
                 . '"mime":"text\/plain",'
                 . '"name":"'.$file->getName().'",'
-                . '"directory":"'.Json::escapeJSONSpecialChars($file->getPath()).'",'
+                . '"directory":"'.Json::escapeJSONSpecialChars($file->getDir()).'",'
                 . '"sizeInBytes":12,'
                 . '"sizeInKBytes":0.01171875,'
                 . '"sizeInMBytes":1.1444091796875E-5'
@@ -254,7 +254,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function viewTest01() {
-        $file = new File('text-file-2.txt',ROOT_DIR.DS.'tests'.DS.'entity');
+        $file = new File('text-file-2.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->view();
         $this->assertEquals('Testing the class \'File\'.', Response::getBody());
         $this->assertEquals([
