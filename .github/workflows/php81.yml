@@ -31,7 +31,7 @@ jobs:
           
       
       - name: Install Dependencies
-        run: composer install --prefer-source --no-interaction --no-dev
+        run: composer install --prefer-dist --no-interaction
       
       - name: Execute Tests
         run: phpunit
