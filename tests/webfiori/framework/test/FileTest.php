@@ -17,11 +17,12 @@ class FileTest extends TestCase {
      */
     public function test00() {
         $file = new File();
+        $this->assertEquals('bin', $file->getExtension());
         $this->assertEquals('',$file->getName());
         $this->assertEquals('',$file->getDir());
         $this->assertEquals(-1,$file->getID());
         $this->assertEquals('', $file->getRawData());
-        $this->assertEquals('application/octet-stream',$file->getFileMIMEType());
+        $this->assertEquals('application/octet-stream',$file->getMIME());
         $file->setId(100);
         $this->assertEquals(100, $file->getID());
         return $file;
@@ -35,7 +36,7 @@ class FileTest extends TestCase {
         $this->assertEquals(ROOT_DIR.DS.'tests'.DS.'files',$file->getDir());
         $this->assertEquals(-1,$file->getID());
         $this->assertEquals('', $file->getRawData());
-        $this->assertEquals('text/plain',$file->getFileMIMEType());
+        $this->assertEquals('text/plain',$file->getMIME());
 
         return $file;
     }
@@ -105,10 +106,30 @@ class FileTest extends TestCase {
     /**
      * @test
      */
+    public function testReadChunk00() {
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file->read();
+        $data = $file->getChunks(3);
+        $this->assertEquals(base64_encode('Testing the class \'File\'.'), implode('', $data));
+        $this->assertEquals('Testing the class \'File\'.', implode('', $file->getChunks(3, 'none')));
+        $this->assertEquals('Testing the class \'File\'.', $file->getRawData());
+        $file->append(' Super Cool');
+        $this->assertEquals(base64_encode('Testing the class \'File\'. Super Cool'), implode('', $file->getChunks(3)));
+        $file->append([
+            ".\n",
+            "Ok",
+        ]);
+        $this->assertEquals(base64_encode("Testing the class 'File'. Super Cool.\nOk"), implode('', $file->getChunks(3)));
+        $this->assertEquals('txt', $file->getExtension());
+    }
+    /**
+     * @test
+     */
     public function testRead02() {
         $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read(0, $file->getSize());
         $this->assertEquals('Testing the class \'File\'.', $file->getRawData());
+        $this->assertEquals('txt', $file->getExtension());
     }
     /**
      * @test
