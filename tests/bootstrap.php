@@ -15,9 +15,17 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 } else {
     $rootDir = $rootDirTrimmed.$DS;
 }
-define('ROOT', $rootDir);
+define('ROOT_DIR', $rootDir);
+define('DS', DIRECTORY_SEPARATOR);
 echo 'Root Directory: \''.$rootDir.'\'.'."\n";
-require_once $rootDir.'webfiori'.$DS.'framework'.$DS.'File.php';
-require_once $rootDir.'webfiori'.$DS.'framework'.$DS.'MIME.php';
-require_once $rootDir.'webfiori'.$DS.'framework'.$DS.'exceptions'.$DS.'FileException.php';
-require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'json'.$DS.'Json.php';
+$jsonLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'jsonx'.DS.'webfiori'.DS.'json';
+require_once $jsonLibPath.DS.'JsonI.php';
+require_once $jsonLibPath.DS.'Json.php';
+require_once $jsonLibPath.DS.'JsonConverter.php';
+require_once $jsonLibPath.DS.'JsonTypes.php';
+require_once $jsonLibPath.DS.'Property.php';
+
+require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'File.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'MIME.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'exceptions'.DS.'FileException.php';
+
