@@ -815,7 +815,33 @@ class File implements JsonI {
         }
         Response::write($this->getRawData());
     }
+    /**
+     * Checks if a given directory exists or not.
+     * 
+     * @param string $dir A string in a form of directory (Such as 'root/home/res').
+     * 
+     * @param boolean $createIfNot If set to true and the given directory does 
+     * not exists, The method will try to create the directory.
+     * 
+     * @return boolean In general, the method will return false if the 
+     * given directory does not exists. The method will return true only 
+     * in two cases, If the directory exits or it does not exists but was created.
+     * 
+     * @since 1.0 
+     */
+    public static function isDirectory($dir, $createIfNot = false) : bool {
+        $dirFix = str_replace('\\', '/', $dir);
 
+        if (!is_dir($dirFix)) {
+            if ($createIfNot === true && mkdir($dir, 0777 , true)) {
+                return true;
+            }
+
+            return false;
+        } 
+
+        return true;
+    }
     /**
      * 
      * @param string $fPath
@@ -830,7 +856,7 @@ class File implements JsonI {
         }
         if (!$this->isExist()) {
             if ($createIfNotExist) {
-                Util::isDirectory($this->getDir(), true);
+                self::isDirectory($this->getDir(), true);
                 $resource = $this->_createResource('wb', $fPath);
             } else {
                 throw new FileException("File not found: '$fPath'.");
