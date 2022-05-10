@@ -1,6 +1,6 @@
 {
     "name": "webfiori/file",
-    "description": "Very basic class library to work on files using PHP.",
+    "description": "Basic class library to read, write and view files using PHP.",
     "authors": [
         {
             "name": "Ibrahim BinAlshikh",
