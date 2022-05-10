@@ -178,7 +178,7 @@ class File implements JsonI {
         
         $data = $this->getRawData($encodeOrDecode);
         
-        if ($data === null) {
+        if (strlen($data) == 0) {
             return [];
         }
         $dataLen = strlen($data);
@@ -227,8 +227,8 @@ class File implements JsonI {
      * @since 1.2.0
      */
     public function getExtension() : string {
-        $mime = $this->getFileMIMEType();
-        $mimeTypes = self::MIME_TYPES;
+        $mime = $this->getMIME();
+        $mimeTypes = MIME::TYPES;
         
         foreach ($mimeTypes as $ext => $xMime) {
             if ($xMime == $mime) {
@@ -236,14 +236,13 @@ class File implements JsonI {
             }
         }
         
-        $ext = 'bin';
         $fArr = explode('.', $this->getName());
 
         if (count($fArr) >= 1) {
-            $ext = $fArr[count($fArr) - 1];
+            return $fArr[count($fArr) - 1];
         }
 
-        return $ext;
+        return 'bin';
     }
     /**
      * Returns MIME type of the file.
@@ -257,7 +256,7 @@ class File implements JsonI {
      * 
      * @since 1.0
      */
-    public function getFileMIMEType() : string {
+    public function getMIME() : string {
         return $this->mimeType;
     }
     /**
@@ -572,7 +571,7 @@ class File implements JsonI {
 
         return new Json([
             'id' => $this->getID(),
-            'mime' => $this->getFileMIMEType(),
+            'mime' => $this->getMIME(),
             'name' => $this->getName(),
             'directory' => $this->getDir(),
             'sizeInBytes' => $this->getSize(),
@@ -752,7 +751,7 @@ class File implements JsonI {
         return $start.$trimmedPath;
     }
     private function _viewFileHelper($asAttachment) {
-        $contentType = $this->getFileMIMEType();
+        $contentType = $this->getMIME();
         
         if (class_exists('\webfiori\http\Response')) {
             $this->useClassResponse($contentType, $asAttachment);
