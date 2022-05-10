@@ -184,7 +184,7 @@ class MIME {
         $types = self::TYPES;
 
         if (isset($types[$lowerCase])) {
-            $retVal = self::MIME_TYPES[$lowerCase];
+            $retVal = self::TYPES[$lowerCase];
         }
 
         return $retVal;
