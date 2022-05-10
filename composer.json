@@ -1,0 +1,23 @@
+{
+    "name": "webfiori/file",
+    "description": "Very basic class library to work on files using PHP.",
+    "authors": [
+        {
+            "name": "Ibrahim BinAlshikh",
+            "email": "ibrahim@webfiori.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "webfiori/jsonx":"*"
+    },
+    "require-dev": {
+        "webfiori/http":"*"
+    },
+    "keywords": [
+        "php",
+        "file",
+        "files"
+    ],
+    "license": "MIT"
+}

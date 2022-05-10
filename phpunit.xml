@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit stderr="true" colors="true" bootstrap="bootstrap.php">
+    <php>
+    </php>
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <file>./webfiori/framework/cron/File.php</file>
+            <file>./webfiori/framework/router/MIME.php</file>
+            <file>./webfiori/framework/exceptions/FileException.php</file>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-clover" target="clover.xml"/>
+    </logging>
+    <testsuites>
+        <testsuite name="Tests">
+            <directory>./tests/webfiori/framework/test</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
