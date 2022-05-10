@@ -102,7 +102,7 @@ $file->read();
 $file->view(true);
 ```
 
-### Chinking File
+### Chunking File
 
 Usually, when a big file is stored in a database table, it is encoded then divided into smaller chunks, and each chunk is stored in a record. The class provides a single method for doing such procedure.
 
@@ -113,7 +113,7 @@ $file->read();
 //The size of each chunk will be 1500 bytes and they will be base 64 encoded.
 $dataChunks = $file->getChunks(1500);
 
-foreach( $dataChunks as $chunk) {
+foreach ($dataChunks as $chunk) {
     //......
 }
 ```
