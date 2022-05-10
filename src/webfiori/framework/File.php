@@ -120,7 +120,7 @@ class File implements JsonI {
     public function append($data) {
         if (gettype($data) == 'array') {
             foreach ($data as $str) {
-                $this->rawData .= $data;
+                $this->rawData .= $str;
             }
         } else {
             $this->rawData .= $data;
