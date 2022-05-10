@@ -22,8 +22,11 @@ $jsonLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'jsonx'.DS.'webfiori'.DS.'json
 require_once $jsonLibPath.DS.'JsonI.php';
 require_once $jsonLibPath.DS.'Json.php';
 require_once $jsonLibPath.DS.'JsonConverter.php';
+require_once $jsonLibPath.DS.'CaseConverter.php';
 require_once $jsonLibPath.DS.'JsonTypes.php';
 require_once $jsonLibPath.DS.'Property.php';
+
+require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'Response.php';
 
 require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'File.php';
 require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'MIME.php';
