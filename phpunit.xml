@@ -4,8 +4,8 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>./webfiori/framework/cron/File.php</file>
-            <file>./webfiori/framework/router/MIME.php</file>
+            <file>./webfiori/framework/File.php</file>
+            <file>./webfiori/framework/MIME.php</file>
             <file>./webfiori/framework/exceptions/FileException.php</file>
         </whitelist>
     </filter>
