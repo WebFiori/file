@@ -567,7 +567,8 @@ class File implements JsonI {
             // This is used just to set the size of the file.
             $this->read();
         } catch (FileException $ex) {
-        }
+        } 
+        
 
         return new Json([
             'id' => $this->getID(),
