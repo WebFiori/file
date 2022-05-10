@@ -598,7 +598,7 @@ class File implements JsonI {
     public function view(bool $asAttachment = false) {
         $raw = $this->getRawData();
 
-        if ($raw !== null) {
+        if (strlen($raw) != 0) {
             $this->_viewFileHelper($asAttachment);
         } else {
             $this->read();
@@ -752,17 +752,12 @@ class File implements JsonI {
     }
     private function _viewFileHelper($asAttachment) {
         $contentType = $this->getFileMIMEType();
-
-        if ($contentType !== null) {
-            if (class_exists('\webfiori\http\Response')) {
-                $this->useClassResponse($contentType, $asAttachment);
-            } else {
-                $this->doNotUseClassResponse($contentType, $asAttachment);
-            }
-            
+        
+        if (class_exists('\webfiori\http\Response')) {
+            $this->useClassResponse($contentType, $asAttachment);
         } else {
-            throw new FileException('MIME type of raw data is not set.');
-        }
+            $this->doNotUseClassResponse($contentType, $asAttachment);
+        }     
     }
     private function readRange() {
         $range = filter_var($_SERVER['HTTP_RANGE']);
@@ -851,7 +846,7 @@ class File implements JsonI {
      * @throws FileException
      */
     private function _writeHelper($fPath, $append = true, $createIfNotExist = false) {
-        if ($this->getRawData() === null) {
+        if (strlen($this->getRawData()) == 0) {
             throw new FileException("No data is set to write.");
         }
         if (!$this->isExist()) {
