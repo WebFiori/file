@@ -100,6 +100,26 @@ class File implements JsonI {
         
     }
     /**
+     * Attempt to create the file if it does not exist.
+     * 
+     * @throws FileException
+     */
+    public function create() {
+        $fPath = $this->getAbsolutePath();
+        
+        if (!$this->isExist()) {
+            self::isDirectory($this->getDir(), true);
+            $resource = $this->_createResource('wb', $fPath);
+            
+            if (!is_resource($resource)) {
+                throw new FileException('Unable to open the file at \''.$fPath.'\'.');
+            } else {
+                fwrite($resource, '');
+                fclose($resource);
+            }
+        } 
+    }
+    /**
      * Returns JSON string that represents basic file info.
      * 
      * @return string
@@ -645,12 +665,8 @@ class File implements JsonI {
      * The method will write the data using the binary write mode. 
      * If it fails, It will throw an exception.
      * 
-     * @param boolean $append If the file already exist in the file system and 
-     * this attribute is set to true, the new raw data will be appended to the 
-     * file. Default is true.
-     * 
-     * @param boolean $create If the file does not exist and this attribute is set 
-     * to true, the method will attempt to create the file. Default is false.
+     * @param boolean $append If this attribute is set to true, the new raw
+     * data will be appended to the file instead of overriding it. Default is true.
      * 
      * @throws FileException The method will throw an exception in 3 cases: 
      * <ul>
@@ -661,9 +677,9 @@ class File implements JsonI {
      * 
      * @since 1.1.1
      */
-    public function write(bool $append = true, bool $create = false) {
+    public function write(bool $append = true) {
         $pathV = $this->_checkNameAndPath();
-        $this->_writeHelper($pathV, $append === true, $create === true);
+        $this->_writeHelper($pathV, $append === true);
     }
     /**
      * 
@@ -879,17 +895,12 @@ class File implements JsonI {
      * @return boolean
      * @throws FileException
      */
-    private function _writeHelper($fPath, $append = true, $createIfNotExist = false) {
+    private function _writeHelper($fPath, $append) {
         if (strlen($this->getRawData()) == 0) {
             throw new FileException("No data is set to write.");
         }
         if (!$this->isExist()) {
-            if ($createIfNotExist) {
-                self::isDirectory($this->getDir(), true);
-                $resource = $this->_createResource('wb', $fPath);
-            } else {
-                throw new FileException("File not found: '$fPath'.");
-            }
+            throw new FileException("File not found: '$fPath'.");
         } else {
             if ($append) {
                 $resource = $this->_createResource('ab', $fPath);
