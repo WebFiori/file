@@ -183,14 +183,15 @@ class File implements JsonI {
      * number is given, default value is used which is 50.
      * 
      * @param boolean $encode If this parameter is set to true, the returned
-     * chunks of data will be encoded using base 64 encoding.
+     * chunks of data will be encoded using base 64 encoding. Default is 
+     * true.
      * 
      * @return array The method will return an array that holds file data as 
      * chunks.
      * 
      * @since 1.2.1
      */
-    public function getChunks(int $chunkSize = 50, bool $encode = false) {
+    public function getChunks(int $chunkSize = 50, bool $encode = true) {
         if ($chunkSize < 0) {
             $chunkSize = 50;
         }
