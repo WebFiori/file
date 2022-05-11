@@ -84,6 +84,7 @@ class File implements JsonI {
         $this->path = '';
         $this->fileName = '';
         $this->rawData = '';
+
         if (!$this->setPath($fPath)) {
             $info = $this->_extractPathAndName($fNameOrAbsPath);
             $this->setDir($info['path']);
@@ -91,37 +92,13 @@ class File implements JsonI {
         } else {
             $this->setName($fNameOrAbsPath);
         }
+
         if (self::isFileExist($this->getAbsolutePath())) {
             set_error_handler(null);
             $this->fileSize = filesize($this->getAbsolutePath());
             restore_error_handler();
         }
         $this->id = -1;
-        
-    }
-    /**
-     * Attempt to create the file if it does not exist.
-     * 
-     * @param boolean $createDirIfNotExist If this parameter is set to true and
-     * choosen file path does not exist, the method will attempt to create the
-     * directory before creating the file. Default is false.
-     * 
-     * @throws FileException
-     */
-    public function create($createDirIfNotExist = false) {
-        $fPath = $this->getAbsolutePath();
-        
-        if (!$this->isExist()) {
-            self::isDirectory($this->getDir(), $createDirIfNotExist);
-            $resource = $this->_createResource('wb', $fPath);
-            
-            if (!is_resource($resource)) {
-                throw new FileException('Unable to create a file at \''.$fPath.'\'.');
-            } else {
-                fwrite($resource, '');
-                fclose($resource);
-            }
-        } 
     }
     /**
      * Returns JSON string that represents basic file info.
@@ -129,7 +106,8 @@ class File implements JsonI {
      * @return string
      */
     public function __toString() {
-        $str =  $this->toJSON().'';
+        $str = $this->toJSON().'';
+
         return $str;
     }
     /**
@@ -148,6 +126,30 @@ class File implements JsonI {
             }
         } else {
             $this->rawData .= $data;
+        }
+    }
+    /**
+     * Attempt to create the file if it does not exist.
+     * 
+     * @param boolean $createDirIfNotExist If this parameter is set to true and
+     * choosen file path does not exist, the method will attempt to create the
+     * directory before creating the file. Default is false.
+     * 
+     * @throws FileException
+     */
+    public function create($createDirIfNotExist = false) {
+        $fPath = $this->getAbsolutePath();
+
+        if (!$this->isExist()) {
+            self::isDirectory($this->getDir(), $createDirIfNotExist);
+            $resource = $this->_createResource('wb', $fPath);
+
+            if (!is_resource($resource)) {
+                throw new FileException('Unable to create a file at \''.$fPath.'\'.');
+            } else {
+                fwrite($resource, '');
+                fclose($resource);
+            }
         }
     }
     /**
@@ -192,13 +194,13 @@ class File implements JsonI {
         if ($chunkSize < 0) {
             $chunkSize = 50;
         }
-        
+
         $data = $this->getRawData($encode);
-        
+
         $dataLen = strlen($data);
         $retVal = [];
         $index = 0;
-        
+
         while ($index < $dataLen) {
             $retVal[] = substr($data, $index, $chunkSize);
             $index += $chunkSize;
@@ -239,8 +241,6 @@ class File implements JsonI {
      * @since 1.2.0
      */
     public function getExtension() : string {
-        
-        
         $fArr = explode('.', $this->getName());
 
         if (count($fArr) > 1) {
@@ -249,27 +249,12 @@ class File implements JsonI {
 
         $mime = $this->getMIME();
         $mimeTypes = MIME::TYPES;
-        
+
         foreach ($mimeTypes as $ext => $xMime) {
             if ($xMime == $mime) {
                 return $ext;
             }
         }
-    }
-    /**
-     * Returns MIME type of the file.
-     * 
-     * Note that if the file is specified by its path and name, the method 
-     * File::read() must be called before calling this method to update its 
-     * MIME type.
-     * 
-     * @return string MIME type of the file. If MIME type of the file is not set 
-     * or not detected, the method will return 'application/octet-stream'.
-     * 
-     * @since 1.0
-     */
-    public function getMIME() : string {
-        return $this->mimeType;
     }
     /**
      * Returns the ID of the file.
@@ -312,7 +297,22 @@ class File implements JsonI {
 
         return 0;
     }
-    
+    /**
+     * Returns MIME type of the file.
+     * 
+     * Note that if the file is specified by its path and name, the method 
+     * File::read() must be called before calling this method to update its 
+     * MIME type.
+     * 
+     * @return string MIME type of the file. If MIME type of the file is not set 
+     * or not detected, the method will return 'application/octet-stream'.
+     * 
+     * @since 1.0
+     */
+    public function getMIME() : string {
+        return $this->mimeType;
+    }
+
     /**
      * Returns the name of the file.
      * 
@@ -326,6 +326,21 @@ class File implements JsonI {
      */
     public function getName() : string {
         return $this->fileName;
+    }
+    /**
+     * Return file name without its extension.
+     * 
+     * @return string File name without its extension.
+     */
+    public function getNameWithNoExt() : string {
+        $currentName = $this->getName();
+        $expl = explode('.', $currentName);
+
+        if (count($expl) > 1) {
+            array_pop($expl);
+        }
+
+        return implode('.', $expl);
     }
     /**
      * Returns the raw data of the file.
@@ -344,11 +359,11 @@ class File implements JsonI {
      */
     public function getRawData(bool $encode = false) : string {
         $retVal = $this->rawData;
-        
+
         if ($encode === true) {
-            $retVal =  $this->getRawDataEncoded();
+            $retVal = $this->getRawDataEncoded();
         }
-        
+
         return $retVal;
     }
     /**
@@ -369,6 +384,33 @@ class File implements JsonI {
      */
     public function getSize() : int {
         return $this->fileSize;
+    }
+    /**
+     * Checks if a given directory exists or not.
+     * 
+     * @param string $dir A string in a form of directory (Such as 'root/home/res').
+     * 
+     * @param boolean $createIfNot If set to true and the given directory does 
+     * not exists, The method will try to create the directory.
+     * 
+     * @return boolean In general, the method will return false if the 
+     * given directory does not exists. The method will return true only 
+     * in two cases, If the directory exits or it does not exists but was created.
+     * 
+     * @since 1.0 
+     */
+    public static function isDirectory($dir, $createIfNot = false) : bool {
+        $dirFix = str_replace('\\', '/', $dir);
+
+        if (!is_dir($dirFix)) {
+            if ($createIfNot === true && mkdir($dir, 0777 , true)) {
+                return true;
+            }
+
+            return false;
+        } 
+
+        return true;
     }
     /**
      * Checks if the file exist or not.
@@ -431,6 +473,14 @@ class File implements JsonI {
         }
     }
     /**
+     * Reads a file and decode its content from base 64.
+     */
+    public function readDecoded() {
+        $this->read();
+        $raw = $this->getRawData();
+        $this->setRawData($raw, true);
+    }
+    /**
      * Removes a file given its name and path.
      * 
      * Before calling this method, the name of the file and its path must 
@@ -445,6 +495,7 @@ class File implements JsonI {
         if ($this->isExist()) {
             $this->rawData = '';
             unlink($this->getAbsolutePath());
+
             return true;
         }
 
@@ -515,35 +566,6 @@ class File implements JsonI {
         }
     }
     /**
-     * Sets the path of the file.
-     * 
-     * The path is simply the folder that contains the file. For example, 
-     * the path can be something like "C:/Users/Me/Documents". The path can 
-     * use forward slashes or backward slashes.
-     * 
-     * @param string $fPath The folder which will contain the file. It must 
-     * be non-empty string in order to set.
-     * 
-     * @return boolean The method will return true if the path is set. Other 
-     * than that, the method will return false.
-     * 
-     * @since 1.0
-     * 
-     * @deprecated since version 1.1.5 Use File::setDir() instead.
-     */
-    private function setPath(string $fPath) {
-        $retVal = false;
-        $pathV = self::_validatePath($fPath);
-        $len = strlen($pathV);
-
-        if ($len > 0) {
-            $this->path = $pathV;
-            $retVal = true;
-        }
-
-        return $retVal;
-    }
-    /**
      * Sets the binary representation of the file.
      * 
      * The raw data is simply a string. It can be binary string or any basic 
@@ -586,7 +608,7 @@ class File implements JsonI {
      */
     public function setRawDataDecoded(string $raw, bool $strict = false) {
         $decoded = base64_decode($raw, $strict);
-        
+
         if ($decoded === false) {
             throw new FileException('Base 64 decoding failed due to characters outside base 64 alphabet.');
         }
@@ -610,7 +632,7 @@ class File implements JsonI {
             $this->read();
         } catch (FileException $ex) {
         } 
-        
+
 
         return new Json([
             'id' => $this->getID(),
@@ -671,14 +693,6 @@ class File implements JsonI {
         $this->_writeHelper($pathV, $append === true);
     }
     /**
-     * Reads a file and decode its content from base 64.
-     */
-    public function readDecoded() {
-        $this->read();
-        $raw = $this->getRawData();
-        $this->setRawData($raw, true);
-    }
-    /**
      * Encode file data using base 64 and store it in binary file with the
      * extension .bin
      * 
@@ -693,20 +707,6 @@ class File implements JsonI {
         $pathV = $this->_checkNameAndPath();
         $this->_writeHelper($pathV, false, true);
         $this->setName($currentName);
-    }
-    /**
-     * Return file name without its extension.
-     * 
-     * @return string File name without its extension.
-     */
-    public function getNameWithNoExt() : string {
-        $currentName = $this->getName();
-        $expl = explode('.', $currentName);
-        
-        if (count($expl) > 1) {
-            array_pop($expl);
-        }
-        return implode('.', $expl);
     }
 
     /**
@@ -778,9 +778,11 @@ class File implements JsonI {
             $this->_setSize($fSize);
             $bytesToRead = $to - $from > 0 ? $to - $from : $this->getSize();
             $resource = $this->_createResource('rb', $fPath);
+
             if ($bytesToRead > $this->getSize() || $to > $this->getSize()) {
                 throw new FileException('Reached end of file while trying to read '.$bytesToRead.' byte(s).');
             }
+
             if (is_resource($resource)) {
                 if ($bytesToRead > 0) {
                     fseek($resource, $from);
@@ -830,12 +832,65 @@ class File implements JsonI {
     }
     private function _viewFileHelper($asAttachment) {
         $contentType = $this->getMIME();
-        
+
         if (class_exists('\webfiori\http\Response')) {
             $this->useClassResponse($contentType, $asAttachment);
         } else {
             $this->doNotUseClassResponse($contentType, $asAttachment);
-        }     
+        }
+    }
+    /**
+     * 
+     * @param string $fPath
+     * @param boolean $append
+     * @param boolean $createIfNotExist
+     * @return boolean
+     * @throws FileException
+     */
+    private function _writeHelper($fPath, $append, $encode = false) {
+        if (strlen($this->getRawData()) == 0) {
+            throw new FileException("No data is set to write.");
+        }
+
+        if (!$this->isExist()) {
+            throw new FileException("File not found: '$fPath'.");
+        } else {
+            if ($append) {
+                $resource = $this->_createResource('ab', $fPath);
+            } else {
+                $resource = $this->_createResource('rb+', $fPath);
+            }
+        }
+
+        if (!is_resource($resource)) {
+            throw new FileException('Unable to open the file at \''.$fPath.'\'.');
+        } else {
+            fwrite($resource, $this->getRawData($encode));
+            fclose($resource);
+
+            return true;
+        }
+    }
+
+    private function doNotUseClassResponse($contentType, $asAttachment) {
+        header('Accept-Ranges: bytes');
+        header('content-type: '.$contentType);
+
+        if (isset($_SERVER['HTTP_RANGE'])) {
+            $expl = $this->readRange();
+            http_response_code(206);
+            header('content-range', 'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize());
+            header('content-length', $expl[1] - $expl[0]);
+        } else {
+            header('Content-Length', $this->getSize());
+        }
+
+        if ($asAttachment === true) {
+            header('Content-Disposition', 'attachment; filename="'.$this->getName().'"');
+        } else {
+            header('Content-Disposition', 'inline; filename="'.$this->getName().'"');
+        }
+        echo $this->getRawData();
     }
     private function readRange() {
         $range = filter_var($_SERVER['HTTP_RANGE']);
@@ -846,26 +901,37 @@ class File implements JsonI {
             $expl[1] = $this->getSize();
         }
         $this->read($expl[0], $expl[1]);
+
         return $expl;
     }
+    /**
+     * Sets the path of the file.
+     * 
+     * The path is simply the folder that contains the file. For example, 
+     * the path can be something like "C:/Users/Me/Documents". The path can 
+     * use forward slashes or backward slashes.
+     * 
+     * @param string $fPath The folder which will contain the file. It must 
+     * be non-empty string in order to set.
+     * 
+     * @return boolean The method will return true if the path is set. Other 
+     * than that, the method will return false.
+     * 
+     * @since 1.0
+     * 
+     * @deprecated since version 1.1.5 Use File::setDir() instead.
+     */
+    private function setPath(string $fPath) {
+        $retVal = false;
+        $pathV = self::_validatePath($fPath);
+        $len = strlen($pathV);
 
-    private function doNotUseClassResponse($contentType, $asAttachment) {
-        header('Accept-Ranges: bytes');
-        header('content-type: '.$contentType);
-        if (isset($_SERVER['HTTP_RANGE'])) {
-            $expl = $this->readRange();
-            http_response_code(206);
-            header('content-range', 'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize());
-            header('content-length', $expl[1] - $expl[0]);
-        } else {
-            header('Content-Length', $this->getSize());
+        if ($len > 0) {
+            $this->path = $pathV;
+            $retVal = true;
         }
-        if ($asAttachment === true) {
-            header('Content-Disposition', 'attachment; filename="'.$this->getName().'"');
-        } else {
-            header('Content-Disposition', 'inline; filename="'.$this->getName().'"');
-        }
-        echo $this->getRawData();
+
+        return $retVal;
     }
 
     private function useClassResponse($contentType, $asAttachment) {
@@ -887,63 +953,5 @@ class File implements JsonI {
             Response::addHeader('Content-Disposition', 'inline; filename="'.$this->getName().'"');
         }
         Response::write($this->getRawData());
-    }
-    /**
-     * Checks if a given directory exists or not.
-     * 
-     * @param string $dir A string in a form of directory (Such as 'root/home/res').
-     * 
-     * @param boolean $createIfNot If set to true and the given directory does 
-     * not exists, The method will try to create the directory.
-     * 
-     * @return boolean In general, the method will return false if the 
-     * given directory does not exists. The method will return true only 
-     * in two cases, If the directory exits or it does not exists but was created.
-     * 
-     * @since 1.0 
-     */
-    public static function isDirectory($dir, $createIfNot = false) : bool {
-        $dirFix = str_replace('\\', '/', $dir);
-
-        if (!is_dir($dirFix)) {
-            if ($createIfNot === true && mkdir($dir, 0777 , true)) {
-                return true;
-            }
-
-            return false;
-        } 
-
-        return true;
-    }
-    /**
-     * 
-     * @param string $fPath
-     * @param boolean $append
-     * @param boolean $createIfNotExist
-     * @return boolean
-     * @throws FileException
-     */
-    private function _writeHelper($fPath, $append, $encode = false) {
-        if (strlen($this->getRawData()) == 0) {
-            throw new FileException("No data is set to write.");
-        }
-        if (!$this->isExist()) {
-            throw new FileException("File not found: '$fPath'.");
-        } else {
-            if ($append) {
-                $resource = $this->_createResource('ab', $fPath);
-            } else {
-                $resource = $this->_createResource('rb+', $fPath);
-            }
-        }
-
-        if (!is_resource($resource)) {
-            throw new FileException('Unable to open the file at \''.$fPath.'\'.');
-        } else {
-            fwrite($resource, $this->getRawData($encode));
-            fclose($resource);
-
-            return true;
-        }
     }
 }
