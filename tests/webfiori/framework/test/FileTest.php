@@ -129,7 +129,7 @@ class FileTest extends TestCase {
     public function testReadChunk01() {
         $file = new File('text-file-3.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read();
-        $data = $file->getChunks();
+        $data = $file->getChunks(-100, false);
         $this->assertEquals([
             "Testing the class 'File'. Hello. Good Bad Random\nT",
             "esting the class 'File'. Hello. Good Bad Random\nTe",
@@ -205,7 +205,7 @@ class FileTest extends TestCase {
         $file->read();
         $data = $file->getChunks(3, true);
         $this->assertEquals(base64_encode('Testing the class \'File\'.'), implode('', $data));
-        $this->assertEquals('Testing the class \'File\'.', implode('', $file->getChunks(3)));
+        $this->assertEquals('Testing the class \'File\'.', implode('', $file->getChunks(3, false)));
         $this->assertEquals('Testing the class \'File\'.', $file->getRawData());
         $file->append(' Super Cool');
         $this->assertEquals(base64_encode('Testing the class \'File\'. Super Cool'), implode('', $file->getChunks(3, true)));
