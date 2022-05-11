@@ -131,12 +131,12 @@ class FileTest extends TestCase {
         $file->read();
         $data = $file->getChunks();
         $this->assertEquals([
-            "Testing the class 'File'. Hello. Good Bad Random\r\n",
-            "Testing the class 'File'. Hello. Good Bad Random\r\n",
-            "Testing the class 'File'. Hello. Good Bad Random\r\n",
-            "Testing the class 'File'. Hello. Good Bad Random\r\n",
-            "Testing the class 'File'. Hello. Good Bad Random\r\n",
-            "Testing the class 'Fi\r\n"
+            "Testing the class 'File'. Hello. Good Bad Random\nT",
+            "esting the class 'File'. Hello. Good Bad Random\nTe",
+            "sting the class 'File'. Hello. Good Bad Random\nTes",
+            "ting the class 'File'. Hello. Good Bad Random\nTest",
+            "ing the class 'File'. Hello. Good Bad Random\nTesti",
+            "ng the class 'Fi"
         ], $data);
     }
     /**
@@ -223,8 +223,9 @@ class FileTest extends TestCase {
      */
     public function testLastModified01() {
         $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
-        $this->assertEquals(1652212899, $file->getLastModified());
-        $this->assertEquals('2022-05-10 20:01:39', $file->getLastModified('Y-m-d H:i:s'));
+        $time = filemtime($file->getAbsolutePath());
+        $this->assertEquals($time, $file->getLastModified());
+        $this->assertEquals(date('Y-m-d H:i:s', $time), $file->getLastModified('Y-m-d H:i:s'));
     }
     /**
      * @test
