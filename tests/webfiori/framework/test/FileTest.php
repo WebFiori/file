@@ -126,6 +126,31 @@ class FileTest extends TestCase {
     /**
      * @test
      */
+    public function test08() {
+        $file = new File('text-file-3.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file->read();
+        $data = $file->getChunks();
+        $this->assertEquals([
+            "Testing the class 'File'. Hello. Good Bad Random\r\n",
+            "Testing the class 'File'. Hello. Good Bad Random\r\n",
+            "Testing the class 'File'. Hello. Good Bad Random\r\n",
+            "Testing the class 'File'. Hello. Good Bad Random\r\n",
+            "Testing the class 'File'. Hello. Good Bad Random\r\n",
+            "Testing the class 'Fi\r\n"
+        ], $data);
+    }
+    /**
+     * @test
+     */
+    public function test09() {
+        $file = new File();
+        $data = $file->getChunks();
+        $this->assertEquals([
+        ], $data);
+    }
+    /**
+     * @test
+     */
     public function testRead00() {
         $file = new File('not-exist.txt', ROOT_DIR);
         $this->expectException(FileException::class);
@@ -218,6 +243,28 @@ class FileTest extends TestCase {
         $this->assertFalse($file->isExist());
         $file->create();
         $this->assertTrue($file->isExist());
+        $file->remove();
+        $this->assertFalse($file->isExist());
+    }
+    /**
+     * @test
+     */
+    public function testCreate01() {
+        $this->expectException(FileException::class);
+        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
+        $this->assertFalse($file->isExist());
+        $file->create();
+    }
+    /**
+     * @test
+     * @depends testCreate01
+     */
+    public function testCreate02() {
+        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
+        $this->assertFalse($file->isExist());
+        $file->create(true);
+        $this->assertTrue($file->isExist());
+        $this->assertEquals('{"id":-1,"mime":"text\/plain","name":"new.txt","directory":"'.Json::escapeJSONSpecialChars($file->getDir()).'","sizeInBytes":0,"sizeInKBytes":0,"sizeInMBytes":0}', $file.'');
         $file->remove();
         $this->assertFalse($file->isExist());
     }
