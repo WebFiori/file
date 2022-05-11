@@ -44,6 +44,16 @@ $fileData = $file->getRawData();
 // Do anything you like with data string.
 ```
 
+Also, it is possible to read a specific range of bytes by supplying the range to the method `File::read()`
+
+``` php
+$file = new File('path/to/my/file.txt');
+//Read bytes 10-100 inclusive
+$file->read(10, 100);
+
+$fileData = $file->getRawData();
+```
+
 ### Creating New File
 
 ``` php 
@@ -120,11 +130,13 @@ The method `File::readDecoded()` is used to read base 64 enceded binary files as
 ``` php
 $file = new File('some-binary-with-encoded.bin');
 $file->readDecoded();
+$decoded = $file->getRawData();
 
-//This will create new file with the name 'my-img.png.bin'
 ```
 
 ### Display File
+
+The method `File::view()` is used to dispatch the content of the file to front-end. It also supports the header `content-range` which can be used to get partial file content.
 
 ``` php 
 $file = new File('some-pdf.pdf');
