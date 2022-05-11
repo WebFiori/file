@@ -145,6 +145,7 @@ class FileTest extends TestCase {
     public function testGetExtension00() {
         $file = new File();
         $this->assertEquals('bin', $file->getExtension());
+        $this->assertEquals('', $file->getNameWithNoExt());
     }
     /**
      * @test
@@ -152,6 +153,7 @@ class FileTest extends TestCase {
     public function testGetExtension01() {
         $file = new File('good/file');
         $this->assertEquals('bin', $file->getExtension());
+        $this->assertEquals('file', $file->getNameWithNoExt());
     }
     /**
      * @test
@@ -159,6 +161,7 @@ class FileTest extends TestCase {
     public function testGetExtension02() {
         $file = new File('good/file.mp3');
         $this->assertEquals('mp3', $file->getExtension());
+        $this->assertEquals('file', $file->getNameWithNoExt());
     }
     /**
      * @test
@@ -166,6 +169,7 @@ class FileTest extends TestCase {
     public function testGetExtension03() {
         $file = new File('good/file.xyz');
         $this->assertEquals('xyz', $file->getExtension());
+        $this->assertEquals('file', $file->getNameWithNoExt());
     }
     /**
      * @test
@@ -173,6 +177,7 @@ class FileTest extends TestCase {
     public function testGetExtension04() {
         $file = new File('good/file.xyz.super');
         $this->assertEquals('super', $file->getExtension());
+        $this->assertEquals('file.xyz', $file->getNameWithNoExt());
     }
     /**
      * @test
@@ -342,6 +347,18 @@ class FileTest extends TestCase {
         $file->read();
         $this->assertEquals('World.Hello.', $file->getRawData());
         return $file;
+    }
+    /**
+     * @depends test07
+     */
+    public function testWriteEncoded00() {
+        $file = new File('hello-encoded.txt', ROOT_DIR);
+        $file->setRawData('b');
+        $file->writeEncoded();
+        $file2 = new File($file->getAbsolutePath().'.bin');
+        $this->assertTrue($file2->isExist());
+        $file2->readDecoded();
+        $this->assertEquals('b', $file2->getRawData());
     }
     /**
      * @test
