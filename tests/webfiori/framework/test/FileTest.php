@@ -15,6 +15,35 @@ class FileTest extends TestCase {
     /**
      * @test
      */
+    public function testEncodeDecode00() {
+        $file = new File();
+        $file->setRawData('Super');
+        $this->assertEquals('Super', $file->getRawData());
+        $this->assertEquals(base64_encode('Super'), $file->getRawData(true));
+    }
+    /**
+     * @test
+     */
+    public function testEncodeDecode01() {
+        $file = new File();
+        $file->setRawData(base64_encode('Super'), true);
+        $this->assertEquals('Super', $file->getRawData());
+        $this->assertEquals(base64_encode('Super'), $file->getRawData('e'));
+    }
+    /**
+     * @test
+     */
+    public function testEncodeDecode02() {
+        $file = new File();
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('Base 64 decoding failed due to characters outside base 64 alphabet.');
+        $file->setRawData(base64_encode('Super').'X', true, true);
+        $this->assertEquals('Super', $file->getRawData());
+        $this->assertEquals(base64_encode('Super'), $file->getRawData('e'));
+    }
+    /**
+     * @test
+     */
     public function test00() {
         $file = new File();
         $this->assertEquals('bin', $file->getExtension());
@@ -109,17 +138,17 @@ class FileTest extends TestCase {
     public function testReadChunk00() {
         $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read();
-        $data = $file->getChunks(3);
+        $data = $file->getChunks(3, true);
         $this->assertEquals(base64_encode('Testing the class \'File\'.'), implode('', $data));
-        $this->assertEquals('Testing the class \'File\'.', implode('', $file->getChunks(3, 'none')));
+        $this->assertEquals('Testing the class \'File\'.', implode('', $file->getChunks(3)));
         $this->assertEquals('Testing the class \'File\'.', $file->getRawData());
         $file->append(' Super Cool');
-        $this->assertEquals(base64_encode('Testing the class \'File\'. Super Cool'), implode('', $file->getChunks(3)));
+        $this->assertEquals(base64_encode('Testing the class \'File\'. Super Cool'), implode('', $file->getChunks(3, true)));
         $file->append([
             ".\n",
             "Ok",
         ]);
-        $this->assertEquals(base64_encode("Testing the class 'File'. Super Cool.\nOk"), implode('', $file->getChunks(3)));
+        $this->assertEquals(base64_encode("Testing the class 'File'. Super Cool.\nOk"), implode('', $file->getChunks(3, true)));
         $this->assertEquals('txt', $file->getExtension());
     }
     /**

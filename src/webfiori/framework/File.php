@@ -84,7 +84,6 @@ class File implements JsonI {
         $this->path = '';
         $this->fileName = '';
         $this->rawData = '';
-        
         if (!$this->setPath($fPath)) {
             $info = $this->_extractPathAndName($fNameOrAbsPath);
             $this->setDir($info['path']);
@@ -156,27 +155,20 @@ class File implements JsonI {
      * @param int $chunkSize The number of bytes in every chunk. If a negative 
      * number is given, default value is used which is 1000.
      * 
-     * @param string $encodeOrDecode This parameter is used to base-64 decode or 
-     * encode file data. The parameter can have one of 3 values:
-     * <ul>
-     * <li>e: Encode the raw data of the file (default).</li>
-     * <li>d: Decode the raw data of the file.</li>
-     * <li>none: Return the raw data of the file as it is. This is the default value.</li>
-     * </ul>
-     * If any other value is given, the method will use 'e' since data is mostly 
-     * will be moved ss chunks.
+     * @param boolean $encode If this parameter is set to true, the returned
+     * chunks of data will be encoded using base 64 encoding.
      * 
      * @return array The method will return an array that holds file data as 
      * chunks.
      * 
      * @since 1.2.1
      */
-    public function getChunks(int $chunkSize = 1000, string $encodeOrDecode = 'e') {
+    public function getChunks(int $chunkSize = 1000, bool $encode = false) {
         if ($chunkSize < 0) {
             $chunkSize = 1000;
         }
         
-        $data = $this->getRawData($encodeOrDecode);
+        $data = $this->getRawData($encode);
         
         if (strlen($data) == 0) {
             return [];
@@ -329,24 +321,32 @@ class File implements JsonI {
      * <li>none: Return the raw data of the file as it is. This is the default value.</li>
      * </ul>
      * If any other value is given, the method will use 'none'. Usually, encoding is
-     * performed to make sure that the file does not get currepted when its
-     * trasferred on the web.
+     * performed to make sure that the file does not get corrupted when its
+     * transferred on the web.
      * 
-     * @return string|null Raw data of the file. If no data is set, the method 
+     * @return string Raw data of the file. If no data is set, the method 
      * will return empty string.
      * 
      * @since 1.0
      */
-    public function getRawData(string $encodeOrDecode = 'none') : string {
-        $lower = strtolower(trim($encodeOrDecode));
-
-        if ($lower == 'e') {
-            return base64_encode($this->rawData);
-        } else if ($lower == 'd') {
-            return base64_decode($this->rawData);
+    public function getRawData(bool $encode = false) : string {
+        $retVal = $this->rawData;
+        
+        if ($encode === true) {
+            $retVal =  $this->getRawDataEncoded();
         }
-
-        return $this->rawData;
+        
+        return $retVal;
+    }
+    /**
+     * Returns the raw data of the file encoded using base 64 encoding.
+     * 
+     * @return string Raw data of the file encoded using base 64 encoding.
+     * 
+     * 
+     */
+    public function getRawDataEncoded() : string {
+        return base64_encode($this->rawData);
     }
     /**
      * Returns the size of the file in bytes.
@@ -522,7 +522,7 @@ class File implements JsonI {
      * 
      * @deprecated since version 1.1.5 Use File::setDir() instead.
      */
-    public function setPath(string $fPath) {
+    private function setPath(string $fPath) {
         $retVal = false;
         $pathV = self::_validatePath($fPath);
         $len = strlen($pathV);
@@ -542,13 +542,47 @@ class File implements JsonI {
      * 
      * @param string $raw Binary raw data of the file.
      * 
+     * @param boolean $decode If set to true, the method will assume that given
+     * data is encoded and the method will attempt to decode provided data.
+     * 
+     * @param boolean $strict If set to true, the method will only decode data
+     * within base64 alphabet. If any character is found to be outside base 64
+     * alphabet, it will throw an exception. Otherwise invalid characters will 
+     * be silently discarded.
+     * 
      * @since 1.0
      */
-    public function setRawData(string $raw) {
+    public function setRawData(string $raw, bool $decode = false, bool $strict = false) {
         if (strlen($raw) > 0) {
-            $this->rawData = $raw;
-            $this->_setSize(strlen($raw));
+            if ($decode === true) {
+                $this->setRawDataDecoded($raw, $strict);
+            } else {
+                $this->rawData = $raw;
+                $this->_setSize(strlen($raw));
+            }
         }
+    }
+    /**
+     * Sets the binary representation of the file.
+     * 
+     * This method will decode the given data using base 64 decoding before setting
+     * the data.
+     * 
+     * @param string $raw The raw data of the file.
+     * 
+     * @param boolean $strict If set to true, the method will only decode data
+     * within base64 alphabet. If any character is found to be outside base 64
+     * alphabet, it will throw an exception. Otherwise invalid characters will 
+     * be silently discarded.
+     */
+    public function setRawDataDecoded(string $raw, bool $strict = false) {
+        $decoded = base64_decode($raw, $strict);
+        
+        if ($decoded === false) {
+            throw new FileException('Base 64 decoding failed due to characters outside base 64 alphabet.');
+        }
+        $this->rawData = $decoded;
+        $this->_setSize(strlen($this->rawData));
     }
     /**
      * Returns a JSON string that represents the file.
