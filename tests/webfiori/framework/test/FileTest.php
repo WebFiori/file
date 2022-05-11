@@ -211,10 +211,22 @@ class FileTest extends TestCase {
         $this->assertFalse($file->remove());
     }
     /**
+     * @test
+     */
+    public function testCreate00() {
+        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'new.txt');
+        $this->assertFalse($file->isExist());
+        $file->create();
+        $this->assertTrue($file->isExist());
+        $file->remove();
+        $this->assertFalse($file->isExist());
+    }
+    /**
      * @depends test07
      */
     public function testWrite01() {
         $file = new File('hello.txt', ROOT_DIR);
+        $file->create();
         $file->setRawData('b');
         $file->write(true, true);
         $file->read();
