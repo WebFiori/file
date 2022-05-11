@@ -126,6 +126,66 @@ class FileTest extends TestCase {
     /**
      * @test
      */
+    public function testReadChunk01() {
+        $file = new File('text-file-3.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file->read();
+        $data = $file->getChunks();
+        $this->assertEquals([
+            "Testing the class 'File'. Hello. Good Bad Random\nT",
+            "esting the class 'File'. Hello. Good Bad Random\nTe",
+            "sting the class 'File'. Hello. Good Bad Random\nTes",
+            "ting the class 'File'. Hello. Good Bad Random\nTest",
+            "ing the class 'File'. Hello. Good Bad Random\nTesti",
+            "ng the class 'Fi"
+        ], $data);
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension00() {
+        $file = new File();
+        $this->assertEquals('bin', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension01() {
+        $file = new File('good/file');
+        $this->assertEquals('bin', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension02() {
+        $file = new File('good/file.mp3');
+        $this->assertEquals('mp3', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension03() {
+        $file = new File('good/file.xyz');
+        $this->assertEquals('xyz', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension04() {
+        $file = new File('good/file.xyz.super');
+        $this->assertEquals('super', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testReadChunk02() {
+        $file = new File();
+        $data = $file->getChunks();
+        $this->assertEquals([
+        ], $data);
+    }
+    /**
+     * @test
+     */
     public function testRead00() {
         $file = new File('not-exist.txt', ROOT_DIR);
         $this->expectException(FileException::class);
@@ -150,6 +210,22 @@ class FileTest extends TestCase {
         ]);
         $this->assertEquals(base64_encode("Testing the class 'File'. Super Cool.\nOk"), implode('', $file->getChunks(3, true)));
         $this->assertEquals('txt', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testLastModified00() {
+        $file = new File();
+        $this->assertEquals(0, $file->getLastModified());
+    }
+    /**
+     * @test
+     */
+    public function testLastModified01() {
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $time = filemtime($file->getAbsolutePath());
+        $this->assertEquals($time, $file->getLastModified());
+        $this->assertEquals(date('Y-m-d H:i:s', $time), $file->getLastModified('Y-m-d H:i:s'));
     }
     /**
      * @test
@@ -218,6 +294,29 @@ class FileTest extends TestCase {
         $this->assertFalse($file->isExist());
         $file->create();
         $this->assertTrue($file->isExist());
+        $file->remove();
+        $this->assertFalse($file->isExist());
+    }
+    /**
+     * @test
+     */
+    public function testCreate01() {
+        $this->expectException(FileException::class);
+        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
+        $this->assertFalse($file->isExist());
+        $file->create();
+        
+    }
+    /**
+     * @test
+     * @depends testCreate01
+     */
+    public function testCreate02() {
+        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
+        $this->assertFalse($file->isExist());
+        $file->create(true);
+        $this->assertTrue($file->isExist());
+        $this->assertEquals('{"id":-1,"mime":"text\/plain","name":"new.txt","directory":"'.Json::escapeJSONSpecialChars($file->getDir()).'","sizeInBytes":0,"sizeInKBytes":0,"sizeInMBytes":0}', $file.'');
         $file->remove();
         $this->assertFalse($file->isExist());
     }
