@@ -333,16 +333,9 @@ class File implements JsonI {
      * The raw data is simply a string. It can be binary string or any basic 
      * string.
      * 
-     * @param string $encodeOrDecode This parameter is used to base-64 decode or 
-     * encode file data. The parameter can have one of 3 values:
-     * <ul>
-     * <li>e: Encode the raw data of the file.</li>
-     * <li>d: Decode the raw data of the file.</li>
-     * <li>none: Return the raw data of the file as it is. This is the default value.</li>
-     * </ul>
-     * If any other value is given, the method will use 'none'. Usually, encoding is
-     * performed to make sure that the file does not get corrupted when its
-     * transferred on the web.
+     * @param string $encode EIf this parameter is set to true, the returned
+     * string will be base 64 encoded. Encoding is performed to make sure that 
+     * the file does not get corrupted when its transferred on the web.
      * 
      * @return string Raw data of the file. If no data is set, the method 
      * will return empty string.
@@ -678,6 +671,45 @@ class File implements JsonI {
         $this->_writeHelper($pathV, $append === true);
     }
     /**
+     * Reads a file and decode its content from base 64.
+     */
+    public function readDecoded() {
+        $this->read();
+        $raw = $this->getRawData();
+        $this->setRawData($raw, true);
+    }
+    /**
+     * Encode file data using base 64 and store it in binary file with the
+     * extension .bin
+     * 
+     * The final file name will consist of file name + original extension + 'bin'.
+     * For example, if file name is 'hello.txt', the output file will be 
+     * 'hello.txt.bin'.
+     */
+    public function writeEncoded() {
+        $currentName = $this->getName();
+        $this->setName($currentName.'.bin');
+        $this->create(true);
+        $pathV = $this->_checkNameAndPath();
+        $this->_writeHelper($pathV, false, true);
+        $this->setName($currentName);
+    }
+    /**
+     * Return file name without its extension.
+     * 
+     * @return string File name without its extension.
+     */
+    public function getNameWithNoExt() : string {
+        $currentName = $this->getName();
+        $expl = explode('.', $currentName);
+        
+        if (count($expl) > 1) {
+            array_pop($expl);
+        }
+        return implode('.', $expl);
+    }
+
+    /**
      * 
      * @return string
      * 
@@ -891,7 +923,7 @@ class File implements JsonI {
      * @return boolean
      * @throws FileException
      */
-    private function _writeHelper($fPath, $append) {
+    private function _writeHelper($fPath, $append, $encode = false) {
         if (strlen($this->getRawData()) == 0) {
             throw new FileException("No data is set to write.");
         }
@@ -908,7 +940,7 @@ class File implements JsonI {
         if (!is_resource($resource)) {
             throw new FileException('Unable to open the file at \''.$fPath.'\'.');
         } else {
-            fwrite($resource, $this->getRawData());
+            fwrite($resource, $this->getRawData($encode));
             fclose($resource);
 
             return true;
