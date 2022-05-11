@@ -16,7 +16,7 @@ use webfiori\json\JsonI;
  * @version 1.0
  */
 class File implements JsonI {
-    
+    private $createIfNotExist;
     /**
      * The name of the attachment.
      * 
@@ -102,17 +102,21 @@ class File implements JsonI {
     /**
      * Attempt to create the file if it does not exist.
      * 
+     * @param boolean $createDirIfNotExist If this parameter is set to true and
+     * choosen file path does not exist, the method will attempt to create the
+     * directory before creating the file. Default is false.
+     * 
      * @throws FileException
      */
-    public function create() {
+    public function create($createDirIfNotExist = false) {
         $fPath = $this->getAbsolutePath();
         
         if (!$this->isExist()) {
-            self::isDirectory($this->getDir(), true);
+            self::isDirectory($this->getDir(), $createDirIfNotExist);
             $resource = $this->_createResource('wb', $fPath);
             
             if (!is_resource($resource)) {
-                throw new FileException('Unable to open the file at \''.$fPath.'\'.');
+                throw new FileException('Unable to create a file at \''.$fPath.'\'.');
             } else {
                 fwrite($resource, '');
                 fclose($resource);
@@ -125,7 +129,8 @@ class File implements JsonI {
      * @return string
      */
     public function __toString() {
-        return $this->toJSON().'';
+        $str =  $this->toJSON().'';
+        return $str;
     }
     /**
      * Appends a string of data to the already existing data.
@@ -173,7 +178,7 @@ class File implements JsonI {
      * Split file raw data into chunks of fixed size.
      * 
      * @param int $chunkSize The number of bytes in every chunk. If a negative 
-     * number is given, default value is used which is 1000.
+     * number is given, default value is used which is 50.
      * 
      * @param boolean $encode If this parameter is set to true, the returned
      * chunks of data will be encoded using base 64 encoding.
@@ -183,16 +188,13 @@ class File implements JsonI {
      * 
      * @since 1.2.1
      */
-    public function getChunks(int $chunkSize = 1000, bool $encode = false) {
+    public function getChunks(int $chunkSize = 50, bool $encode = false) {
         if ($chunkSize < 0) {
-            $chunkSize = 1000;
+            $chunkSize = 50;
         }
         
         $data = $this->getRawData($encode);
         
-        if (strlen($data) == 0) {
-            return [];
-        }
         $dataLen = strlen($data);
         $retVal = [];
         $index = 0;
@@ -227,11 +229,9 @@ class File implements JsonI {
     /**
      * Extract file extension from file name and return it.
      * 
-     * File extension will depend on one of two things. If MIME of the file is
-     * set, then the extension of the file will depend on it. For example, if
-     * MIME of the file is 'video/mp4', the method will return the value 'mp4'.
-     * The other thing that will be checked is file name. If the extension is
-     * included in file name, it will be returned.
+     * File extension will depend on one of two things, file name and MIME. 
+     * If file name contains extension such as .xyz, then 'xyz' will be the returned
+     * value. If file name is not set, the method will return 'bin'.
      * 
      * @return string A string such as 'mp3' or 'jpeg'. Default return value is
      * 'bin' which stands for binary file.
@@ -239,6 +239,14 @@ class File implements JsonI {
      * @since 1.2.0
      */
     public function getExtension() : string {
+        
+        
+        $fArr = explode('.', $this->getName());
+
+        if (count($fArr) > 1) {
+            return $fArr[count($fArr) - 1];
+        }
+
         $mime = $this->getMIME();
         $mimeTypes = MIME::TYPES;
         
@@ -247,14 +255,6 @@ class File implements JsonI {
                 return $ext;
             }
         }
-        
-        $fArr = explode('.', $this->getName());
-
-        if (count($fArr) >= 1) {
-            return $fArr[count($fArr) - 1];
-        }
-
-        return 'bin';
     }
     /**
      * Returns MIME type of the file.
@@ -434,11 +434,7 @@ class File implements JsonI {
         $fPath = $this->_checkNameAndPath();
 
         if (!$this->_readHelper($fPath,$from,$to)) {
-            $fPath = str_replace('\\', '/', $this->getAbsolutePath());
-
-            if (!$this->_readHelper($fPath,$from,$to)) {
-                throw new FileException('File not found: \''.$fPath.'\'.');
-            }
+            throw new FileException('File not found: \''.$fPath.'\'.');
         }
     }
     /**
