@@ -126,7 +126,7 @@ class FileTest extends TestCase {
     /**
      * @test
      */
-    public function test08() {
+    public function testReadChunk01() {
         $file = new File('text-file-3.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->read();
         $data = $file->getChunks();
@@ -142,7 +142,42 @@ class FileTest extends TestCase {
     /**
      * @test
      */
-    public function test09() {
+    public function testGetExtension00() {
+        $file = new File();
+        $this->assertEquals('bin', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension01() {
+        $file = new File('good/file');
+        $this->assertEquals('bin', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension02() {
+        $file = new File('good/file.mp3');
+        $this->assertEquals('mp3', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension03() {
+        $file = new File('good/file.xyz');
+        $this->assertEquals('xyz', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testGetExtension04() {
+        $file = new File('good/file.xyz.super');
+        $this->assertEquals('super', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testReadChunk02() {
         $file = new File();
         $data = $file->getChunks();
         $this->assertEquals([
@@ -175,6 +210,21 @@ class FileTest extends TestCase {
         ]);
         $this->assertEquals(base64_encode("Testing the class 'File'. Super Cool.\nOk"), implode('', $file->getChunks(3, true)));
         $this->assertEquals('txt', $file->getExtension());
+    }
+    /**
+     * @test
+     */
+    public function testLastModified00() {
+        $file = new File();
+        $this->assertEquals(0, $file->getLastModified());
+    }
+    /**
+     * @test
+     */
+    public function testLastModified01() {
+        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $this->assertEquals(1652212899, $file->getLastModified());
+        $this->assertEquals('2022-05-10 20:01:39', $file->getLastModified('Y-m-d H:i:s'));
     }
     /**
      * @test
@@ -254,6 +304,7 @@ class FileTest extends TestCase {
         $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
         $this->assertFalse($file->isExist());
         $file->create();
+        
     }
     /**
      * @test
