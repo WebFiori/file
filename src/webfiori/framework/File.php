@@ -67,7 +67,7 @@ class File implements JsonI {
      * @since 1.0
      */
     private $rawData;
-    private $errFunc;
+    private static $errFunc;
     /**
      * Creates new instance of the class.
      * 
@@ -89,9 +89,7 @@ class File implements JsonI {
         $this->path = '';
         $this->fileName = '';
         $this->rawData = '';
-        $this->errFunc = function (int $errno, string $errstr, string $errfile, int $errline) {
-            throw new FileException($errstr.' At class File line '.$errline, $errno);
-        };
+        self::initErrHandler();
         if (!$this->setPath($fPath)) {
             $info = $this->_extractPathAndName($fNameOrAbsPath);
             $this->setDir($info['path']);
@@ -101,11 +99,16 @@ class File implements JsonI {
         }
 
         if (self::isFileExist($this->getAbsolutePath())) {
-            set_error_handler($this->errFunc);
+            set_error_handler(self::$errFunc);
             $this->fileSize = filesize($this->getAbsolutePath());
             restore_error_handler();
         }
         $this->id = -1;
+    }
+    private static function initErrHandler() {
+        self::$errFunc = function (int $errno, string $errstr, string $errfile, int $errline) {
+            throw new FileException($errstr.' At class File line '.$errline, $errno);
+        };
     }
     /**
      * Returns JSON string that represents basic file info.
@@ -443,7 +446,8 @@ class File implements JsonI {
      * @since 1.1.8
      */
     public static function isFileExist(string $path) : bool {
-        set_error_handler($this->errFunc);
+        self::initErrHandler();
+        set_error_handler(self::$errFunc);
         $isExist = file_exists($path);
         restore_error_handler();
 
@@ -738,7 +742,7 @@ class File implements JsonI {
         throw new FileException('File name cannot be empty string.');
     }
     private function _createResource($mode, $path) {
-        set_error_handler($this->errFunc);
+        set_error_handler(self::$errFunc);
         $resource = fopen($path, $mode);
         restore_error_handler();
 
