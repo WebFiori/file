@@ -179,7 +179,7 @@ class MIME {
      */
     public static function getType(string $ext) : string {
         $lowerCase = strtolower($ext);
-        $retVal = 'application/octet-stream';
+        $retVal = File::DEFAULT_MIME;
 
         $types = self::TYPES;
 

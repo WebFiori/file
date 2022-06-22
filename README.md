@@ -44,50 +44,99 @@ $fileData = $file->getRawData();
 // Do anything you like with data string.
 ```
 
+Also, it is possible to read a specific range of bytes by supplying the range to the method `File::read()`
+
+``` php
+$file = new File('path/to/my/file.txt');
+//Read bytes 10-100 inclusive
+$file->read(10, 100);
+
+$fileData = $file->getRawData();
+```
+
 ### Creating New File
 
 ``` php 
 $file = new File('path/to/my/new/file.txt');
+
+//The method File::create() is used to create new files
+$file->create();
 $file->setRawData('Hello World');
-
-$file->write(false, true);
-//The first parameter is used to append data to file.
-//If the file exist and set to true, data will be appended.
-//Second parameter is used to tell the class to create
-//The file if does not extst. If set to false and the
-//file does not exist, the class will throw an exception.
-
+$file->write();
 ```
 
 ### Appending to Existing File
 
 ``` php 
 $file = new File('path/to/my/old/file.txt');
-$file->setRawData('Another Hello World');
-$file->write(true);
+$file->setRawData('Hello');
+$file->write();
+$file->setRawData(' World');
+$file->write();
+
+//Setting raw data before each call to the method File::write() will append to file.
 ```
 
+### Override File 
+
+``` php 
+$file = new File('path/to/my/old/file.txt');
+$file->setRawData('Hello');
+$file->write();
+$file->setRawData(' World');
+$file->write(true);
+
+//By supplying true as parameter to the method File::write(), the old content of the file will be overridden. 
+```
 ### Encoding or Decoding of Files
 
 Base64 encoding and decoding is usually used to make sure that binary data is stored and transmitted reliably from one place to another. For more information, [read here](https://en.wikipedia.org/wiki/Base64)
 
+#### Decoding
 ``` php
 $file = new File('file.txt');
-$file->setRawData('Hello World');
 
-$encoded = $file->getRawData('e');
-//The 'e' here means 'base 64 encode'
+//'Hello World!' in base64
+$encodedData = 'SGVsbG8gV29ybGQh';
+
+$file->setRawData($encodedData, true);
+$decoded = $file->getRawData();
+
+//$decoded is now the string 'Hello World!'
+//By supplying true as second parameter to the method File::setRawData(), the method will decode given data
 ```
 
 ``` php
 $file = new File('file.txt');
 $file->setRawData('Hello World');
 
-$decoded = $file->getRawData('d');
-//The 'd' here means 'base 64 decode'
+$encoded = $file->getRawData(true);
+//$encoded is now the string 'SGVsbG8gV29ybGQh'
+//By supplying true as second parameter to the method File::getRawData(), the method will encode given data
+```
+
+### Reading and Storing Encoded Files
+The method `File::writeEncoded()` is used to write base 64 enceded binary files as follows.
+
+``` php
+$file = new File('my-img.png');
+$file->writeEncoded();
+
+//This will create new file with the name 'my-img.png.bin'
+```
+
+The method `File::readDecoded()` is used to read base 64 enceded binary files as follows.
+
+``` php
+$file = new File('some-binary-with-encoded.bin');
+$file->readDecoded();
+$decoded = $file->getRawData();
+
 ```
 
 ### Display File
+
+The method `File::view()` is used to dispatch the content of the file to front-end. It also supports the header `content-range` which can be used to get partial file content.
 
 ``` php 
 $file = new File('some-pdf.pdf');
@@ -110,10 +159,12 @@ Usually, when a big file is stored in a database table, it is encoded then divid
 $file = new File('some-big-movie-file.mp4');
 $file->read();
 
-//The size of each chunk will be 1500 bytes and they will be base 64 encoded.
+//The size of each chunk will be 1500 bytes and they will be base 64 encoded by default.
 $dataChunks = $file->getChunks(1500);
 
 foreach ($dataChunks as $chunk) {
     //......
 }
 ```
+
+Supplying `false` as second parameter to the method will disable base 64 encoding.
