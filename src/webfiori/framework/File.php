@@ -94,7 +94,9 @@ class File implements JsonI {
         }
 
         if (self::isFileExist($this->getAbsolutePath())) {
-            set_error_handler(null);
+            set_error_handler(function (int $no, string $message) {
+                throw new FileException($message, $no);
+            });
             $this->fileSize = filesize($this->getAbsolutePath());
             restore_error_handler();
         }
@@ -436,7 +438,9 @@ class File implements JsonI {
      * @since 1.1.8
      */
     public static function isFileExist(string $path) : bool {
-        set_error_handler(null);
+        set_error_handler(function (int $no, string $message) {
+            throw new FileException($message, $no);
+        });
         $isExist = file_exists($path);
         restore_error_handler();
 
@@ -731,7 +735,9 @@ class File implements JsonI {
         throw new FileException('File name cannot be empty string.');
     }
     private function _createResource($mode, $path) {
-        set_error_handler(null);
+        set_error_handler(function (int $no, string $message) {
+            throw new FileException($message, $no);
+        });
         $resource = fopen($path, $mode);
         restore_error_handler();
 
