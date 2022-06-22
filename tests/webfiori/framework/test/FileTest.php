@@ -397,35 +397,32 @@ class FileTest extends TestCase {
         $file->view();
         $this->assertEquals('Hello world!', Response::getBody());
         $this->assertEquals([
-            'accept-ranges' => [
-                'bytes'
-            ],
-            'content-type' => [
                 'text/plain'
-            ],
-            'content-length' => [
+        ], Response::getHeader('content-type'));
+        $this->assertEquals([
+                'bytes'
+        ], Response::getHeader('accept-ranges'));
+        $this->assertEquals([
                 $file->getSize()
-            ],
-            'content-disposition' => [
+        ], Response::getHeader('content-length'));
+        $this->assertEquals([
                 'inline; filename="super.txt"'
-            ]
-        ], Response::getHeaders());
+        ], Response::getHeader('content-disposition'));
+        
         Response::clear();
         $file->view(true);
         $this->assertEquals([
-            'accept-ranges' => [
-                'bytes'
-            ],
-            'content-type' => [
                 'text/plain'
-            ],
-            'content-length' => [
+        ], Response::getHeader('content-type'));
+        $this->assertEquals([
+                'bytes'
+        ], Response::getHeader('accept-ranges'));
+        $this->assertEquals([
                 $file->getSize()
-            ],
-            'content-disposition' => [
+        ], Response::getHeader('content-length'));
+        $this->assertEquals([
                 'attachment; filename="super.txt"'
-            ]
-        ], Response::getHeaders());
+        ], Response::getHeader('content-disposition'));
         Response::clear();
     }
     /**
@@ -435,20 +432,20 @@ class FileTest extends TestCase {
         $file = new File('text-file-2.txt',ROOT_DIR.DS.'tests'.DS.'files');
         $file->view();
         $this->assertEquals('Testing the class \'File\'.', Response::getBody());
+        
         $this->assertEquals([
-            'accept-ranges' => [
-                'bytes'
-            ],
-            'content-type' => [
                 'text/plain'
-            ],
-            'content-length' => [
+        ], Response::getHeader('content-type'));
+        $this->assertEquals([
+                'bytes'
+        ], Response::getHeader('accept-ranges'));
+        $this->assertEquals([
                 $file->getSize()
-            ],
-            'content-disposition' => [
+        ], Response::getHeader('content-length'));
+        $this->assertEquals([
                 'inline; filename="text-file-2.txt"'
-            ]
-        ], Response::getHeaders());
+        ], Response::getHeader('content-disposition'));
+        Response::clear();
         Response::clear();
     }
 }
