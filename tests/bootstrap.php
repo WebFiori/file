@@ -27,6 +27,8 @@ require_once $jsonLibPath.DS.'JsonTypes.php';
 require_once $jsonLibPath.DS.'Property.php';
 
 require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'Response.php';
+require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'HttpHeader.php';
+require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'HeadersPool.php';
 
 require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'File.php';
 require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'MIME.php';
