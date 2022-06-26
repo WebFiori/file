@@ -885,24 +885,30 @@ class File implements JsonI {
     }
 
     private function doNotUseClassResponse($contentType, $asAttachment) {
-        header('Accept-Ranges: bytes');
-        header('content-type: '.$contentType);
+        $headersArr = [
+            'Accept-Ranges: bytes',
+            'content-type: '.$contentType
+        ];
 
         if (isset($_SERVER['HTTP_RANGE'])) {
             $expl = $this->readRange();
             http_response_code(206);
-            header('content-range', 'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize());
-            header('content-length', $expl[1] - $expl[0]);
+            $headersArr[] = 'content-range: '.'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize();
+            $headersArr[] = 'content-length: '. ($expl[1] - $expl[0]);
         } else {
-            header('Content-Length', $this->getSize());
+            $headersArr[] = 'Content-Length: '.$this->getSize();
         }
 
         if ($asAttachment === true) {
-            header('Content-Disposition', 'attachment; filename="'.$this->getName().'"');
+            $headersArr[] = 'Content-Disposition: attachment; filename="'.$this->getName().'"';
         } else {
-            header('Content-Disposition', 'inline; filename="'.$this->getName().'"');
+            $headersArr[] = 'Content-Disposition: inline; filename="'.$this->getName().'"';
+        }
+        foreach ($headersArr as $h) {
+            header($h);
         }
         echo $this->getRawData();
+        die();
     }
     private function readRange() {
         $range = filter_var($_SERVER['HTTP_RANGE']);
@@ -949,7 +955,7 @@ class File implements JsonI {
     private function useClassResponse($contentType, $asAttachment) {
         Response::addHeader('Accept-Ranges', 'bytes');
         Response::addHeader('content-type', $contentType);
-
+        
         if (isset($_SERVER['HTTP_RANGE'])) {
             $expl = $this->readRange();
             Response::setCode(206);
@@ -965,5 +971,9 @@ class File implements JsonI {
             Response::addHeader('Content-Disposition', 'inline; filename="'.$this->getName().'"');
         }
         Response::write($this->getRawData());
+        
+        if (!defined('__PHPUNIT_PHAR__')) {
+            Response::send();
+        }
     }
 }
