@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\framework\exceptions;
+namespace webfiori\file\exceptions;
 
 use Exception;
 /**
