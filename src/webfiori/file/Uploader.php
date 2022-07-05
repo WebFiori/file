@@ -83,11 +83,9 @@ class Uploader implements JsonI {
         $this->files = [];
         $this->setAssociatedFileName('files');
 
-        if (strlen($uploadPath) == 0) {
-            $uploadPath = ROOT_DIR.DS.APP_DIR_NAME.DS.'sto'.DS.'uploads';
+        if (!$this->setUploadDir($uploadPath)) {
+            $this->uploadDir = '';
         }
-
-        $this->setUploadDir($uploadPath);
         $this->addExts($allowedTypes);
     }
     /**
@@ -227,7 +225,7 @@ class Uploader implements JsonI {
     /**
      * Returns the directory at which the file or files will be uploaded to.
      * 
-     * @return string upload directory.
+     * @return string upload directory. Default return value is empty string.
      * 
      * @since 1.0
      */
@@ -273,7 +271,10 @@ class Uploader implements JsonI {
      * @since 1.0
      */
     public function setAssociatedFileName(string $name) {
-        $this->asscociatedName = $name;
+        $trimmed = trim($name);
+        if (strlen($trimmed) != 0) {
+            $this->asscociatedName = $trimmed;
+        }
     }
     /**
      * Sets the directory at which the file will be uploaded to.
@@ -309,7 +310,7 @@ class Uploader implements JsonI {
 
             if (strlen($dir) > 0) {
                 $dir = str_replace('/', '\\', $dir);
-                $this->uploadDir = !Util::isDirectory($dir) ? '\\'.$dir : $dir;
+                $this->uploadDir = !File::isDirectory($dir) ? '\\'.$dir : $dir;
                 $retVal = true;
             }
         }
