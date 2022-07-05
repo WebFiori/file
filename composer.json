@@ -19,5 +19,10 @@
         "file",
         "files"
     ],
+    "autoload" :{
+        "psr-4":{
+            "webfiori\\file\\":"src\\webfiori\\file"
+        }
+    },
     "license": "MIT"
 }
