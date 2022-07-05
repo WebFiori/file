@@ -2,8 +2,8 @@
 namespace webfiori\framework\test;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\framework\File;
-use webfiori\framework\exceptions\FileException;
+use webfiori\file\File;
+use webfiori\file\exceptions\FileException;
 use webfiori\http\Response;
 use webfiori\json\Json;
 /**
