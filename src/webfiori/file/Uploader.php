@@ -457,11 +457,11 @@ class Uploader implements JsonI {
 
         if (!$isErr) {
             if ($this->isValidExt($fileInfoArr[$indices[0]])) {
-                if (Util::isDirectory($this->getUploadDir())) {
+                if (File::isDirectory($this->getUploadDir())) {
                     $filePath = $this->getUploadDir().'\\'.$fileInfoArr[$indices[0]];
                     $filePath = str_replace('\\', '/', $filePath);
 
-                    if (!file_exists($filePath)) {
+                    if (!File::isFileExist($filePath)) {
                         $fileInfoArr[$indices[4]] = false;
                         $fileInfoArr[$indices[5]] = false;
                         $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
