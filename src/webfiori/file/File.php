@@ -638,15 +638,15 @@ class File implements JsonI {
      * @since 1.0
      */
     public function toJSON() : Json {
-
+        $size = $this->getSize() != -1 ? $this->getSize() : 0;
         return new Json([
             'id' => $this->getID(),
             'mime' => $this->getMIME(),
             'name' => $this->getName(),
             'directory' => $this->getDir(),
-            'sizeInBytes' => $this->getSize(),
-            'sizeInKBytes' => $this->getSize() / 1024,
-            'sizeInMBytes' => ($this->getSize() / 1024) / 1024
+            'sizeInBytes' => $size,
+            'sizeInKBytes' => $size / 1024,
+            'sizeInMBytes' => ($size / 1024) / 1024
         ]);
     }
     /**
