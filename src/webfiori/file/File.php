@@ -116,9 +116,8 @@ class File implements JsonI {
      * @return string
      */
     public function __toString() {
-        $str = $this->toJSON().'';
 
-        return $str;
+        return $this->toJSON().'';
     }
     /**
      * Appends a string of data to the already existing data.
@@ -639,12 +638,6 @@ class File implements JsonI {
      * @since 1.0
      */
     public function toJSON() : Json {
-        try {
-            // This is used just to set the size of the file.
-            $this->read();
-        } catch (FileException $ex) {
-        } 
-
 
         return new Json([
             'id' => $this->getID(),
