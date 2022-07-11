@@ -93,5 +93,8 @@ class UploaderTest extends TestCase {
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)).DS.'testUpload.txt',$file->getAbsolutePath());
         
         $this->assertEquals(0,$file->getUploadError());
+        $this->assertEquals("{\"id\":-1,\"mime\":\"text\/plain\",\"name\":\"testUpload.txt\""
+                . ",\"directory\":\"".ROOT_DIR."webfiori\\framework\\test\",\"sizeInBytes\":0,"
+                . "\"sizeInKBytes\":0,\"sizeInMBytes\":0,\"uploaded\":false,\"isReplace\":false,\"uploadError\":0}", $file.'');
     }
 }
