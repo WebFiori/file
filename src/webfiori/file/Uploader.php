@@ -300,20 +300,11 @@ class Uploader implements JsonI {
         $len = strlen($dir);
 
         if ($len > 0) {
-            while ($dir[$len - 1] == '/' || $dir[$len - 1] == '\\') {
-                $tmpDir = trim($dir,'/');
-                $dir = trim($tmpDir,'\\');
-                $len = strlen($dir);
-            }
+            $fixedPath = File::fixPath($dir);
 
-            while ($dir[0] == '/' || $dir[0] == '\\') {
-                $tmpDir = trim($dir,'/');
-                $dir = trim($tmpDir,'\\');
-            }
-
-            if (strlen($dir) > 0) {
-                $dir = str_replace('/', '\\', $dir);
-                $this->uploadDir = !File::isDirectory($dir) ? '\\'.$dir : $dir;
+            if (strlen($fixedPath) > 0) {
+                $dir = str_replace('/', '\\', $fixedPath);
+                $this->uploadDir = !File::isDirectory($fixedPath) ? '\\'.$fixedPath : $fixedPath;
                 $retVal = true;
             }
         }
