@@ -819,7 +819,7 @@ class File implements JsonI {
             $this->fileSize = $size;
         }
     }
-    private static function _validatePath($fPath) {
+    public static function fixPath($fPath) {
         $DS = DIRECTORY_SEPARATOR;
         $trimmedPath = str_replace('/', $DS, str_replace('\\', $DS, trim($fPath)));
         $len = strlen($trimmedPath);
@@ -941,7 +941,7 @@ class File implements JsonI {
      */
     private function setPath(string $fPath) {
         $retVal = false;
-        $pathV = self::_validatePath($fPath);
+        $pathV = self::fixPath($fPath);
         $len = strlen($pathV);
 
         if ($len > 0) {
