@@ -4,9 +4,11 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>./src/webfiori/framework/File.php</file>
-            <file>./src/webfiori/framework/MIME.php</file>
-            <file>./src/webfiori/framework/exceptions/FileException.php</file>
+            <file>./src/webfiori/file/File.php</file>
+            <file>./src/webfiori/file/MIME.php</file>
+            <file>./src/webfiori/file/UploadFile.php</file>
+            <file>./src/webfiori/file/Uploader.php</file>
+            <file>./src/webfiori/file/exceptions/FileException.php</file>
         </whitelist>
     </filter>
     <logging>

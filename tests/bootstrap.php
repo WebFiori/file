@@ -7,7 +7,7 @@ $testsDirName = 'tests';
 $rootDir = substr(__DIR__, 0, strlen(__DIR__) - strlen($testsDirName));
 $DS = DIRECTORY_SEPARATOR;
 $rootDirTrimmed = trim($rootDir,'/\\');
-echo 'Include Path: \''.get_include_path().'\''."\n";
+//echo 'Include Path: \''.get_include_path().'\''."\n";
 
 if (explode($DS, $rootDirTrimmed)[0] == 'home') {
     //linux.
@@ -17,7 +17,7 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 }
 define('ROOT_DIR', $rootDir);
 define('DS', DIRECTORY_SEPARATOR);
-echo 'Root Directory: \''.$rootDir.'\'.'."\n";
+//echo 'Root Directory: \''.$rootDir.'\'.'."\n";
 $jsonLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'jsonx'.DS.'webfiori'.DS.'json';
 require_once $jsonLibPath.DS.'JsonI.php';
 require_once $jsonLibPath.DS.'Json.php';
@@ -30,7 +30,11 @@ require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.D
 require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'HttpHeader.php';
 require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'HeadersPool.php';
 
-require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'File.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'MIME.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'framework'.DS.'exceptions'.DS.'FileException.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'File.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'MIME.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'Uploader.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'UploadFile.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'UploadErr.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'MIME.php';
+require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'exceptions'.DS.'FileException.php';
 

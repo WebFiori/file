@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\framework;
+namespace webfiori\file;
 
 /**
  * A helper class with single method which is used to detect MIME of file

@@ -1,7 +1,7 @@
 <?php
-namespace webfiori\framework;
+namespace webfiori\file;
 
-use webfiori\framework\exceptions\FileException;
+use webfiori\file\exceptions\FileException;
 use webfiori\http\Response;
 use webfiori\json\Json;
 use webfiori\json\JsonI;
@@ -116,9 +116,8 @@ class File implements JsonI {
      * @return string
      */
     public function __toString() {
-        $str = $this->toJSON().'';
 
-        return $str;
+        return $this->toJSON().'';
     }
     /**
      * Appends a string of data to the already existing data.
@@ -639,21 +638,15 @@ class File implements JsonI {
      * @since 1.0
      */
     public function toJSON() : Json {
-        try {
-            // This is used just to set the size of the file.
-            $this->read();
-        } catch (FileException $ex) {
-        } 
-
-
+        $size = $this->getSize() != -1 ? $this->getSize() : 0;
         return new Json([
             'id' => $this->getID(),
             'mime' => $this->getMIME(),
             'name' => $this->getName(),
             'directory' => $this->getDir(),
-            'sizeInBytes' => $this->getSize(),
-            'sizeInKBytes' => $this->getSize() / 1024,
-            'sizeInMBytes' => ($this->getSize() / 1024) / 1024
+            'sizeInBytes' => $size,
+            'sizeInKBytes' => $size / 1024,
+            'sizeInMBytes' => ($size / 1024) / 1024
         ]);
     }
     /**
@@ -819,7 +812,7 @@ class File implements JsonI {
             $this->fileSize = $size;
         }
     }
-    private static function _validatePath($fPath) {
+    public static function fixPath($fPath) {
         $DS = DIRECTORY_SEPARATOR;
         $trimmedPath = str_replace('/', $DS, str_replace('\\', $DS, trim($fPath)));
         $len = strlen($trimmedPath);
@@ -941,7 +934,7 @@ class File implements JsonI {
      */
     private function setPath(string $fPath) {
         $retVal = false;
-        $pathV = self::_validatePath($fPath);
+        $pathV = self::fixPath($fPath);
         $len = strlen($pathV);
 
         if ($len > 0) {
