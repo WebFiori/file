@@ -34,7 +34,7 @@ class UploaderTest extends TestCase {
         $this->assertEquals([
             'sps', 'pdf', 'xop'
         ], $u->getExts());
-        $this->assertEquals(__DIR__, $u->getUploadDir());
+        $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)), $u->getUploadDir());
     }
     /**
      * @test
@@ -66,7 +66,7 @@ class UploaderTest extends TestCase {
            [
                'name' => 'testUpload.txt',
                'size' => 51,
-               'upload-path' => str_replace('/', '\\', __DIR__),
+               'upload-path' => str_replace('/', DS, str_replace('\\', DS, __DIR__)),
                'upload-error' => 0,
                'mime' => 'text/plain',
                'is-exist' => false,
@@ -89,8 +89,8 @@ class UploaderTest extends TestCase {
         $this->assertFalse($file->isUploaded());
         $this->assertFalse($file->isReplace());
         $this->assertEquals('text/plain',$file->getMIME());
-        $this->assertEquals(str_replace('/', '\\', __DIR__),$file->getDir());
-        $this->assertEquals(str_replace('/', '\\', __DIR__).DS.'testUpload.txt',$file->getAbsolutePath());
+        $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)),$file->getDir());
+        $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)).DS.'testUpload.txt',$file->getAbsolutePath());
         
         $this->assertEquals(0,$file->getUploadError());
     }
