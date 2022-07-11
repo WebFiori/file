@@ -5,6 +5,7 @@ namespace webfiori\framework\test;
 use webfiori\file\Uploader;
 use PHPUnit\Framework\TestCase;
 use webfiori\file\UploadFile;
+use webfiori\json\Json;
 /**
  * Description of UploaderTest
  *
@@ -94,7 +95,7 @@ class UploaderTest extends TestCase {
         
         $this->assertEquals(0,$file->getUploadError());
         $this->assertEquals("{\"id\":-1,\"mime\":\"text\/plain\",\"name\":\"testUpload.txt\""
-                . ",\"directory\":\"".ROOT_DIR."webfiori\\framework\\test\",\"sizeInBytes\":0,"
+                . ",\"directory\":\"".Json::escapeJSONSpecialChars(ROOT_DIR."webfiori\\framework\\test\\")."\",\"sizeInBytes\":0,"
                 . "\"sizeInKBytes\":0,\"sizeInMBytes\":0,\"uploaded\":false,\"isReplace\":false,\"uploadError\":0}", $file.'');
     }
 }
