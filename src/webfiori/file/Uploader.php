@@ -88,6 +88,9 @@ class Uploader implements JsonI {
         }
         $this->addExts($allowedTypes);
     }
+    public function getUploadStatus() {
+        
+    }
     /**
      * Returns a JSON string that represents the object.
      * 
@@ -369,7 +372,7 @@ class Uploader implements JsonI {
         }
         $reqMeth = filter_var($meth, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-        if ($reqMeth == 'POST') {
+        if (strtoupper($reqMeth) == 'POST') {
             $fileOrFiles = null;
             $associatedInputName = filter_input(INPUT_POST, 'file');
 
@@ -388,17 +391,31 @@ class Uploader implements JsonI {
 
                     for ($x = 0 ; $x < $filesCount ; $x++) {
                         $fileInfoArr = $this->_getFileArr($fileOrFiles, $replaceIfExist, $x);
-                        array_push($this->files, $fileInfoArr);
+                        $this->files[] = $fileInfoArr;
                     }
                 } else {
                     //single file upload
                     $fileInfoArr = $this->_getFileArr($fileOrFiles, $replaceIfExist);
-                    array_push($this->files, $fileInfoArr);
+                    $this->files[] = $fileInfoArr;
                 }
             }
         }
 
         return $this->files;
+    }
+    public function addTestFile(string $fileIdx, string $filePath) {
+        
+        if (!isset($_FILES[$fileIdx])) {
+            $_FILES[$fileIdx] = [];
+        }
+        
+        $file = new File($filePath);
+        $_FILES[$fileIdx]['name'] = $file->getName();
+        $_FILES[$fileIdx]['type'] = $file->getMIME();
+        $_FILES[$fileIdx]['size'] = $file->getSize();
+        $_FILES[$fileIdx]['tmp_name'] = $file->getAbsolutePath();
+        $_FILES[$fileIdx]['error'] = 0;
+        var_dump(ini_get('upload_tmp_dir'));
     }
     /**
      * Returns an array that contains objects of type 'UploadedFile'.
@@ -433,7 +450,7 @@ class Uploader implements JsonI {
         return $file;
     }
     private function _getFileArr($fileOrFiles,$replaceIfExist, $idx = null) {
-        $mimeFunc = 'mime_content_type';
+        
         $indices = [
             'name',//0
             'size',//1
@@ -451,7 +468,8 @@ class Uploader implements JsonI {
         $fileInfoArr[$indices[1]] = $idx === null ? filter_var($fileOrFiles[$indices[1]], FILTER_SANITIZE_NUMBER_INT) : filter_var($fileOrFiles[$indices[1]][$idx], FILTER_SANITIZE_NUMBER_INT);
         $fileInfoArr[$indices[2]] = $this->getUploadDir();
         $fileInfoArr[$indices[3]] = 0;
-        $fileInfoArr[$indices[6]] = 'N/A';
+        $nameSplit = explode('.', $fileInfoArr[$indices[0]]);
+        $fileInfoArr[$indices[6]] = MIME::getType($nameSplit[count($nameSplit) - 1]);
 
         $isErr = $idx === null ? $this->isError($fileOrFiles[$errIdx]) : $this->isError($fileOrFiles[$errIdx][$idx]);
 
@@ -469,27 +487,11 @@ class Uploader implements JsonI {
 
                         if (move_uploaded_file($sanitizedName, $filePath)) {
                             $fileInfoArr[$indices[7]] = true;
-
-                            if (function_exists($mimeFunc)) {
-                                $fPath = str_replace('\\','/',$fileInfoArr[$indices[2]].'/'.$fileInfoArr[$indices[0]]);
-                                $fileInfoArr[$indices[6]] = mime_content_type($fPath);
-                            } else {
-                                $ext = pathinfo($fileInfoArr[$indices[0]], PATHINFO_EXTENSION);
-                                $fileInfoArr[$indices[6]] = MIME::getType($ext);
-                            }
                         } else {
                             $fileInfoArr[$indices[7]] = false;
                         }
                     } else {
                         $fileInfoArr[$indices[4]] = true;
-
-                        if (function_exists($mimeFunc)) {
-                            $fPath = str_replace('\\','/',$fileInfoArr[$indices[2]].'/'.$fileInfoArr[$indices[0]]);
-                            $fileInfoArr[$indices[6]] = mime_content_type($fPath);
-                        } else {
-                            $ext = pathinfo($fileInfoArr[$indices[0]], PATHINFO_EXTENSION);
-                            $fileInfoArr[$indices[6]] = MIME::getType($ext);
-                        }
 
                         if ($replaceIfExist) {
                             $fileInfoArr[$indices[5]] = true;
