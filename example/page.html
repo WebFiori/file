@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Testing Upload Function</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/usernane/AJAXRequestJs@2.x.x/AJAXRequest.js"></script>
+    </head>
+    <body>
+        <div id="app">
+        <v-app>
+          <v-main>
+              <v-container>
+                  <v-row>
+                      <v-col cols=12>
+                          This example uses Vue and Vuetify as frontend to upload
+                          files to the server. The file 'page.html' is used to handle
+                          frontend logic. While the file 'upload-file.php' is used to
+                          handle backend logic for uploading files.
+                      </v-col>
+                  </v-row>
+                  <v-row>
+                      <v-col cols="12" sm="12" md="4">
+                          <v-file-input label="Select your file..." v-model="file" @change="uploadFile">
+                              
+                          </v-file-input>
+                      </v-col>
+                  </v-row>
+              </v-container>
+          </v-main>
+          <v-snackbar
+            :value="snackbar"
+            absolute
+            :color="color"
+            left
+            shaped
+            bottom
+          >
+            {{message}}
+          </v-snackbar>
+        </v-app>
+    </div>
+    </body>
+    <script>
+        
+        const vue = new Vue({
+          el: '#app',
+          data:{
+            file:null,
+            snackbar:false,
+            message:'',
+            color:'black'
+          },
+          methods:{
+            uploadFile:function() {
+                if (this.file) {
+                    this.message = 'Uploading...';
+                    ajax.setParams({
+                        files:this.file
+                    });
+                    ajax.setMethod('post');
+                    ajax.setURL('upload-file.php');
+                    ajax.send();
+                } else {
+                    this.message = 'Please select a file first.';
+                }
+                this.snackbar = true;
+            }  
+          },
+          vuetify: new Vuetify(),
+        });
+        ajax.setOnSuccess(function () {
+            vue.message = this.response;
+            vue.snackbar = true;
+            vue.color = 'green';
+        });
+        ajax.setAfterAjax(function () {
+            if (this.status >= 400) {
+                vue.message = this.response;
+                vue.color = 'red';
+                vue.snackbar = true;
+            }
+            setTimeout(function() {
+                vue.snackbar = false;
+                vue.color = 'black';
+            }, 3000);
+        });
+    </script>
+</html>
