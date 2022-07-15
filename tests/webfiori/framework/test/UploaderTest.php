@@ -6,6 +6,7 @@ use webfiori\file\Uploader;
 use PHPUnit\Framework\TestCase;
 use webfiori\file\UploadFile;
 use webfiori\json\Json;
+use webfiori\file\File;
 /**
  * Description of UploaderTest
  *
@@ -61,7 +62,7 @@ class UploaderTest extends TestCase {
         $u = new Uploader(__DIR__, [
             'txt'
         ]);
-        $u->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt');
+        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
         $r = $u->upload();
         $this->assertEquals([
            [
@@ -109,8 +110,8 @@ class UploaderTest extends TestCase {
         $_SERVER['REQUEST_METHOD'] = 'post';
         $this->assertTrue($u->addExt('txt'));
         $this->assertFalse($u->addExt('   '));
-        $u->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt');
-        $u->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'not-allowed.xp');
+        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'not-allowed.xp');
         $r = $u->uploadAsFileObj();
         
         $file1 = $r[0];
@@ -184,5 +185,32 @@ class UploaderTest extends TestCase {
         $this->assertEquals([
             'txt', 'jpg', 'png'
         ], $u->getExts());
+    }
+    /**
+     * Adds a test file for testing upload functionality.
+     * 
+     * @param string $fileIdx
+     * @param string $filePath
+     * @param type $reset
+     */
+    public function addTestFile(string $fileIdx, string $filePath, $reset = false) {
+        if ($reset) {
+            $_FILES = [];
+        }
+        if (!isset($_FILES[$fileIdx])) {
+            $_FILES[$fileIdx] = [];
+            $_FILES[$fileIdx]['name'] = [];
+            $_FILES[$fileIdx]['type'] = [];
+            $_FILES[$fileIdx]['size'] = [];
+            $_FILES[$fileIdx]['tmp_name'] = [];
+            $_FILES[$fileIdx]['error']  = [];
+        }
+        
+        $file = new File($filePath);
+        $_FILES[$fileIdx]['name'][] = $file->getName();
+        $_FILES[$fileIdx]['type'][] = $file->getMIME();
+        $_FILES[$fileIdx]['size'][] = $file->getSize();
+        $_FILES[$fileIdx]['tmp_name'][] = $file->getAbsolutePath();
+        $_FILES[$fileIdx]['error'][] = 0;
     }
 }
