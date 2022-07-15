@@ -1,0 +1,1 @@
+This example uses Vue and Vuetify as frontend to upload files to the server. The file 'page.html' is used to handle frontend logic. While the file 'upload-file.php' is used to handle backend logic for uploading files.

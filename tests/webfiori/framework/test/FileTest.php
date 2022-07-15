@@ -395,6 +395,9 @@ class FileTest extends TestCase {
         $file = new File('super.txt');
         $file->setRawData('Hello world!');
         $file->view();
+        $this->assertEquals([
+            'text/plain'
+        ], Response::getHeader('content-type'));
         $this->assertEquals('Hello world!', Response::getBody());
         $this->assertEquals([
                 'text/plain'
