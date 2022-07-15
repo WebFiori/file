@@ -88,9 +88,6 @@ class Uploader implements JsonI {
         }
         $this->addExts($allowedTypes);
     }
-    public function getUploadStatus() {
-        
-    }
     /**
      * Returns a JSON string that represents the object.
      * 
@@ -245,16 +242,22 @@ class Uploader implements JsonI {
      * @since 1.0
      */
     public function removeExt(string $ext) : bool {
-        $count = count($this->extentions);
+        $exts = $this->getExts();
+        $count = count($exts);
         $retVal = false;
-
+        $temp = [];
+        $ext = str_replace('.', '', $ext);
+        
         for ($x = 0 ; $x < $count ; $x++) {
-            if ($this->extentions[$x] == $ext) {
-                unset($this->extentions[$x]);
+            
+            if ($exts[$x] != $ext) {
+                $temp[] = $exts[$x];           
+            } else {
                 $retVal = true;
             }
         }
-
+        $this->extentions = $temp;
+        
         return $retVal;
     }
     /**
@@ -398,14 +401,19 @@ class Uploader implements JsonI {
         
         if (!isset($_FILES[$fileIdx])) {
             $_FILES[$fileIdx] = [];
+            $_FILES[$fileIdx]['name'] = [];
+            $_FILES[$fileIdx]['type'] = [];
+            $_FILES[$fileIdx]['size'] = [];
+            $_FILES[$fileIdx]['tmp_name'] = [];
+            $_FILES[$fileIdx]['error']  = [];
         }
         
         $file = new File($filePath);
-        $_FILES[$fileIdx]['name'] = $file->getName();
-        $_FILES[$fileIdx]['type'] = $file->getMIME();
-        $_FILES[$fileIdx]['size'] = $file->getSize();
-        $_FILES[$fileIdx]['tmp_name'] = $file->getAbsolutePath();
-        $_FILES[$fileIdx]['error'] = 0;
+        $_FILES[$fileIdx]['name'][] = $file->getName();
+        $_FILES[$fileIdx]['type'][] = $file->getMIME();
+        $_FILES[$fileIdx]['size'][] = $file->getSize();
+        $_FILES[$fileIdx]['tmp_name'][] = $file->getAbsolutePath();
+        $_FILES[$fileIdx]['error'][] = 0;
         var_dump(ini_get('upload_tmp_dir'));
     }
     /**
