@@ -26,6 +26,5 @@
         "psr-4":{
             "webfiori\\file\\":"webfiori\\file"
         }
-    },
-    "license": "MIT"
+    }
 }
