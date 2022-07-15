@@ -414,7 +414,6 @@ class Uploader implements JsonI {
         $_FILES[$fileIdx]['size'][] = $file->getSize();
         $_FILES[$fileIdx]['tmp_name'][] = $file->getAbsolutePath();
         $_FILES[$fileIdx]['error'][] = 0;
-        var_dump(ini_get('upload_tmp_dir'));
     }
     /**
      * Returns an array that contains objects of type 'UploadedFile'.
