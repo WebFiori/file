@@ -30,11 +30,11 @@ require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.D
 require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'HttpHeader.php';
 require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.DS.'HeadersPool.php';
 
-require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'File.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'MIME.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'Uploader.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'UploadFile.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'UploadErr.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'MIME.php';
-require_once $rootDir.'src'.DS.'webfiori'.DS.'file'.DS.'exceptions'.DS.'FileException.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'File.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'MIME.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'Uploader.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'UploadFile.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'UploadErr.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'MIME.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'exceptions'.DS.'FileException.php';
 
