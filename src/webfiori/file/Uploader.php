@@ -397,24 +397,7 @@ class Uploader implements JsonI {
 
         return $this->files;
     }
-    public function addTestFile(string $fileIdx, string $filePath) {
-        
-        if (!isset($_FILES[$fileIdx])) {
-            $_FILES[$fileIdx] = [];
-            $_FILES[$fileIdx]['name'] = [];
-            $_FILES[$fileIdx]['type'] = [];
-            $_FILES[$fileIdx]['size'] = [];
-            $_FILES[$fileIdx]['tmp_name'] = [];
-            $_FILES[$fileIdx]['error']  = [];
-        }
-        
-        $file = new File($filePath);
-        $_FILES[$fileIdx]['name'][] = $file->getName();
-        $_FILES[$fileIdx]['type'][] = $file->getMIME();
-        $_FILES[$fileIdx]['size'][] = $file->getSize();
-        $_FILES[$fileIdx]['tmp_name'][] = $file->getAbsolutePath();
-        $_FILES[$fileIdx]['error'][] = 0;
-    }
+    
     /**
      * Returns an array that contains objects of type 'UploadedFile'.
      * 
