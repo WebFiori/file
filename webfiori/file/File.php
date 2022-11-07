@@ -410,16 +410,19 @@ class File implements JsonI {
      * @since 1.0 
      */
     public static function isDirectory($dir, $createIfNot = false) : bool {
+        self::initErrHandler();
         $dirFix = str_replace('\\', '/', $dir);
-
-        if (!is_dir($dirFix)) {
+        set_error_handler(self::$errFunc);
+        
+        if (!is_dir($dirFix) || !file_exists($dirFix)) {
             if ($createIfNot === true && mkdir($dir, 0777 , true)) {
+                restore_error_handler();
                 return true;
             }
-
+            restore_error_handler();
             return false;
         } 
-
+        restore_error_handler();
         return true;
     }
     /**

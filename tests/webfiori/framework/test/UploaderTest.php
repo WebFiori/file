@@ -2,11 +2,12 @@
 
 namespace webfiori\framework\test;
 
-use webfiori\file\Uploader;
 use PHPUnit\Framework\TestCase;
+use webfiori\file\exceptions\FileException;
+use webfiori\file\File;
+use webfiori\file\Uploader;
 use webfiori\file\UploadFile;
 use webfiori\json\Json;
-use webfiori\file\File;
 /**
  * Description of UploaderTest
  *
@@ -37,6 +38,28 @@ class UploaderTest extends TestCase {
             'sps', 'pdf', 'xop'
         ], $u->getExts());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)), $u->getUploadDir());
+    }
+    /**
+     * @test
+     */
+    public function test02() {
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('Invalid upload directory: Not?Dir');
+        $u = new Uploader('Not?Dir');
+        $this->assertEquals('files', $u->getAssociatedFileName());
+        $this->assertEquals([], $u->getExts());
+        $this->assertEquals('', $u->getUploadDir());
+    }
+    /**
+     * @test
+     */
+    public function test03() {
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('Invalid upload directory: Not Exist');
+        $u = new Uploader('Not Exist');
+        $this->assertEquals('files', $u->getAssociatedFileName());
+        $this->assertEquals([], $u->getExts());
+        $this->assertEquals('', $u->getUploadDir());
     }
     /**
      * @test
@@ -98,6 +121,14 @@ class UploaderTest extends TestCase {
         $this->assertEquals("{\"id\":-1,\"mime\":\"text\/plain\",\"name\":\"testUpload.txt\""
                 . ",\"directory\":\"".Json::escapeJSONSpecialChars($file->getDir())."\",\"sizeInBytes\":0,"
                 . "\"sizeInKBytes\":0,\"sizeInMBytes\":0,\"uploaded\":false,\"isReplace\":false,\"uploadError\":0}", $file.'');
+    }
+    public function testUpload02() {
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('Upload path is not set.');
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new Uploader();
+        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
     }
     /**
      * @test
