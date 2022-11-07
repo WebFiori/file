@@ -763,9 +763,7 @@ class File implements JsonI {
             $name = $pathArr[count($pathArr) - 1];
 
             for ($x = 0 ; $x < count($pathArr) - 1 ; $x++) {
-                if (strlen($pathArr[$x]) != 0) {
-                    $fPath .= $pathArr[$x].$DS;
-                }
+                $fPath .= $pathArr[$x].$DS;
             }
 
             return [
