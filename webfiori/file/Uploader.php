@@ -1,9 +1,10 @@
 <?php
 namespace webfiori\file;
 
+use webfiori\file\exceptions\FileException;
+use webfiori\file\MIME;
 use webfiori\json\Json;
 use webfiori\json\JsonI;
-use webfiori\file\MIME;
 /**
  * A helper class that is used to upload most types of files to the server's file system.
  * 
@@ -82,11 +83,12 @@ class Uploader implements JsonI {
         $this->uploadStatusMessage = 'NO ACTION';
         $this->files = [];
         $this->setAssociatedFileName('files');
-
-        if (!$this->setUploadDir($uploadPath)) {
-            $this->uploadDir = '';
-        }
         $this->addExts($allowedTypes);
+        $this->uploadDir = '';
+        
+        if (strlen($uploadPath) != 0) {
+            $this->setUploadDir($uploadPath);
+        }
     }
     /**
      * Returns a JSON string that represents the object.
@@ -285,34 +287,36 @@ class Uploader implements JsonI {
     /**
      * Sets the directory at which the file will be uploaded to.
      * 
-     * This method does not check whether the directory is exist or not. It 
-     * just validate that the structure of the path is valid by replacing 
-     * forward slashes with backward slashes. The directory will never update 
-     * if the given string is empty.
+     * This method will first check whether the directory is exist or not. then 
+     * it validate that the structure of the path is valid by replacing 
+     * forward slashes with backward slashes.
      * 
      * @param string $dir Upload Directory (such as '/files/uploads' or 
      * 'C:/Server/uploads'). 
      * 
-     * @return boolean If upload directory was updated, the method will 
-     * return true. If not updated, the method will return false.
+     * 
+     * @throws FileException If given directory is invalid or was not set.
      * 
      * @since 1.0
      */
     public function setUploadDir(string $dir) {
-        $retVal = false;
-        $len = strlen($dir);
+        
+        $fixedPath = File::fixPath($dir);
+        
+        $dir = str_replace('/', '\\', $fixedPath);
+        if (strlen($dir) == 0) {
+            throw new FileException('Upload directory should not be an empty string.');
+        }
+        try {
+            $this->uploadDir = !File::isDirectory($fixedPath) ? '\\'.$fixedPath : $fixedPath;
 
-        if ($len > 0) {
-            $fixedPath = File::fixPath($dir);
-
-            if (strlen($fixedPath) > 0) {
-                $dir = str_replace('/', '\\', $fixedPath);
-                $this->uploadDir = !File::isDirectory($fixedPath) ? '\\'.$fixedPath : $fixedPath;
-                $retVal = true;
+            if (!File::isDirectory($this->uploadDir)) {
+                throw new FileException('Invalid upload directory: '.$this->uploadDir);
             }
+        } catch (FileException $ex) {
+             throw new FileException('Invalid upload directory: '.$dir);
         }
 
-        return $retVal;
     }
     /**
      * Returns a JSON representation of the object.
@@ -359,6 +363,11 @@ class Uploader implements JsonI {
      */
     public function upload(bool $replaceIfExist = false) : array {
         $this->files = [];
+        
+        if (strlen($this->getUploadDir()) == 0) {
+            throw new FileException('Upload path is not set.');
+        }
+        
         $meth = getenv('REQUEST_METHOD');
 
         if ($meth === false) {
