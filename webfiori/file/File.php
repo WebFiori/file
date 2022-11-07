@@ -911,7 +911,16 @@ class File implements JsonI {
         if (strlen($expl[1]) == 0) {
             $expl[1] = $this->getSize();
         }
-        $this->read($expl[0], $expl[1]);
+        try {
+            $this->read($expl[0], $expl[1]);
+        } catch (FileException $exc) {
+            $raw = $this->getRawData();
+            
+            if ($expl[1] <= strlen($raw)) {
+                $this->setRawData(substr($raw, $expl[0], $expl[1]));
+            }
+        }
+
 
         return $expl;
     }
