@@ -9,13 +9,13 @@ namespace webfiori\file;
  */
 class UploadErr {
     /**
-     * A constant that is used to indicates upload directory does not exists.
+     * A constant that is used to indicate upload directory does not exist.
      * It usually returned by some methods as error code.
      * @since 1.0
      */
     const NO_SUCH_DIR = 'no_such_dir';
     /**
-     * A constant that is used to indicates uploaded file type is not allowed.
+     * A constant that is used to indicate uploaded file type is not allowed.
      * @since 1.0
      */
     const NOT_ALLOWED = 'not_allowed_type';

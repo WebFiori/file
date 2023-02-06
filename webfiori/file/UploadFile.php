@@ -14,17 +14,17 @@ use webfiori\json\Json;
  */
 class UploadFile extends File {
     /**
-     * A boolean which is set to true in case the file is uploaded and was replaced.
+     * A bool which is set to true in case the file is uploaded and was replaced.
      * 
-     * @var boolean
+     * @var bool
      * 
      * @since 1.0 
      */
     private $isReplace;
     /**
-     * A boolean which is set to true in case the file is uploaded without issues.
+     * A bool which is set to true in case the file is uploaded without issues.
      * 
-     * @var boolean
+     * @var bool
      * 
      * @since 1.0 
      */
@@ -48,7 +48,7 @@ class UploadFile extends File {
      * 
      * @param string $fPath The path of the file such as 'C:/Images/Test'.
      */
-    public function __construct($fName = '', $fPath = '') {
+    public function __construct(string $fName = '', string $fPath = '') {
         parent::__construct($fName, $fPath);
         $this->setIsReplace(false);
         $this->setIsUploaded(false);
@@ -62,30 +62,30 @@ class UploadFile extends File {
      * 
      * @since 1.0
      */
-    public function getUploadError() {
+    public function getUploadError() : string {
         return $this->uploadError;
     }
     /**
      * Checks if the file was replaced by another uploaded file.
      * 
-     * @return boolean If the file was already exist in the server and a one 
+     * @return bool If the file was already exist in the server and a one
      * which has the same name was uploaded, the method will return true. Default 
      * return value is false.
      * 
      * @since 1.0
      */
-    public function isReplace() {
+    public function isReplace() : bool {
         return $this->isReplace;
     }
     /**
      * Checks if the file was uploaded successfully or not.
      * 
-     * @return boolean If the file was uploaded to the server without any errors, 
+     * @return bool If the file was uploaded to the server without any errors,
      * the method will return true. Default return value is false.
      * 
      * @since 1.0
      */
-    public function isUploaded() {
+    public function isUploaded() : bool {
         return $this->isUploaded;
     }
     /**
@@ -93,24 +93,24 @@ class UploadFile extends File {
      * The property is used to check if the file was already exist in the server and 
      * was replaced by another uploaded file. 
      * 
-     * @param boolean $bool A boolen. If true is passed, it means the file was replaced 
+     * @param bool $bool A boolean. If true is passed, it means the file was replaced
      * by new one with the same name.
      * 
      * @since 1.0
      */
-    public function setIsReplace($bool) {
+    public function setIsReplace(bool $bool) {
         $this->isReplace = $bool === true;
     }
     /**
      * Sets the value of the property '$isUploaded'.
      * The property is used to check if the file was successfully uploaded to the server.
      * 
-     * @param boolean $bool A boolen. If true is passed, it means the file was uploaded 
+     * @param bool $bool A boolean. If true is passed, it means the file was uploaded
      * without any errors.
      * 
      * @since 1.0
      */
-    public function setIsUploaded($bool) {
+    public function setIsUploaded(bool $bool) {
         $this->isUploaded = $bool === true;
     }
     /**
@@ -120,7 +120,7 @@ class UploadFile extends File {
      * 
      * @since 1.0
      */
-    public function setUploadErr($err) {
+    public function setUploadErr(string $err) {
         $this->uploadError = $err;
     }
     /**

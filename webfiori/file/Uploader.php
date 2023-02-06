@@ -68,15 +68,17 @@ class Uploader implements JsonI {
      * @since 1.0 
      */
     private $uploadStatusMessage;
+
     /**
      * Creates new instance of the class.
-     * 
-     * @param string $uploadPath A string that represents the location at 
-     * which files will be uploaded to. Default value is 'app/sto/uploads'.
-     * 
-     * @param array $allowedTypes An array that contains allowed files types. The 
+     *
+     * @param string $uploadPath A string that represents the location at
+     * which files will be uploaded to.
+     *
+     * @param array $allowedTypes An array that contains allowed files types. The
      * array can have values such as 'jpg', 'png', 'doc', etc...
-     * 
+     *
+     * @throws FileException
      * @since 1.0
      */
     public function __construct(string $uploadPath = '', array $allowedTypes = []) {
@@ -113,7 +115,7 @@ class Uploader implements JsonI {
      * 
      * @param string $ext File extension (e.g. jpg, png, pdf).
      * 
-     * @return boolean If the extension is added, the method will return true.
+     * @return bool If the extension is added, the method will return true.
      * 
      * @since 1.0
      */
@@ -148,7 +150,7 @@ class Uploader implements JsonI {
      * 
      * @return array The method will return an associative array of booleans. 
      * The key value will be the extension name and the value represents the status 
-     * of the addition. If added, it well be set to true.
+     * of the addition. If added, it will be set to true.
      * 
      * @since 1.2.2
      */
@@ -193,14 +195,14 @@ class Uploader implements JsonI {
      * <li><b>name</b>: The name of the uploaded file.</li>
      * <li><b>size</b>: The size of the uploaded file in bytes.</li>
      * <li><b>upload-path</b>: The location at which the file was uploaded to in the server.</li>
-     * <li><b>upload-error</b>: Any error which has happend during upload.</li>
+     * <li><b>upload-error</b>: Any error which has happened during upload.</li>
      * <li><b>is-exist</b>: A boolean. Set to true if the file does exist in the server.</li>
      * <li><b>is-replace</b>: A boolean. Set to true if the file was already uploaded and replaced.</li>
      * <li><b>mime</b>: MIME type of the file.</li>
      * <li><b>uploaded</b>: A boolean. Set to true if the file was uploaded.</li>
      * </ul>
      * 
-     * @param boolean $asObj If this parameter is set to true, the returned array 
+     * @param bool $asObj If this parameter is set to true, the returned array
      * will contain objects of type 'UploadedFile' instead of sub associative arrays. 
      * Default value is true.
      * 
@@ -239,7 +241,7 @@ class Uploader implements JsonI {
      * 
      * @param string $ext File extension= (e.g. jpg, png, pdf,...).
      * 
-     * @return boolean If the extension was removed, the method will return true.
+     * @return bool If the extension was removed, the method will return true.
      * 
      * @since 1.0
      */
@@ -339,26 +341,28 @@ class Uploader implements JsonI {
 
         return $j;
     }
+
     /**
      * Upload the file to the server.
-     * 
-     * @param bolean $replaceIfExist If a file with the given name found 
+     *
+     * @param bool $replaceIfExist If a file with the given name found
      * and this parameter is set to true, the file will be replaced.
-     * 
-     * @return array An array which contains uploaded files info. Each index 
+     *
+     * @return array An array which contains uploaded files info. Each index
      * will contain an associative array which has the following info:
      * <ul>
      * <li><b>name</b>: The name of uploaded file.</li>
      * <li><b>size</b>: The size of uploaded file in bytes.</li>
      * <li><b>upload-path</b>: The location at which the file was uploaded to in the server.</li>
      * <li><b>upload-error</b>: A string that represents upload error.</li>
-     * <li><b>is-exist</b>: A boolean. Set to true if the file was found in the 
+     * <li><b>is-exist</b>: A boolean. Set to true if the file was found in the
      * server.</li>
      * <li><b>is-replace</b>: A boolean. Set to true if the file was exist and replaced.</li>
      * <li><b>mime</b>: MIME type of the file.</li>
      * <li><b>uploaded</b>: A boolean. Set to true if the file was uploaded.</li>
      * </ul>
-     * 
+     *
+     * @throws FileException If the path for uploading files is not set.
      * @since 1.0
      */
     public function upload(bool $replaceIfExist = false) : array {
@@ -406,15 +410,16 @@ class Uploader implements JsonI {
 
         return $this->files;
     }
-    
+
     /**
      * Returns an array that contains objects of type 'UploadedFile'.
-     * 
-     * @param bolean $replaceIfExist If a file with the given name found 
+     *
+     * @param bool $replaceIfExist If a file with the given name found
      * and this parameter is set to true, the file will be replaced.
-     * 
+     *
      * @return array An array that contains objects of type 'UploadedFile'.
-     * 
+     *
+     * @throws FileException
      * @since 1.2.3
      */
     public function uploadAsFileObj(bool $replaceIfExist = false) : array {
@@ -427,7 +432,7 @@ class Uploader implements JsonI {
 
         return $filesArr;
     }
-    private function _createFileObjFromArray($arr) {
+    private function _createFileObjFromArray($arr) : UploadFile {
         $file = new UploadFile(filter_var($arr['name'], FILTER_SANITIZE_FULL_SPECIAL_CHARS), $arr['upload-path']);
         $file->setMIME($arr['mime']);
 
@@ -439,7 +444,7 @@ class Uploader implements JsonI {
 
         return $file;
     }
-    private function _getFileArr($fileOrFiles,$replaceIfExist, $idx = null) {
+    private function _getFileArr($fileOrFiles,$replaceIfExist, $idx = null): array {
         
         $indices = [
             'name',//0
@@ -519,12 +524,12 @@ class Uploader implements JsonI {
      * 
      * @param int $code PHP upload code.
      * 
-     * @return boolean If the given code does not equal to UPLOAD_ERR_OK, the 
+     * @return bool If the given code does not equal to UPLOAD_ERR_OK, the
      * method will return true.
      * 
      * @since 1.0
      */
-    private function isError($code) {
+    private function isError(int $code): bool {
         switch ($code) {
             case UPLOAD_ERR_OK:{
                 $this->uploadStatusMessage = 'File Uploaded';
@@ -567,12 +572,12 @@ class Uploader implements JsonI {
      * 
      * @param string $fileName The name of the file (such as 'image.png')
      * 
-     * @return boolean If file extension is in the array of allowed types, 
+     * @return bool If file extension is in the array of allowed types,
      * the method will return true.
      * 
      * @since 1.0
      */
-    private function isValidExt($fileName) {
+    private function isValidExt(string $fileName) : bool{
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
 
         return in_array($ext, $this->getExts(),true) || in_array(strtolower($ext), $this->getExts(),true);
