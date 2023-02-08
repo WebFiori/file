@@ -92,7 +92,7 @@ class UploaderTest extends TestCase {
                'name' => 'testUpload.txt',
                'size' => 51,
                'upload-path' => str_replace('/', DS, str_replace('\\', DS, __DIR__)),
-               'upload-error' => 0,
+               'upload-error' => 'temp_file_not_moved',
                'mime' => 'text/plain',
                'is-exist' => false,
                'is-replace' => false,
@@ -154,7 +154,7 @@ class UploaderTest extends TestCase {
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)),$file1->getDir());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)).DS.'testUpload.txt',$file1->getAbsolutePath());
         
-        $this->assertEquals("",$file1->getUploadError());
+        $this->assertEquals("temp_file_not_moved",$file1->getUploadError());
         
         $file2 = $r[1];
         $this->assertTrue($file2 instanceof UploadedFile);
@@ -182,7 +182,7 @@ class UploaderTest extends TestCase {
                 . '"sizeInMBytes":0,'
                 . '"uploaded":false,'
                 . '"isReplace":false,'
-                . '"uploadError":0},'
+                . '"uploadError":"temp_file_not_moved"},'
                 . '{"id":-1,"mime":'
                 . '"application\/octet-stream",'
                 . '"name":"not-allowed.xp",'
