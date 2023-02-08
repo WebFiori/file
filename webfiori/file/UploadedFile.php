@@ -5,14 +5,13 @@ use webfiori\json\Json;
 /**
  * A class which is used by the class 'Uploader' to represents uploaded files.
  * 
- * The class is used by the method 'Uploader::uploadAsFileObj()' to upload files 
- * as objects of type 'File'.
+ * The class is used by the class "FileUploader" to upload files as objects.
  * 
  * @author Ibrahim
  * 
  * @version 1.0
  */
-class UploadFile extends File {
+class UploadedFile extends File {
     /**
      * A bool which is set to true in case the file is uploaded and was replaced.
      * 
@@ -58,7 +57,7 @@ class UploadFile extends File {
      * Returns a string that represents upload error.
      * 
      * @return string A string that can be used to identify the cause of upload 
-     * failure.
+     * failure. If no upload error, empty string is returned.
      * 
      * @since 1.0
      */
