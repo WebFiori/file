@@ -60,9 +60,9 @@ class FileTest extends TestCase {
      * @test
      */
     public function test01() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $this->assertEquals('text-file.txt',$file->getName());
-        $this->assertEquals(ROOT_DIR.DS.'tests'.DS.'files',$file->getDir());
+        $this->assertEquals(ROOT_PATH.DS.'tests'.DS.'files',$file->getDir());
         $this->assertEquals(-1,$file->getID());
         $this->assertEquals('', $file->getRawData());
         $this->assertEquals('text/plain',$file->getMIME());
@@ -91,7 +91,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function test04() {
-        $file = new File('hello.txt', ROOT_DIR);
+        $file = new File('hello.txt', ROOT_PATH);
         $this->expectException(FileException::class);
         $this->expectExceptionMessage("File not found: '".$file->getAbsolutePath()."'");
         $file->read();
@@ -118,7 +118,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function test07() {
-        $file = new File('hello.txt', ROOT_DIR);
+        $file = new File('hello.txt', ROOT_PATH);
         $this->expectException(FileException::class);
         $this->expectExceptionMessage("No data is set to write.");
         $file->write(false, true);
@@ -127,7 +127,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testReadChunk01() {
-        $file = new File('text-file-3.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file-3.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read();
         $data = $file->getChunks(-100, false);
         $this->assertEquals([
@@ -192,7 +192,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testRead00() {
-        $file = new File('not-exist.txt', ROOT_DIR);
+        $file = new File('not-exist.txt', ROOT_PATH);
         $this->expectException(FileException::class);
         $this->expectExceptionMessage("File not found: '".$file->getAbsolutePath()."'");
         $file->read();
@@ -201,7 +201,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testReadChunk00() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read();
         $data = $file->getChunks(3, true);
         $this->assertEquals(base64_encode('Testing the class \'File\'.'), implode('', $data));
@@ -227,7 +227,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testLastModified01() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $time = filemtime($file->getAbsolutePath());
         $this->assertEquals($time, $file->getLastModified());
         $this->assertEquals(date('Y-m-d H:i:s', $time), $file->getLastModified('Y-m-d H:i:s'));
@@ -236,7 +236,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testRead02() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read(0, $file->getSize());
         $this->assertEquals('Testing the class \'File\'.', $file->getRawData());
         $this->assertEquals('txt', $file->getExtension());
@@ -247,7 +247,7 @@ class FileTest extends TestCase {
     public function testRead03() {
         $this->expectException(FileException::class);
         $this->expectExceptionMessage('Reached end of file while trying to read 26 byte(s).');
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read(0, $file->getSize() + 1);
     }
     /**
@@ -256,14 +256,14 @@ class FileTest extends TestCase {
     public function testRead04() {
         $this->expectException(FileException::class);
         $this->expectExceptionMessage('Reached end of file while trying to read 6 byte(s).');
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read(20, $file->getSize() + 1);
     }
     /**
      * @test
      */
     public function testRead05() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read(20, $file->getSize());
         $this->assertEquals('ile\'.', $file->getRawData());
     }
@@ -271,7 +271,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testRead06() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read(2, $file->getSize());
         $this->assertEquals('sting the class \'File\'.', $file->getRawData());
     }
@@ -279,7 +279,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function testRead07() {
-        $file = new File('text-file.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read(2, 4);
         $this->assertEquals('st', $file->getRawData());
     }
@@ -288,14 +288,14 @@ class FileTest extends TestCase {
      * @depends testRead00
      */
     public function removeTest() {
-        $file = new File(ROOT_DIR.'/not-exist.txt');
+        $file = new File(ROOT_PATH.'/not-exist.txt');
         $this->assertFalse($file->remove());
     }
     /**
      * @test
      */
     public function testCreate00() {
-        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'new.txt');
+        $file = new File(ROOT_PATH.DS.'tests'.DS.'files'.DS.'new.txt');
         $this->assertFalse($file->isExist());
         $file->create();
         $this->assertTrue($file->isExist());
@@ -307,7 +307,7 @@ class FileTest extends TestCase {
      */
     public function testCreate01() {
         $this->expectException(FileException::class);
-        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
+        $file = new File(ROOT_PATH.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
         $this->assertFalse($file->isExist());
         $file->create();
         
@@ -317,7 +317,7 @@ class FileTest extends TestCase {
      * @depends testCreate01
      */
     public function testCreate02() {
-        $file = new File(ROOT_DIR.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
+        $file = new File(ROOT_PATH.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
         $this->assertFalse($file->isExist());
         $file->create(true);
         $this->assertTrue($file->isExist());
@@ -329,7 +329,7 @@ class FileTest extends TestCase {
      * @depends test07
      */
     public function testWrite01() {
-        $file = new File('hello.txt', ROOT_DIR);
+        $file = new File('hello.txt', ROOT_PATH);
         $file->create();
         $file->setRawData('b');
         $file->write(true, true);
@@ -352,7 +352,7 @@ class FileTest extends TestCase {
      * @depends test07
      */
     public function testWriteEncoded00() {
-        $file = new File('hello-encoded.txt', ROOT_DIR);
+        $file = new File('hello-encoded.txt', ROOT_PATH);
         $file->setRawData('b');
         $file->writeEncoded();
         $file2 = new File($file->getAbsolutePath().'.bin');
@@ -432,7 +432,7 @@ class FileTest extends TestCase {
      * @test
      */
     public function viewTest01() {
-        $file = new File('text-file-2.txt',ROOT_DIR.DS.'tests'.DS.'files');
+        $file = new File('text-file-2.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->view();
         $this->assertEquals('Testing the class \'File\'.', Response::getBody());
         

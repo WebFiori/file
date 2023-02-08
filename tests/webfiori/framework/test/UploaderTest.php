@@ -5,8 +5,8 @@ namespace webfiori\framework\test;
 use PHPUnit\Framework\TestCase;
 use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
-use webfiori\file\Uploader;
-use webfiori\file\UploadFile;
+use webfiori\file\FileUploader;
+use webfiori\file\UploadedFile;
 use webfiori\json\Json;
 /**
  * Description of UploaderTest
@@ -18,7 +18,7 @@ class UploaderTest extends TestCase {
      * @test
      */
     public function test00() {
-        $u = new Uploader();
+        $u = new FileUploader();
         $this->assertEquals('files', $u->getAssociatedFileName());
         $this->assertEquals([], $u->getExts());
         $this->assertEquals('', $u->getUploadDir());
@@ -27,7 +27,7 @@ class UploaderTest extends TestCase {
      * @test
      */
     public function test01() {
-        $u = new Uploader(__DIR__, [
+        $u = new FileUploader(__DIR__, [
             'sps', 'pdf', '.xop'
         ]);
         $u->setAssociatedFileName("\n ");
@@ -45,7 +45,7 @@ class UploaderTest extends TestCase {
     public function test02() {
         $this->expectException(FileException::class);
         $this->expectExceptionMessage('Invalid upload directory: Not?Dir');
-        $u = new Uploader('Not?Dir');
+        $u = new FileUploader('Not?Dir');
         $this->assertEquals('files', $u->getAssociatedFileName());
         $this->assertEquals([], $u->getExts());
         $this->assertEquals('', $u->getUploadDir());
@@ -56,7 +56,7 @@ class UploaderTest extends TestCase {
     public function test03() {
         $this->expectException(FileException::class);
         $this->expectExceptionMessage('Invalid upload directory: Not Exist');
-        $u = new Uploader('Not Exist');
+        $u = new FileUploader('Not Exist');
         $this->assertEquals('files', $u->getAssociatedFileName());
         $this->assertEquals([], $u->getExts());
         $this->assertEquals('', $u->getUploadDir());
@@ -65,7 +65,7 @@ class UploaderTest extends TestCase {
      * @test
      */
     public function testAddExt00() {
-        $u = new Uploader();
+        $u = new FileUploader();
         $this->assertEquals([], $u->getExts());
         $this->assertTrue($u->addExt('.pdf'));
         $this->assertEquals([
@@ -82,17 +82,17 @@ class UploaderTest extends TestCase {
     }
     public function testUpload00() {
         $_SERVER['REQUEST_METHOD'] = 'post';
-        $u = new Uploader(__DIR__, [
+        $u = new FileUploader(__DIR__, [
             'txt'
         ]);
-        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $this->addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
         $r = $u->upload();
         $this->assertEquals([
            [
                'name' => 'testUpload.txt',
                'size' => 51,
                'upload-path' => str_replace('/', DS, str_replace('\\', DS, __DIR__)),
-               'upload-error' => 0,
+               'upload-error' => 'temp_file_not_moved',
                'mime' => 'text/plain',
                'is-exist' => false,
                'is-replace' => false,
@@ -105,10 +105,10 @@ class UploaderTest extends TestCase {
      * @test
      * @depends testUpload00
      */
-    public function testUpload01(Uploader $u) {
+    public function testUpload01(FileUploader $u) {
         $r = $u->getFiles(true);
         $file = $r[0];
-        $this->assertTrue($file instanceof UploadFile);
+        $this->assertTrue($file instanceof UploadedFile);
         $this->assertEquals('testUpload.txt',$file->getName());
         $this->assertEquals('testUpload',$file->getNameWithNoExt());
         $this->assertFalse($file->isUploaded());
@@ -117,36 +117,35 @@ class UploaderTest extends TestCase {
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)),$file->getDir());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)).DS.'testUpload.txt',$file->getAbsolutePath());
         
-        $this->assertEquals(0,$file->getUploadError());
+        $this->assertEquals("temp_file_not_moved",$file->getUploadError());
         $this->assertEquals("{\"id\":-1,\"mime\":\"text\/plain\",\"name\":\"testUpload.txt\""
                 . ",\"directory\":\"".Json::escapeJSONSpecialChars($file->getDir())."\",\"sizeInBytes\":0,"
-                . "\"sizeInKBytes\":0,\"sizeInMBytes\":0,\"uploaded\":false,\"isReplace\":false,\"uploadError\":0}", $file.'');
+                . "\"sizeInKBytes\":0,\"sizeInMBytes\":0,\"uploaded\":false,\"isReplace\":false,\"uploadError\":\"temp_file_not_moved\"}", $file.'');
     }
     public function testUpload02() {
         $this->expectException(FileException::class);
         $this->expectExceptionMessage('Upload path is not set.');
         $_SERVER['REQUEST_METHOD'] = 'post';
-        $u = new Uploader();
-        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $u = new FileUploader();
+        $this->addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
         $r = $u->upload();
     }
     /**
      * @test
-     * @param Uploader $u
      */
-    public function toJSONTest00() {
-        $u = new Uploader(__DIR__);
+    public function testToJson00() {
+        $u = new FileUploader(__DIR__);
         $this->assertEquals('{"uploadDirectory":"'.Json::escapeJSONSpecialChars($u->getUploadDir()).'",'
                 . '"associatedFileName":"files","allowedTypes":[],"files":[]}', $u.'');
         $_SERVER['REQUEST_METHOD'] = 'post';
         $this->assertTrue($u->addExt('txt'));
         $this->assertFalse($u->addExt('   '));
-        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
-        $this->addTestFile('files', ROOT_DIR.'tests'.DS.'tmp'.DS.'not-allowed.xp');
+        $this->addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $this->addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'not-allowed.xp');
         $r = $u->uploadAsFileObj();
         
         $file1 = $r[0];
-        $this->assertTrue($file1 instanceof UploadFile);
+        $this->assertTrue($file1 instanceof UploadedFile);
         $this->assertEquals('testUpload.txt',$file1->getName());
         $this->assertEquals('testUpload',$file1->getNameWithNoExt());
         $this->assertFalse($file1->isUploaded());
@@ -155,10 +154,10 @@ class UploaderTest extends TestCase {
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)),$file1->getDir());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)).DS.'testUpload.txt',$file1->getAbsolutePath());
         
-        $this->assertEquals(0,$file1->getUploadError());
+        $this->assertEquals("temp_file_not_moved",$file1->getUploadError());
         
         $file2 = $r[1];
-        $this->assertTrue($file2 instanceof UploadFile);
+        $this->assertTrue($file2 instanceof UploadedFile);
         $this->assertEquals('not-allowed.xp',$file2->getName());
         $this->assertEquals('not-allowed',$file2->getNameWithNoExt());
         $this->assertFalse($file2->isUploaded());
@@ -183,7 +182,7 @@ class UploaderTest extends TestCase {
                 . '"sizeInMBytes":0,'
                 . '"uploaded":false,'
                 . '"isReplace":false,'
-                . '"uploadError":0},'
+                . '"uploadError":"temp_file_not_moved"},'
                 . '{"id":-1,"mime":'
                 . '"application\/octet-stream",'
                 . '"name":"not-allowed.xp",'
@@ -198,7 +197,7 @@ class UploaderTest extends TestCase {
      * @test
      */
     public function testRemoveExt00() {
-        $u = new Uploader(__DIR__, [
+        $u = new FileUploader(__DIR__, [
             'pdf', '.text', '.txt', 'jpg', 'png'
         ]);
         $this->assertEquals([

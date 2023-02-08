@@ -124,7 +124,7 @@ class MIME {
         'pdf' => 'application/pdf',
         //rich text format
         'rtf' => 'application/rtf',
-        //MS office documents
+        //MS Office documents
         'doc' => 'application/msword',
         'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'xls' => 'application/vnd.ms-excel',
@@ -165,10 +165,10 @@ class MIME {
         'ogx' => 'application/ogg'
     ];
     /**
-     * Returns MIME type of a file given its extension.
+     * Returns MIME type of file given its extension.
      * 
      * The method will try to find MIME type based on its extension. The method 
-     * will look for MIME in the constant MIME::YPES.
+     * will look for MIME in the constant MIME::TYPES.
      * 
      * @param string $ext File extension without the suffix (such as 'jpg').
      * 

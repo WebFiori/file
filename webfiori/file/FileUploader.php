@@ -35,48 +35,59 @@ use webfiori\json\JsonI;
  * 
  * @author Ibrahim
  * 
- * @version 1.2.3
  */
-class Uploader implements JsonI {
+class FileUploader implements JsonI {
     /**
      * The name of the index at which the file is stored in the array <b>$_FILES</b>.
+     * 
      * @var string
+     * 
      * @since 1.0
      */
     private $asscociatedName;
     /**
      * An array that contains all the allowed file types.
+     * 
      * @var array An array of strings. 
+     * 
      * @since 1.0
      */
     private $extentions = [];
     /**
      * An array which contains uploaded files.
+     * 
      * @var array
+     * 
      * @since 1.0 
      */
     private $files;
     /**
      * The directory at which the file (or files) will be uploaded to.
+     * 
      * @var string A directory. 
+     * 
      * @since 1.0
      */
     private $uploadDir;
     /**
      * Upload status message.
+     * 
      * @var string
+     * 
      * @since 1.0 
      */
     private $uploadStatusMessage;
+
     /**
      * Creates new instance of the class.
-     * 
-     * @param string $uploadPath A string that represents the location at 
-     * which files will be uploaded to. Default value is 'app/sto/uploads'.
-     * 
-     * @param array $allowedTypes An array that contains allowed files types. The 
+     *
+     * @param string $uploadPath A string that represents the location at
+     * which files will be uploaded to.
+     *
+     * @param array $allowedTypes An array that contains allowed files types. The
      * array can have values such as 'jpg', 'png', 'doc', etc...
-     * 
+     *
+     * @throws FileException
      * @since 1.0
      */
     public function __construct(string $uploadPath = '', array $allowedTypes = []) {
@@ -113,7 +124,7 @@ class Uploader implements JsonI {
      * 
      * @param string $ext File extension (e.g. jpg, png, pdf).
      * 
-     * @return boolean If the extension is added, the method will return true.
+     * @return bool If the extension is added, the method will return true.
      * 
      * @since 1.0
      */
@@ -148,7 +159,7 @@ class Uploader implements JsonI {
      * 
      * @return array The method will return an associative array of booleans. 
      * The key value will be the extension name and the value represents the status 
-     * of the addition. If added, it well be set to true.
+     * of the addition. If added, it will be set to true.
      * 
      * @since 1.2.2
      */
@@ -193,14 +204,14 @@ class Uploader implements JsonI {
      * <li><b>name</b>: The name of the uploaded file.</li>
      * <li><b>size</b>: The size of the uploaded file in bytes.</li>
      * <li><b>upload-path</b>: The location at which the file was uploaded to in the server.</li>
-     * <li><b>upload-error</b>: Any error which has happend during upload.</li>
+     * <li><b>upload-error</b>: Any error which has happened during upload.</li>
      * <li><b>is-exist</b>: A boolean. Set to true if the file does exist in the server.</li>
      * <li><b>is-replace</b>: A boolean. Set to true if the file was already uploaded and replaced.</li>
      * <li><b>mime</b>: MIME type of the file.</li>
      * <li><b>uploaded</b>: A boolean. Set to true if the file was uploaded.</li>
      * </ul>
      * 
-     * @param boolean $asObj If this parameter is set to true, the returned array 
+     * @param bool $asObj If this parameter is set to true, the returned array
      * will contain objects of type 'UploadedFile' instead of sub associative arrays. 
      * Default value is true.
      * 
@@ -216,7 +227,7 @@ class Uploader implements JsonI {
 
         if ($asObjC) {
             foreach ($this->files as $fArr) {
-                $retVal[] = $this->_createFileObjFromArray($fArr);
+                $retVal[] = $this->createFileObjFromArray($fArr);
             }
         } else {
             $retVal = $this->files;
@@ -239,7 +250,7 @@ class Uploader implements JsonI {
      * 
      * @param string $ext File extension= (e.g. jpg, png, pdf,...).
      * 
-     * @return boolean If the extension was removed, the method will return true.
+     * @return bool If the extension was removed, the method will return true.
      * 
      * @since 1.0
      */
@@ -339,26 +350,28 @@ class Uploader implements JsonI {
 
         return $j;
     }
+
     /**
      * Upload the file to the server.
-     * 
-     * @param bolean $replaceIfExist If a file with the given name found 
+     *
+     * @param bool $replaceIfExist If a file with the given name found
      * and this parameter is set to true, the file will be replaced.
-     * 
-     * @return array An array which contains uploaded files info. Each index 
+     *
+     * @return array An array which contains uploaded files info. Each index
      * will contain an associative array which has the following info:
      * <ul>
      * <li><b>name</b>: The name of uploaded file.</li>
      * <li><b>size</b>: The size of uploaded file in bytes.</li>
      * <li><b>upload-path</b>: The location at which the file was uploaded to in the server.</li>
      * <li><b>upload-error</b>: A string that represents upload error.</li>
-     * <li><b>is-exist</b>: A boolean. Set to true if the file was found in the 
+     * <li><b>is-exist</b>: A boolean. Set to true if the file was found in the
      * server.</li>
      * <li><b>is-replace</b>: A boolean. Set to true if the file was exist and replaced.</li>
      * <li><b>mime</b>: MIME type of the file.</li>
      * <li><b>uploaded</b>: A boolean. Set to true if the file was uploaded.</li>
      * </ul>
-     * 
+     *
+     * @throws FileException If the path for uploading files is not set.
      * @since 1.0
      */
     public function upload(bool $replaceIfExist = false) : array {
@@ -393,12 +406,12 @@ class Uploader implements JsonI {
                     $filesCount = count($fileOrFiles['name']);
 
                     for ($x = 0 ; $x < $filesCount ; $x++) {
-                        $fileInfoArr = $this->_getFileArr($fileOrFiles, $replaceIfExist, $x);
+                        $fileInfoArr = $this->getFileArr($fileOrFiles, $replaceIfExist, $x);
                         $this->files[] = $fileInfoArr;
                     }
                 } else {
                     //single file upload
-                    $fileInfoArr = $this->_getFileArr($fileOrFiles, $replaceIfExist);
+                    $fileInfoArr = $this->getFileArr($fileOrFiles, $replaceIfExist);
                     $this->files[] = $fileInfoArr;
                 }
             }
@@ -406,15 +419,16 @@ class Uploader implements JsonI {
 
         return $this->files;
     }
-    
+
     /**
      * Returns an array that contains objects of type 'UploadedFile'.
-     * 
-     * @param bolean $replaceIfExist If a file with the given name found 
+     *
+     * @param bool $replaceIfExist If a file with the given name found
      * and this parameter is set to true, the file will be replaced.
-     * 
+     *
      * @return array An array that contains objects of type 'UploadedFile'.
-     * 
+     *
+     * @throws FileException
      * @since 1.2.3
      */
     public function uploadAsFileObj(bool $replaceIfExist = false) : array {
@@ -422,94 +436,88 @@ class Uploader implements JsonI {
         $filesArr = [];
 
         foreach ($uploadedFiles as $fileArray) {
-            $filesArr[] = $this->_createFileObjFromArray($fileArray);
+            $filesArr[] = $this->createFileObjFromArray($fileArray);
         }
 
         return $filesArr;
     }
-    private function _createFileObjFromArray($arr) {
-        $file = new UploadFile(filter_var($arr['name'], FILTER_SANITIZE_FULL_SPECIAL_CHARS), $arr['upload-path']);
-        $file->setMIME($arr['mime']);
+    private function createFileObjFromArray($arr) : UploadedFile {
+        $fName = filter_var($arr[UploaderConst::NAME_INDEX], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $fPath = $arr[UploaderConst::PATH_INDEX];
+        
+        $file = new UploadedFile($fName, $fPath);
+        $file->setMIME($arr[UploaderConst::MIME_INDEX]);
 
-        if (isset($arr['is-replace'])) {
-            $file->setIsReplace($arr['is-replace']);
+        if (isset($arr[UploaderConst::REPLACE_INDEX])) {
+            $file->setIsReplace($arr[UploaderConst::REPLACE_INDEX]);
         }
-        $file->setIsUploaded($arr['uploaded']);
-        $file->setUploadErr($arr['upload-error']);
+        $file->setIsUploaded($arr[UploaderConst::UPLOADED_INDEX]);
+        $file->setUploadErr($arr[UploaderConst::ERR_INDEX]);
 
         return $file;
     }
-    private function _getFileArr($fileOrFiles,$replaceIfExist, $idx = null) {
-        
-        $indices = [
-            'name',//0
-            'size',//1
-            'upload-path',//2
-            'upload-error',//3
-            'is-exist',//4
-            'is-replace',//5
-            'mime',//6
-            'uploaded'//7
-        ];
+    private function getFileArr($fileOrFiles,$replaceIfExist, $idx = null): array {
+      
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
         $fileInfoArr = [];
-        $fileInfoArr[$indices[0]] = $idx === null ? filter_var($fileOrFiles[$indices[0]], FILTER_SANITIZE_FULL_SPECIAL_CHARS) : filter_var($fileOrFiles[$indices[0]][$idx], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $fileInfoArr[$indices[1]] = $idx === null ? filter_var($fileOrFiles[$indices[1]], FILTER_SANITIZE_NUMBER_INT) : filter_var($fileOrFiles[$indices[1]][$idx], FILTER_SANITIZE_NUMBER_INT);
-        $fileInfoArr[$indices[2]] = $this->getUploadDir();
-        $fileInfoArr[$indices[3]] = 0;
-        $nameSplit = explode('.', $fileInfoArr[$indices[0]]);
-        $fileInfoArr[$indices[6]] = MIME::getType($nameSplit[count($nameSplit) - 1]);
+        $fileInfoArr[UploaderConst::NAME_INDEX] = $idx === null ? filter_var($fileOrFiles[UploaderConst::NAME_INDEX], FILTER_SANITIZE_FULL_SPECIAL_CHARS) : filter_var($fileOrFiles[UploaderConst::NAME_INDEX][$idx], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $fileInfoArr[UploaderConst::SIZE_INDEX] = $idx === null ? filter_var($fileOrFiles[UploaderConst::SIZE_INDEX], FILTER_SANITIZE_NUMBER_INT) : filter_var($fileOrFiles[UploaderConst::SIZE_INDEX][$idx], FILTER_SANITIZE_NUMBER_INT);
+        $fileInfoArr[UploaderConst::PATH_INDEX] = $this->getUploadDir();
+        $fileInfoArr[UploaderConst::ERR_INDEX] = '';
+        $nameSplit = explode('.', $fileInfoArr[UploaderConst::NAME_INDEX]);
+        $fileInfoArr[UploaderConst::MIME_INDEX] = MIME::getType($nameSplit[count($nameSplit) - 1]);
 
         $isErr = $idx === null ? $this->isError($fileOrFiles[$errIdx]) : $this->isError($fileOrFiles[$errIdx][$idx]);
 
         if (!$isErr) {
-            if ($this->isValidExt($fileInfoArr[$indices[0]])) {
+            if ($this->isValidExt($fileInfoArr[UploaderConst::NAME_INDEX])) {
                 if (File::isDirectory($this->getUploadDir())) {
-                    $filePath = $this->getUploadDir().'\\'.$fileInfoArr[$indices[0]];
+                    $filePath = $this->getUploadDir().'\\'.$fileInfoArr[UploaderConst::NAME_INDEX];
                     $filePath = str_replace('\\', '/', $filePath);
 
                     if (!File::isFileExist($filePath)) {
-                        $fileInfoArr[$indices[4]] = false;
-                        $fileInfoArr[$indices[5]] = false;
+                        $fileInfoArr[UploaderConst::EXIST_INDEX] = false;
+                        $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
                         $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
                         $sanitizedName = filter_var($name, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
                         if (move_uploaded_file($sanitizedName, $filePath)) {
-                            $fileInfoArr[$indices[7]] = true;
+                            $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
                         } else {
-                            $fileInfoArr[$indices[7]] = false;
+                            $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                            $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_MOVE_TEMP;
                         }
                     } else {
-                        $fileInfoArr[$indices[4]] = true;
+                        $fileInfoArr[UploaderConst::EXIST_INDEX] = true;
 
                         if ($replaceIfExist) {
-                            $fileInfoArr[$indices[5]] = true;
+                            $fileInfoArr[UploaderConst::REPLACE_INDEX] = true;
                             unlink($filePath);
                             $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
                             $sanitizedName = $sanitizedName = filter_var($name, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
                             if (move_uploaded_file($sanitizedName, $filePath)) {
-                                $fileInfoArr[$indices[7]] = true;
+                                $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
                             } else {
-                                $fileInfoArr[$indices[7]] = false;
+                                $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
                             }
                         } else {
-                            $fileInfoArr[$indices[5]] = false;
-                            $fileInfoArr[$indices[7]] = false;
+                            $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
+                            $fileInfoArr[UploaderConst::ERR_INDEX] = false;
                         }
                     }
                 } else {
-                    $fileInfoArr[$indices[3]] = UploadErr::NO_SUCH_DIR;
-                    $fileInfoArr[$indices[7]] = false;
+                    $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_NO_SUCH_DIR;
+                    $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
                 }
             } else {
-                $fileInfoArr[$indices[7]] = false;
-                $fileInfoArr[$indices[3]] = UploadErr::NOT_ALLOWED;
+                $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_NOT_ALLOWED;
             }
         } else {
-            $fileInfoArr[$indices[7]] = false;
-            $fileInfoArr[$indices[3]] = $idx === null ? $fileOrFiles[$errIdx] : $fileOrFiles[$errIdx][$idx];
+            $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+            $fileInfoArr[UploaderConst::ERR_INDEX] = $idx === null ? $fileOrFiles[$errIdx] : $fileOrFiles[$errIdx][$idx];
         }
 
         return $fileInfoArr;
@@ -519,12 +527,12 @@ class Uploader implements JsonI {
      * 
      * @param int $code PHP upload code.
      * 
-     * @return boolean If the given code does not equal to UPLOAD_ERR_OK, the 
+     * @return bool If the given code does not equal to UPLOAD_ERR_OK, the
      * method will return true.
      * 
      * @since 1.0
      */
-    private function isError($code) {
+    private function isError(int $code): bool {
         switch ($code) {
             case UPLOAD_ERR_OK:{
                 $this->uploadStatusMessage = 'File Uploaded';
@@ -567,12 +575,12 @@ class Uploader implements JsonI {
      * 
      * @param string $fileName The name of the file (such as 'image.png')
      * 
-     * @return boolean If file extension is in the array of allowed types, 
+     * @return bool If file extension is in the array of allowed types,
      * the method will return true.
      * 
      * @since 1.0
      */
-    private function isValidExt($fileName) {
+    private function isValidExt(string $fileName) : bool{
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
 
         return in_array($ext, $this->getExts(),true) || in_array(strtolower($ext), $this->getExts(),true);
