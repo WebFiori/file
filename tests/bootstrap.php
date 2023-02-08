@@ -1,5 +1,7 @@
 <?php
 
+use webfiori\file\File;
+
 ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
@@ -15,7 +17,7 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 } else {
     $rootDir = $rootDirTrimmed.$DS;
 }
-define('ROOT_DIR', $rootDir);
+define('ROOT_PATH', $rootDir);
 define('DS', DIRECTORY_SEPARATOR);
 //echo 'Root Directory: \''.$rootDir.'\'.'."\n";
 $jsonLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'jsonx'.DS.'webfiori'.DS.'json';
@@ -32,9 +34,15 @@ require_once $rootDir.'vendor'.DS.'webfiori'.DS.'http'.DS.'webfiori'.DS.'http'.D
 
 require_once $rootDir.'webfiori'.DS.'file'.DS.'File.php';
 require_once $rootDir.'webfiori'.DS.'file'.DS.'MIME.php';
-require_once $rootDir.'webfiori'.DS.'file'.DS.'Uploader.php';
-require_once $rootDir.'webfiori'.DS.'file'.DS.'UploadFile.php';
-require_once $rootDir.'webfiori'.DS.'file'.DS.'UploadErr.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'FileUploader.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'UploadedFile.php';
+require_once $rootDir.'webfiori'.DS.'file'.DS.'UploaderConst.php';
 require_once $rootDir.'webfiori'.DS.'file'.DS.'MIME.php';
 require_once $rootDir.'webfiori'.DS.'file'.DS.'exceptions'.DS.'FileException.php';
+
+register_shutdown_function(function () {
+    $file = new File(ROOT_PATH.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
+    $file->remove();
+    rmdir(ROOT_PATH.DS.'tests'.DS.'files'.DS.'not-exist');
+});
 
