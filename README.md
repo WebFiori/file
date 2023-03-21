@@ -3,7 +3,7 @@ Basic class library to read, write and view files using PHP.
 
 
 <p align="center">
-  <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php81.yml">
+  <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php82.yml">
     <img src="https://github.com/WebFiori/file/workflows/Build%20PHP%208.1/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/file">
