@@ -17,6 +17,21 @@ Basic class library to read, write and view files using PHP.
   </a>
 </p>
 
+## Content
+
+* [Supported PHP Versions](#supported-php-versions)
+* [Main Aim of The Library](#main-aim-of-the-library)
+* [Usage](#usage)
+    * [Reading a File](#reading-a-file)
+    * [Creating New File](#creating-new-file)
+    * [Appending to Existing File](#appending-to-existing-file)
+    * [Overriding a File](#overriding-a-file)
+    * [Encoding or Decoding of Files](#encoding-or-decoding-of-files)
+      * [Decoding](#decoding)
+    * [Reading and Storing Encoded Files](#reading-and-storing-encoded-files)
+    * [Display a File](#display-a-file)
+    * [Chunking File](#chunking-files)
+
 ## Supported PHP Versions
 |                                                                                       Build Status                                                                                        |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -77,7 +92,7 @@ $file->write();
 //Setting raw data before each call to the method File::write() will append to file.
 ```
 
-### Override File 
+### Overriding a File
 
 ``` php 
 $file = new File('path/to/my/old/file.txt');
@@ -134,7 +149,7 @@ $decoded = $file->getRawData();
 
 ```
 
-### Display File
+### Display a File
 
 The method `File::view()` is used to dispatch the content of the file to front-end. It also supports the header `content-range` which can be used to get partial file content.
 
@@ -151,7 +166,7 @@ $file->read();
 $file->view(true);
 ```
 
-### Chunking File
+### Chunking Files
 
 Usually, when a big file is stored in a database table, it is encoded then divided into smaller chunks, and each chunk is stored in a record. The class provides a single method for doing such procedure.
 
