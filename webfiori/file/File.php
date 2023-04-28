@@ -119,6 +119,38 @@ class File implements JsonI {
 
         return $this->toJSON().'';
     }
+
+    /**
+     * Returns an array that contains integer values which represents file data as binary.
+     *
+     * Each index of the array will have an integer value between 0 and 255 inclusive.
+     *
+     * @return array An array that contains integer values which represents file data as binary.
+     */
+    public function toBytesArray() : array {
+        $raw = $this->getRawData();
+        $asArray = unpack('C*', $raw);
+        
+        return array_values($asArray);
+    }
+
+    /**
+     * Returns an array of strings which represents file data as hex.
+     *
+     * Each index will have a string of two characters which represents each byte.
+     *
+     * @return array An array of strings which represents file data as hex.
+     */
+    public function toHexArray() : array {
+        $bytes = $this->toBytesArray();
+        $hexArr = [];
+
+        foreach ($bytes as $byte) {
+            $hexArr[] = sprintf("%02X", $byte);
+        }
+
+        return  $hexArr;
+    }
     /**
      * Appends a string of data to the already existing data.
      * 
