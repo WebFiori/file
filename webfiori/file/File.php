@@ -91,7 +91,7 @@ class File implements JsonI {
         $this->rawData = '';
         self::initErrHandler();
         if (!$this->setPath($fPath)) {
-            $info = $this->_extractPathAndName($fNameOrAbsPath);
+            $info = $this->extractPathAndName($fNameOrAbsPath);
             $this->setDir($info['path']);
             $this->setName($info['name']);
         } else {
@@ -104,6 +104,37 @@ class File implements JsonI {
             restore_error_handler();
         }
         $this->id = -1;
+    }
+    /**
+     * Returns an array that contains directories names of the calling script.
+     * 
+     * This method is used to extract the pathes of files at which they called
+     * this method.
+     * 
+     * @return array An array that contains directories names of the calling files.
+     */
+    public static function getCallingFilesPaths() : array {
+        $debugTrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 15);
+        $retVal = [];
+
+        foreach ($debugTrace as $traceEntry) {
+            if (isset($traceEntry['file'])) {
+                $file = $traceEntry['file'];
+                $split = explode(DIRECTORY_SEPARATOR, $file);
+                $withoutFile = array_diff($split, [$split[count($split) - 1]]);
+                $dir = implode(DIRECTORY_SEPARATOR, $withoutFile);
+
+                if (strlen($dir) != 0) {
+                    $dir .= DIRECTORY_SEPARATOR;
+
+                    if (!in_array($dir, $retVal)) {
+                        $retVal[] = $dir;
+                    }
+                }
+            }
+        }
+
+        return $retVal;
     }
     private static function initErrHandler() {
         self::$errFunc = function (int $errno, string $errstr, string $errfile, int $errline) {
@@ -183,7 +214,7 @@ class File implements JsonI {
 
         if (!$this->isExist()) {
             self::isDirectory($this->getDir(), $createDirIfNotExist);
-            $resource = $this->_createResource('wb', $fPath);
+            $resource = $this->createResource('wb', $fPath);
 
             if (!is_resource($resource)) {
                 throw new FileException('Unable to create a file at \''.$fPath.'\'.');
@@ -512,9 +543,9 @@ class File implements JsonI {
      * </ul>
      */
     public function read(int $from = -1, int $to = -1) {
-        $fPath = $this->_checkNameAndPath();
+        $fPath = $this->checkNameAndPath();
 
-        if (!$this->_readHelper($fPath,$from,$to)) {
+        if (!$this->readHelper($fPath,$from,$to)) {
             throw new FileException('File not found: \''.$fPath.'\'.');
         }
     }
@@ -611,7 +642,7 @@ class File implements JsonI {
 
         if (strlen($trimmed) != 0) {
             $this->fileName = $name;
-            $this->_extractMimeFromName();
+            $this->extractMimeFromName();
         }
     }
 
@@ -641,7 +672,7 @@ class File implements JsonI {
                 $this->setRawDataDecoded($raw, $strict);
             } else {
                 $this->rawData = $raw;
-                $this->_setSize(strlen($raw));
+                $this->setSize(strlen($raw));
             }
         }
     }
@@ -668,7 +699,7 @@ class File implements JsonI {
             throw new FileException('Base 64 decoding failed due to characters outside base 64 alphabet.');
         }
         $this->rawData = $decoded;
-        $this->_setSize(strlen($this->rawData));
+        $this->setSize(strlen($this->rawData));
     }
     /**
      * Returns a JSON string that represents the file.
@@ -715,7 +746,7 @@ class File implements JsonI {
         if (strlen($raw) == 0) {
             $this->read();
         }
-        $this->_viewFileHelper($asAttachment);
+        $this->viewFileHelper($asAttachment);
     }
     /**
      * Write raw binary data into a file.
@@ -740,11 +771,11 @@ class File implements JsonI {
      * @since 1.1.1
      */
     public function write(bool $append = true, bool $createIfNotExist = false) {
-        $pathV = $this->_checkNameAndPath();
+        $pathV = $this->checkNameAndPath();
         if ($createIfNotExist) {
             $this->create(true);
         }
-        $this->_writeHelper($pathV, $append === true);
+        $this->writeHelper($pathV, $append === true);
     }
 
     /**
@@ -761,8 +792,8 @@ class File implements JsonI {
         $currentName = $this->getName();
         $this->setName($currentName.'.bin');
         $this->create(true);
-        $pathV = $this->_checkNameAndPath();
-        $this->_writeHelper($pathV, false, true);
+        $pathV = $this->checkNameAndPath();
+        $this->writeHelper($pathV, false, true);
         $this->setName($currentName);
     }
 
@@ -772,21 +803,30 @@ class File implements JsonI {
      *
      * @throws FileException
      */
-    private function _checkNameAndPath(): string {
+    private function checkNameAndPath(): string {
         clearstatcache();
         $fName = $this->getName();
 
         if (strlen($fName) != 0) {
             $fPath = $this->getDir();
 
-            if (strlen($fPath) != 0) {
+            if (strlen($fPath) == 0) {
+                $possiblePaths = self::getCallingFilesPaths();
+                foreach ($possiblePaths as $fPath) {
+                    
+                    if (self::isFileExist($fPath.DIRECTORY_SEPARATOR.$fName)) {
+                        $this->setDir($fPath);
+                        return $this->getAbsolutePath();
+                    }
+                }
+            } else {
                 return $this->getAbsolutePath();
             }
             throw new FileException('Path cannot be empty string.');
         }
         throw new FileException('File name cannot be empty string.');
     }
-    private function _createResource($mode, $path) {
+    private function createResource($mode, $path) {
         set_error_handler(self::$errFunc);
         $resource = fopen($path, $mode);
         restore_error_handler();
@@ -797,7 +837,7 @@ class File implements JsonI {
 
         return false;
     }
-    private function _extractMimeFromName() {
+    private function extractMimeFromName() {
         $exp = explode('.', $this->getName());
 
         if (count($exp) > 1) {
@@ -805,7 +845,7 @@ class File implements JsonI {
             $this->setMIME(MIME::getType($ext));
         }
     }
-    private function _extractPathAndName($absPath): array {
+    private function extractPathAndName($absPath): array {
         $DS = DIRECTORY_SEPARATOR;
         $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
         $pathArr = explode($DS, $cleanPath);
@@ -829,12 +869,12 @@ class File implements JsonI {
             'path' => ''
         ];
     }
-    private function _readHelper($fPath,$from,$to) {
+    private function readHelper($fPath,$from,$to) {
         if ($this->isExist()) {
             $fSize = filesize($fPath);
-            $this->_setSize($fSize);
+            $this->setSize($fSize);
             $bytesToRead = $to - $from > 0 ? $to - $from : $this->getSize();
-            $resource = $this->_createResource('rb', $fPath);
+            $resource = $this->createResource('rb', $fPath);
 
             if ($bytesToRead > $this->getSize() || $to > $this->getSize()) {
                 throw new FileException('Reached end of file while trying to read '.$bytesToRead.' byte(s).');
@@ -859,7 +899,7 @@ class File implements JsonI {
             throw new FileException('File not found: \''.$fPath.'\'.');
         }
     }
-    private function _setSize($size) {
+    private function setSize($size) {
         if ($size >= 0) {
             $this->fileSize = $size;
         }
@@ -887,7 +927,7 @@ class File implements JsonI {
 
         return $start.$trimmedPath;
     }
-    private function _viewFileHelper($asAttachment) {
+    private function viewFileHelper($asAttachment) {
         $contentType = $this->getMIME();
 
         if (class_exists('\webfiori\http\Response')) {
@@ -905,7 +945,7 @@ class File implements JsonI {
      * @return bool
      * @throws FileException
      */
-    private function _writeHelper(string $fPath, bool $append, bool $encode = false) {
+    private function writeHelper(string $fPath, bool $append, bool $encode = false) {
         if (strlen($this->getRawData()) == 0) {
             throw new FileException("No data is set to write.");
         }
@@ -914,9 +954,9 @@ class File implements JsonI {
             throw new FileException("File not found: '$fPath'.");
         } else {
             if ($append) {
-                $resource = $this->_createResource('ab', $fPath);
+                $resource = $this->createResource('ab', $fPath);
             } else {
-                $resource = $this->_createResource('rb+', $fPath);
+                $resource = $this->createResource('rb+', $fPath);
             }
         }
 
