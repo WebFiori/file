@@ -139,6 +139,22 @@ class FileTest extends TestCase {
             "ng the class 'Fi"
         ], $data);
     }
+
+    /**
+     * @test
+     */
+    public function testBytesArray00() {
+        $file = new File();
+        $this->assertEquals([], $file->toBytesArray());
+        $file->setRawData('a');
+        $this->assertEquals([97], $file->toBytesArray());
+        $file->setRawData('aAbcD');
+        $this->assertEquals([97, 65, 98, 99, 68], $file->toBytesArray());
+        $this->assertEquals(['61', '41', '62', '63', '44'], $file->toHexArray());
+        $this->assertEquals('aAbcD', hex2bin(implode($file->toHexArray())));
+        $file->setRawData('مرحبا بالعالم');
+        $this->assertEquals('مرحبا بالعالم', hex2bin(implode($file->toHexArray())));
+    }
     /**
      * @test
      */
