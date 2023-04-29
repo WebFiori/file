@@ -8,6 +8,15 @@ namespace webfiori\file;
  */
 class UploaderConst {
     /**
+     * One of the constants which is used to initialize uploaded file array.
+     */
+    const ERR_INDEX = 'upload-error';
+    /**
+     * A constant that is used to indicate that original file was not created
+     * from temporary uploaded file.
+     */
+    const ERR_MOVE_TEMP = 'temp_file_not_moved';
+    /**
      * A constant that is used to indicate upload directory does not exist.
      */
     const ERR_NO_SUCH_DIR = 'no_such_dir';
@@ -16,10 +25,13 @@ class UploaderConst {
      */
     const ERR_NOT_ALLOWED = 'not_allowed_type';
     /**
-     * A constant that is used to indicate that original file was not created
-     * from temporary uploaded file.
+     * One of the constants which is used to initialize uploaded file array.
      */
-    const ERR_MOVE_TEMP = 'temp_file_not_moved';
+    const EXIST_INDEX = 'is-exist';
+    /**
+     * One of the constants which is used to initialize uploaded file array.
+     */
+    const MIME_INDEX = 'mime';
     /**
      * One of the constants which is used to initialize uploaded file array.
      */
@@ -27,19 +39,7 @@ class UploaderConst {
     /**
      * One of the constants which is used to initialize uploaded file array.
      */
-    const SIZE_INDEX = 'size';
-    /**
-     * One of the constants which is used to initialize uploaded file array.
-     */
     const PATH_INDEX = 'upload-path';
-    /**
-     * One of the constants which is used to initialize uploaded file array.
-     */
-    const ERR_INDEX = 'upload-error';
-    /**
-     * One of the constants which is used to initialize uploaded file array.
-     */
-    const EXIST_INDEX = 'is-exist';
     /**
      * One of the constants which is used to initialize uploaded file array.
      */
@@ -47,7 +47,7 @@ class UploaderConst {
     /**
      * One of the constants which is used to initialize uploaded file array.
      */
-    const MIME_INDEX = 'mime';
+    const SIZE_INDEX = 'size';
     /**
      * One of the constants which is used to initialize uploaded file array.
      */

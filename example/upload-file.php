@@ -1,4 +1,5 @@
 <?php
+
 ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
@@ -15,6 +16,7 @@ $u->addExts([
 ]);
 $files = $u->uploadAsFileObj();
 $file = $files[0];
+
 if ($file instanceof UploadedFile) {
     if (!$file->isUploaded()) {
         http_response_code(404);

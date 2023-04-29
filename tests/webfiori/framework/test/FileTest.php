@@ -126,6 +126,18 @@ class FileTest extends TestCase {
     /**
      * @test
      */
+    public function test08() {
+        $file = new File('in-dir.txt');
+        $file->read(0, 1);
+        $this->assertEquals('T', $file->getRawData());
+        $this->assertEquals([84], $file->toBytesArray());
+        $this->assertEquals(['54'], $file->toHexArray());
+        $file->read();
+        $this->assertEquals("This is to test if read from same directory is working.\n", $file->getRawData());
+    }
+    /**
+     * @test
+     */
     public function testReadChunk01() {
         $file = new File('text-file-3.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read();
