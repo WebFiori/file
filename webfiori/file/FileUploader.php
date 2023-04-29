@@ -2,7 +2,6 @@
 namespace webfiori\file;
 
 use webfiori\file\exceptions\FileException;
-use webfiori\file\MIME;
 use webfiori\json\Json;
 use webfiori\json\JsonI;
 /**
@@ -96,7 +95,7 @@ class FileUploader implements JsonI {
         $this->setAssociatedFileName('files');
         $this->addExts($allowedTypes);
         $this->uploadDir = '';
-        
+
         if (strlen($uploadPath) != 0) {
             $this->setUploadDir($uploadPath);
         }
@@ -260,17 +259,16 @@ class FileUploader implements JsonI {
         $retVal = false;
         $temp = [];
         $ext = str_replace('.', '', $ext);
-        
+
         for ($x = 0 ; $x < $count ; $x++) {
-            
             if ($exts[$x] != $ext) {
-                $temp[] = $exts[$x];           
+                $temp[] = $exts[$x];
             } else {
                 $retVal = true;
             }
         }
         $this->extentions = $temp;
-        
+
         return $retVal;
     }
     /**
@@ -291,6 +289,7 @@ class FileUploader implements JsonI {
      */
     public function setAssociatedFileName(string $name) {
         $trimmed = trim($name);
+
         if (strlen($trimmed) != 0) {
             $this->asscociatedName = $trimmed;
         }
@@ -311,10 +310,10 @@ class FileUploader implements JsonI {
      * @since 1.0
      */
     public function setUploadDir(string $dir) {
-        
         $fixedPath = File::fixPath($dir);
-        
+
         $dir = str_replace('/', '\\', $fixedPath);
+
         if (strlen($dir) == 0) {
             throw new FileException('Upload directory should not be an empty string.');
         }
@@ -325,9 +324,8 @@ class FileUploader implements JsonI {
                 throw new FileException('Invalid upload directory: '.$this->uploadDir);
             }
         } catch (FileException $ex) {
-             throw new FileException('Invalid upload directory: '.$dir);
+            throw new FileException('Invalid upload directory: '.$dir);
         }
-
     }
     /**
      * Returns a JSON representation of the object.
@@ -376,11 +374,11 @@ class FileUploader implements JsonI {
      */
     public function upload(bool $replaceIfExist = false) : array {
         $this->files = [];
-        
+
         if (strlen($this->getUploadDir()) == 0) {
             throw new FileException('Upload path is not set.');
         }
-        
+
         $meth = getenv('REQUEST_METHOD');
 
         if ($meth === false) {
@@ -444,7 +442,7 @@ class FileUploader implements JsonI {
     private function createFileObjFromArray($arr) : UploadedFile {
         $fName = filter_var($arr[UploaderConst::NAME_INDEX], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $fPath = $arr[UploaderConst::PATH_INDEX];
-        
+
         $file = new UploadedFile($fName, $fPath);
         $file->setMIME($arr[UploaderConst::MIME_INDEX]);
 
@@ -457,7 +455,6 @@ class FileUploader implements JsonI {
         return $file;
     }
     private function getFileArr($fileOrFiles,$replaceIfExist, $idx = null): array {
-      
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
         $fileInfoArr = [];
@@ -580,7 +577,7 @@ class FileUploader implements JsonI {
      * 
      * @since 1.0
      */
-    private function isValidExt(string $fileName) : bool{
+    private function isValidExt(string $fileName) : bool {
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
 
         return in_array($ext, $this->getExts(),true) || in_array(strtolower($ext), $this->getExts(),true);

@@ -21,6 +21,7 @@ class File implements JsonI {
      * 
      */
     const DEFAULT_MIME = 'application/octet-stream';
+    private static $errFunc;
     /**
      * The name of the attachment.
      * 
@@ -67,7 +68,6 @@ class File implements JsonI {
      * @since 1.0
      */
     private $rawData;
-    private static $errFunc;
     /**
      * Creates new instance of the class.
      * 
@@ -90,6 +90,7 @@ class File implements JsonI {
         $this->fileName = '';
         $this->rawData = '';
         self::initErrHandler();
+
         if (!$this->setPath($fPath)) {
             $info = $this->extractPathAndName($fNameOrAbsPath);
             $this->setDir($info['path']);
@@ -106,81 +107,12 @@ class File implements JsonI {
         $this->id = -1;
     }
     /**
-     * Returns an array that contains directories names of the calling script.
-     * 
-     * This method is used to extract the pathes of files at which they called
-     * this method.
-     * 
-     * @return array An array that contains directories names of the calling files.
-     */
-    public static function getCallingFilesPaths() : array {
-        $debugTrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 15);
-        $retVal = [];
-
-        foreach ($debugTrace as $traceEntry) {
-            if (isset($traceEntry['file'])) {
-                $file = $traceEntry['file'];
-                $split = explode(DIRECTORY_SEPARATOR, $file);
-                $withoutFile = array_diff($split, [$split[count($split) - 1]]);
-                $dir = implode(DIRECTORY_SEPARATOR, $withoutFile);
-
-                if (strlen($dir) != 0) {
-                    $dir .= DIRECTORY_SEPARATOR;
-
-                    if (!in_array($dir, $retVal)) {
-                        $retVal[] = $dir;
-                    }
-                }
-            }
-        }
-
-        return $retVal;
-    }
-    private static function initErrHandler() {
-        self::$errFunc = function (int $errno, string $errstr, string $errfile, int $errline) {
-            throw new FileException($errstr.' At class File line '.$errline, $errno);
-        };
-    }
-    /**
      * Returns JSON string that represents basic file info.
      * 
      * @return string
      */
     public function __toString() {
-
         return $this->toJSON().'';
-    }
-
-    /**
-     * Returns an array that contains integer values which represents file data as binary.
-     *
-     * Each index of the array will have an integer value between 0 and 255 inclusive.
-     *
-     * @return array An array that contains integer values which represents file data as binary.
-     */
-    public function toBytesArray() : array {
-        $raw = $this->getRawData();
-        $asArray = unpack('C*', $raw);
-        
-        return array_values($asArray);
-    }
-
-    /**
-     * Returns an array of strings which represents file data as hex.
-     *
-     * Each index will have a string of two characters which represents each byte.
-     *
-     * @return array An array of strings which represents file data as hex.
-     */
-    public function toHexArray() : array {
-        $bytes = $this->toBytesArray();
-        $hexArr = [];
-
-        foreach ($bytes as $byte) {
-            $hexArr[] = sprintf("%02X", $byte);
-        }
-
-        return  $hexArr;
     }
     /**
      * Appends a string of data to the already existing data.
@@ -224,6 +156,29 @@ class File implements JsonI {
             }
         }
     }
+    public static function fixPath($fPath) {
+        $DS = DIRECTORY_SEPARATOR;
+        $trimmedPath = str_replace('/', $DS, str_replace('\\', $DS, trim($fPath)));
+        $len = strlen($trimmedPath);
+        $start = '';
+
+        if ($len != 0) {
+            $start = $trimmedPath[0] == $DS ? $DS : '';
+
+            while ($trimmedPath[$len - 1] == '/' || $trimmedPath[$len - 1] == '\\') {
+                $tmpDir = trim($trimmedPath,'/');
+                $trimmedPath = trim($tmpDir,'\\');
+                $len = strlen($trimmedPath);
+            }
+
+            while ($trimmedPath[0] == '/' || $trimmedPath[0] == '\\') {
+                $tmpDir = trim($trimmedPath,'/');
+                $trimmedPath = trim($tmpDir,'\\');
+            }
+        }
+
+        return $start.$trimmedPath;
+    }
     /**
      * Returns the full path to the file.
      *
@@ -247,6 +202,37 @@ class File implements JsonI {
         }
 
         return '';
+    }
+    /**
+     * Returns an array that contains directories names of the calling script.
+     * 
+     * This method is used to extract the pathes of files at which they called
+     * this method.
+     * 
+     * @return array An array that contains directories names of the calling files.
+     */
+    public static function getCallingFilesPaths() : array {
+        $debugTrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 15);
+        $retVal = [];
+
+        foreach ($debugTrace as $traceEntry) {
+            if (isset($traceEntry['file'])) {
+                $file = $traceEntry['file'];
+                $split = explode(DIRECTORY_SEPARATOR, $file);
+                $withoutFile = array_diff($split, [$split[count($split) - 1]]);
+                $dir = implode(DIRECTORY_SEPARATOR, $withoutFile);
+
+                if (strlen($dir) != 0) {
+                    $dir .= DIRECTORY_SEPARATOR;
+
+                    if (!in_array($dir, $retVal)) {
+                        $retVal[] = $dir;
+                    }
+                }
+            }
+        }
+
+        return $retVal;
     }
     /**
      * Split file raw data into chunks of fixed size.
@@ -701,6 +687,38 @@ class File implements JsonI {
         $this->rawData = $decoded;
         $this->setSize(strlen($this->rawData));
     }
+
+    /**
+     * Returns an array that contains integer values which represents file data as binary.
+     *
+     * Each index of the array will have an integer value between 0 and 255 inclusive.
+     *
+     * @return array An array that contains integer values which represents file data as binary.
+     */
+    public function toBytesArray() : array {
+        $raw = $this->getRawData();
+        $asArray = unpack('C*', $raw);
+
+        return array_values($asArray);
+    }
+
+    /**
+     * Returns an array of strings which represents file data as hex.
+     *
+     * Each index will have a string of two characters which represents each byte.
+     *
+     * @return array An array of strings which represents file data as hex.
+     */
+    public function toHexArray() : array {
+        $bytes = $this->toBytesArray();
+        $hexArr = [];
+
+        foreach ($bytes as $byte) {
+            $hexArr[] = sprintf("%02X", $byte);
+        }
+
+        return  $hexArr;
+    }
     /**
      * Returns a JSON string that represents the file.
      *
@@ -714,6 +732,7 @@ class File implements JsonI {
      */
     public function toJSON() : Json {
         $size = $this->getSize() != -1 ? $this->getSize() : 0;
+
         return new Json([
             'id' => $this->getID(),
             'mime' => $this->getMIME(),
@@ -772,6 +791,7 @@ class File implements JsonI {
      */
     public function write(bool $append = true, bool $createIfNotExist = false) {
         $pathV = $this->checkNameAndPath();
+
         if ($createIfNotExist) {
             $this->create(true);
         }
@@ -812,10 +832,11 @@ class File implements JsonI {
 
             if (strlen($fPath) == 0) {
                 $possiblePaths = self::getCallingFilesPaths();
+
                 foreach ($possiblePaths as $fPath) {
-                    
                     if (self::isFileExist($fPath.DIRECTORY_SEPARATOR.$fName)) {
                         $this->setDir($fPath);
+
                         return $this->getAbsolutePath();
                     }
                 }
@@ -836,6 +857,34 @@ class File implements JsonI {
         }
 
         return false;
+    }
+
+    private function doNotUseClassResponse($contentType, $asAttachment) {
+        $headersArr = [
+            'Accept-Ranges: bytes',
+            'content-type: '.$contentType
+        ];
+
+        if (isset($_SERVER['HTTP_RANGE'])) {
+            $expl = $this->readRange();
+            http_response_code(206);
+            $headersArr[] = 'content-range: '.'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize();
+            $headersArr[] = 'content-length: '.($expl[1] - $expl[0]);
+        } else {
+            $headersArr[] = 'Content-Length: '.$this->getSize();
+        }
+
+        if ($asAttachment === true) {
+            $headersArr[] = 'Content-Disposition: attachment; filename="'.$this->getName().'"';
+        } else {
+            $headersArr[] = 'Content-Disposition: inline; filename="'.$this->getName().'"';
+        }
+
+        foreach ($headersArr as $h) {
+            header($h);
+        }
+        echo $this->getRawData();
+        die();
     }
     private function extractMimeFromName() {
         $exp = explode('.', $this->getName());
@@ -869,6 +918,12 @@ class File implements JsonI {
             'path' => ''
         ];
     }
+    private static function initErrHandler() {
+        self::$errFunc = function (int $errno, string $errstr, string $errfile, int $errline)
+        {
+            throw new FileException($errstr.' At class File line '.$errline, $errno);
+        };
+    }
     private function readHelper($fPath,$from,$to) {
         if ($this->isExist()) {
             $fSize = filesize($fPath);
@@ -898,103 +953,6 @@ class File implements JsonI {
         } else {
             throw new FileException('File not found: \''.$fPath.'\'.');
         }
-    }
-    private function setSize($size) {
-        if ($size >= 0) {
-            $this->fileSize = $size;
-        }
-    }
-    public static function fixPath($fPath) {
-        $DS = DIRECTORY_SEPARATOR;
-        $trimmedPath = str_replace('/', $DS, str_replace('\\', $DS, trim($fPath)));
-        $len = strlen($trimmedPath);
-        $start = '';
-
-        if ($len != 0) {
-            $start = $trimmedPath[0] == $DS ? $DS : '';
-
-            while ($trimmedPath[$len - 1] == '/' || $trimmedPath[$len - 1] == '\\') {
-                $tmpDir = trim($trimmedPath,'/');
-                $trimmedPath = trim($tmpDir,'\\');
-                $len = strlen($trimmedPath);
-            }
-
-            while ($trimmedPath[0] == '/' || $trimmedPath[0] == '\\') {
-                $tmpDir = trim($trimmedPath,'/');
-                $trimmedPath = trim($tmpDir,'\\');
-            }
-        }
-
-        return $start.$trimmedPath;
-    }
-    private function viewFileHelper($asAttachment) {
-        $contentType = $this->getMIME();
-
-        if (class_exists('\webfiori\http\Response')) {
-            $this->useClassResponse($contentType, $asAttachment);
-        } else {
-            $this->doNotUseClassResponse($contentType, $asAttachment);
-        }
-    }
-
-    /**
-     *
-     * @param string $fPath
-     * @param bool $append
-     * @param bool $encode
-     * @return bool
-     * @throws FileException
-     */
-    private function writeHelper(string $fPath, bool $append, bool $encode = false) {
-        if (strlen($this->getRawData()) == 0) {
-            throw new FileException("No data is set to write.");
-        }
-
-        if (!$this->isExist()) {
-            throw new FileException("File not found: '$fPath'.");
-        } else {
-            if ($append) {
-                $resource = $this->createResource('ab', $fPath);
-            } else {
-                $resource = $this->createResource('rb+', $fPath);
-            }
-        }
-
-        if (!is_resource($resource)) {
-            throw new FileException('Unable to open the file at \''.$fPath.'\'.');
-        } else {
-            fwrite($resource, $this->getRawData($encode));
-            fclose($resource);
-
-            return true;
-        }
-    }
-
-    private function doNotUseClassResponse($contentType, $asAttachment) {
-        $headersArr = [
-            'Accept-Ranges: bytes',
-            'content-type: '.$contentType
-        ];
-
-        if (isset($_SERVER['HTTP_RANGE'])) {
-            $expl = $this->readRange();
-            http_response_code(206);
-            $headersArr[] = 'content-range: '.'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize();
-            $headersArr[] = 'content-length: '. ($expl[1] - $expl[0]);
-        } else {
-            $headersArr[] = 'Content-Length: '.$this->getSize();
-        }
-
-        if ($asAttachment === true) {
-            $headersArr[] = 'Content-Disposition: attachment; filename="'.$this->getName().'"';
-        } else {
-            $headersArr[] = 'Content-Disposition: inline; filename="'.$this->getName().'"';
-        }
-        foreach ($headersArr as $h) {
-            header($h);
-        }
-        echo $this->getRawData();
-        die();
     }
     private function readRange() {
         $range = filter_var($_SERVER['HTTP_RANGE']);
@@ -1037,11 +995,16 @@ class File implements JsonI {
 
         return $retVal;
     }
+    private function setSize($size) {
+        if ($size >= 0) {
+            $this->fileSize = $size;
+        }
+    }
 
     private function useClassResponse($contentType, $asAttachment) {
         Response::addHeader('Accept-Ranges', 'bytes');
         Response::addHeader('content-type', $contentType);
-        
+
         if (isset($_SERVER['HTTP_RANGE'])) {
             $expl = $this->readRange();
             Response::setCode(206);
@@ -1057,9 +1020,51 @@ class File implements JsonI {
             Response::addHeader('Content-Disposition', 'inline; filename="'.$this->getName().'"');
         }
         Response::write($this->getRawData());
-        
+
         if (!defined('__PHPUNIT_PHAR__')) {
             Response::send();
+        }
+    }
+    private function viewFileHelper($asAttachment) {
+        $contentType = $this->getMIME();
+
+        if (class_exists('\webfiori\http\Response')) {
+            $this->useClassResponse($contentType, $asAttachment);
+        } else {
+            $this->doNotUseClassResponse($contentType, $asAttachment);
+        }
+    }
+
+    /**
+     *
+     * @param string $fPath
+     * @param bool $append
+     * @param bool $encode
+     * @return bool
+     * @throws FileException
+     */
+    private function writeHelper(string $fPath, bool $append, bool $encode = false) {
+        if (strlen($this->getRawData()) == 0) {
+            throw new FileException("No data is set to write.");
+        }
+
+        if (!$this->isExist()) {
+            throw new FileException("File not found: '$fPath'.");
+        } else {
+            if ($append) {
+                $resource = $this->createResource('ab', $fPath);
+            } else {
+                $resource = $this->createResource('rb+', $fPath);
+            }
+        }
+
+        if (!is_resource($resource)) {
+            throw new FileException('Unable to open the file at \''.$fPath.'\'.');
+        } else {
+            fwrite($resource, $this->getRawData($encode));
+            fclose($resource);
+
+            return true;
         }
     }
 }
