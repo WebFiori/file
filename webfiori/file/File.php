@@ -146,7 +146,7 @@ class File implements JsonI {
 
         if (!$this->isExist()) {
             self::isDirectory($this->getDir(), $createDirIfNotExist);
-            $resource = $this->createResource('wb', $fPath);
+            $resource = self::createResource('wb', $fPath);
 
             if (!is_resource($resource)) {
                 throw new FileException('Unable to create a file at \''.$fPath.'\'.');
@@ -847,7 +847,15 @@ class File implements JsonI {
         }
         throw new FileException('File name cannot be empty string.');
     }
-    private function createResource($mode, $path) {
+    /**
+     * 
+     * @param string $mode
+     * 
+     * @param string $path
+     * 
+     * @return bool|resource
+     */
+    public static function createResource(string $mode, string $path) {
         set_error_handler(self::$errFunc);
         $resource = fopen($path, $mode);
         restore_error_handler();
@@ -929,7 +937,7 @@ class File implements JsonI {
             $fSize = filesize($fPath);
             $this->setSize($fSize);
             $bytesToRead = $to - $from > 0 ? $to - $from : $this->getSize();
-            $resource = $this->createResource('rb', $fPath);
+            $resource = self::createResource('rb', $fPath);
 
             if ($bytesToRead > $this->getSize() || $to > $this->getSize()) {
                 throw new FileException('Reached end of file while trying to read '.$bytesToRead.' byte(s).');
@@ -1052,9 +1060,9 @@ class File implements JsonI {
             throw new FileException("File not found: '$fPath'.");
         } else {
             if ($append) {
-                $resource = $this->createResource('ab', $fPath);
+                $resource = self::createResource('ab', $fPath);
             } else {
-                $resource = $this->createResource('rb+', $fPath);
+                $resource = self::createResource('rb+', $fPath);
             }
         }
 
