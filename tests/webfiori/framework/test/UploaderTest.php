@@ -92,11 +92,11 @@ class UploaderTest extends TestCase {
                'name' => 'testUpload.txt',
                'size' => 51,
                'upload-path' => str_replace('/', DS, str_replace('\\', DS, __DIR__)),
-               'upload-error' => 'temp_file_not_moved',
+               'upload-error' => '',
                'mime' => 'text/plain',
                'is-exist' => false,
                'is-replace' => false,
-               'uploaded' => false
+               'uploaded' => true
            ] 
         ], $r);
         return  $u;
@@ -148,13 +148,14 @@ class UploaderTest extends TestCase {
         $this->assertTrue($file1 instanceof UploadedFile);
         $this->assertEquals('testUpload.txt',$file1->getName());
         $this->assertEquals('testUpload',$file1->getNameWithNoExt());
-        $this->assertFalse($file1->isUploaded());
+        $this->assertTrue($file1->isUploaded());
         $this->assertFalse($file1->isReplace());
         $this->assertEquals('text/plain',$file1->getMIME());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)),$file1->getDir());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)).DS.'testUpload.txt',$file1->getAbsolutePath());
         
-        $this->assertEquals("temp_file_not_moved",$file1->getUploadError());
+        $this->assertEquals("",$file1->getUploadError());
+        $file1->remove();
         
         $file2 = $r[1];
         $this->assertTrue($file2 instanceof UploadedFile);
@@ -180,9 +181,9 @@ class UploaderTest extends TestCase {
                 . '"sizeInBytes":0,'
                 . '"sizeInKBytes":0,'
                 . '"sizeInMBytes":0,'
-                . '"uploaded":false,'
+                . '"uploaded":true,'
                 . '"isReplace":false,'
-                . '"uploadError":"temp_file_not_moved"},'
+                . '"uploadError":""},'
                 . '{"id":-1,"mime":'
                 . '"application\/octet-stream",'
                 . '"name":"not-allowed.xp",'
