@@ -389,6 +389,11 @@ class FileUploader implements JsonI {
         if (strtoupper($reqMeth) == 'POST') {
             $fileOrFiles = null;
             $associatedInputName = filter_input(INPUT_POST, 'file');
+            
+            if (gettype($associatedInputName) != 'string' && isset($_POST['file'])) {
+                //Probably in cli (test env)
+                $associatedInputName = filter_var($_POST['file']);
+            }
 
             if ($associatedInputName !== null) {
                 $this->setAssociatedFileName($associatedInputName);
@@ -464,7 +469,8 @@ class FileUploader implements JsonI {
         $fileInfoArr[UploaderConst::ERR_INDEX] = '';
         $nameSplit = explode('.', $fileInfoArr[UploaderConst::NAME_INDEX]);
         $fileInfoArr[UploaderConst::MIME_INDEX] = MIME::getType($nameSplit[count($nameSplit) - 1]);
-
+        $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                
         $isErr = $idx === null ? $this->isError($fileOrFiles[$errIdx]) : $this->isError($fileOrFiles[$errIdx][$idx]);
 
         if (!$isErr) {
@@ -478,12 +484,14 @@ class FileUploader implements JsonI {
                         $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
                         $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
                         $sanitizedName = filter_var($name, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-
-                        if (move_uploaded_file($sanitizedName, $filePath)) {
-                            $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
-                        } else {
-                            $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                        
+                        //If in CLI, use copy (testing env)
+                        $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
+                        
+                        if (!($moveFunc($sanitizedName, $filePath))) {
                             $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_MOVE_TEMP;
+                        } else {
+                            $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
                         }
                     } else {
                         $fileInfoArr[UploaderConst::EXIST_INDEX] = true;
@@ -501,7 +509,7 @@ class FileUploader implements JsonI {
                             }
                         } else {
                             $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
-                            $fileInfoArr[UploaderConst::ERR_INDEX] = false;
+                            $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ALREADY_EXIST;
                         }
                     }
                 } else {
