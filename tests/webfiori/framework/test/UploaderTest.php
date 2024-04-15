@@ -90,7 +90,7 @@ class UploaderTest extends TestCase {
         $this->assertEquals([
            [
                'name' => 'testUpload.txt',
-               'size' => 51,
+               'size' => '51',
                'upload-path' => str_replace('/', DS, str_replace('\\', DS, __DIR__)),
                'upload-error' => '',
                'mime' => 'text/plain',
@@ -111,16 +111,21 @@ class UploaderTest extends TestCase {
         $this->assertTrue($file instanceof UploadedFile);
         $this->assertEquals('testUpload.txt',$file->getName());
         $this->assertEquals('testUpload',$file->getNameWithNoExt());
-        $this->assertFalse($file->isUploaded());
+        $this->assertTrue($file->isUploaded());
         $this->assertFalse($file->isReplace());
         $this->assertEquals('text/plain',$file->getMIME());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)),$file->getDir());
         $this->assertEquals(str_replace('/', DS, str_replace('\\', DS, __DIR__)).DS.'testUpload.txt',$file->getAbsolutePath());
         
-        $this->assertEquals("temp_file_not_moved",$file->getUploadError());
+        $this->assertEquals("",$file->getUploadError());
         $this->assertEquals("{\"id\":-1,\"mime\":\"text\/plain\",\"name\":\"testUpload.txt\""
-                . ",\"directory\":\"".Json::escapeJSONSpecialChars($file->getDir())."\",\"sizeInBytes\":0,"
-                . "\"sizeInKBytes\":0,\"sizeInMBytes\":0,\"uploaded\":false,\"isReplace\":false,\"uploadError\":\"temp_file_not_moved\"}", $file.'');
+                . ",\"directory\":\"".Json::escapeJSONSpecialChars($file->getDir())."\",\"sizeInBytes\":51,"
+                . "\"sizeInKBytes\":0.0498046875,"
+                . "\"sizeInMBytes\":4.8637390136719E-5,"
+                . "\"uploaded\":true,"
+                . "\"isReplace\":false,"
+                . "\"uploadError\":\"\"}", $file.'');
+        $file->remove();
     }
     public function testUpload02() {
         $this->expectException(FileException::class);
