@@ -463,7 +463,7 @@ class FileUploader implements JsonI {
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
         $fileInfoArr = [];
-        $fileInfoArr[UploaderConst::NAME_INDEX] = $idx === null ? filter_var($fileOrFiles[UploaderConst::NAME_INDEX], FILTER_SANITIZE_FULL_SPECIAL_CHARS) : filter_var($fileOrFiles[UploaderConst::NAME_INDEX][$idx], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $fileInfoArr[UploaderConst::NAME_INDEX] = $idx === null ? filter_var($fileOrFiles[UploaderConst::NAME_INDEX]) : filter_var($fileOrFiles[UploaderConst::NAME_INDEX][$idx]);
         $fileInfoArr[UploaderConst::SIZE_INDEX] = $idx === null ? filter_var($fileOrFiles[UploaderConst::SIZE_INDEX], FILTER_SANITIZE_NUMBER_INT) : filter_var($fileOrFiles[UploaderConst::SIZE_INDEX][$idx], FILTER_SANITIZE_NUMBER_INT);
         $fileInfoArr[UploaderConst::PATH_INDEX] = $this->getUploadDir();
         $fileInfoArr[UploaderConst::ERR_INDEX] = '';
@@ -478,15 +478,17 @@ class FileUploader implements JsonI {
                 if (File::isDirectory($this->getUploadDir())) {
                     $filePath = $this->getUploadDir().'\\'.$fileInfoArr[UploaderConst::NAME_INDEX];
                     $filePath = str_replace('\\', '/', $filePath);
-
+                    
+                    //If in CLI, use copy (testing env)
+                    $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
+                        
                     if (!File::isFileExist($filePath)) {
                         $fileInfoArr[UploaderConst::EXIST_INDEX] = false;
                         $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
                         $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
-                        $sanitizedName = filter_var($name, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                        $sanitizedName = filter_var($name);
                         
-                        //If in CLI, use copy (testing env)
-                        $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
+                        
                         
                         if (!($moveFunc($sanitizedName, $filePath))) {
                             $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_MOVE_TEMP;
@@ -500,9 +502,9 @@ class FileUploader implements JsonI {
                             $fileInfoArr[UploaderConst::REPLACE_INDEX] = true;
                             unlink($filePath);
                             $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
-                            $sanitizedName = $sanitizedName = filter_var($name, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                            $sanitizedName = $sanitizedName = filter_var($name);
 
-                            if (move_uploaded_file($sanitizedName, $filePath)) {
+                            if ($moveFunc($sanitizedName, $filePath)) {
                                 $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
                             } else {
                                 $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
