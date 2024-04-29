@@ -765,7 +765,7 @@ class MIME {
      * 
      */
     public static function getType(string $ext) : string {
-        $lowerCase = strtolower($ext);
+        $lowerCase = strtolower(trim($ext, ".\r\n\t\v\x00"));
         $retVal = File::DEFAULT_MIME;
 
         $types = self::TYPES;
