@@ -172,6 +172,60 @@ class FileUploader implements JsonI {
         return $retVal;
     }
     /**
+     * Adds a file to the array $_FILES for testing files uploads.
+     * 
+     * This method can be used to simulate the process of single file upload.
+     * 
+     * @param string $fileIdx The name of the index that will hold the blob.
+     * This is usually represented by the attribute 'name' of file input in
+     * the front-end.
+     * 
+     * @param string $filePath The path of the file within testing environment.
+     * 
+     * @param bool $reset If set to true, the array $_FILES will be re-initialized.
+     */
+    public static function addTestFile(string $fileIdx = '', string $filePath = '', bool $reset = false) {
+        if ($reset) {
+            $_FILES = [];
+        }
+        
+        $trimmed = trim($fileIdx);
+        
+        if (strlen($trimmed) == 0) {
+            return;
+        }
+
+        if (!isset($_FILES[$trimmed])) {
+            $_FILES[$trimmed] = [];
+            $_FILES[$trimmed]['name'] = [];
+            $_FILES[$trimmed]['type'] = [];
+            $_FILES[$trimmed]['size'] = [];
+            $_FILES[$trimmed]['tmp_name'] = [];
+            $_FILES[$trimmed]['error'] = [];
+        }
+        $info = self::extractPathAndName($filePath);
+        $path = $info['path'].DS.$info['name'];
+        
+        
+        if (!File::isFileExist($path)) {
+            throw new FileException('No file was found at \''.$path.'\'.');
+        }
+        
+        $nameExpl = explode('.', $info['name']);
+        if (count($nameExpl) == 2) {
+            $ext = $nameExpl[1];
+        } else {
+            $ext = 'bin';
+        }
+        
+        $_FILES[$trimmed]['name'][] = $info['name'];
+        $_FILES[$trimmed]['type'][] = MIME::getType($ext);
+        $_FILES[$trimmed]['size'][] = filesize($path);
+        $_FILES[$trimmed]['tmp_name'][] = $path;
+        $_FILES[$trimmed]['error'][] = 0;
+    }
+    
+    /**
      * Returns the name of the index at which the uploaded files will exist on in the array $_FILES.
      * 
      * This value represents the value of the attribute 'name' of the files input 
@@ -458,6 +512,30 @@ class FileUploader implements JsonI {
         $file->setUploadErr($arr[UploaderConst::ERR_INDEX]);
 
         return $file;
+    }
+    private static function extractPathAndName($absPath): array {
+        $DS = DIRECTORY_SEPARATOR;
+        $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
+        $pathArr = explode($DS, $cleanPath);
+
+        if (count($pathArr) != 0) {
+            $fPath = '';
+            $name = $pathArr[count($pathArr) - 1];
+
+            for ($x = 0 ; $x < count($pathArr) - 1 ; $x++) {
+                $fPath .= $pathArr[$x].$DS;
+            }
+
+            return [
+                'path' => $fPath,
+                'name' => $name
+            ];
+        }
+
+        return [
+            'name' => $cleanPath,
+            'path' => ''
+        ];
     }
     private function getFileArr($fileOrFiles,$replaceIfExist, $idx = null): array {
         $errIdx = 'error';
