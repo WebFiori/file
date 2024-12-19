@@ -20,7 +20,7 @@ jobs:
     
     steps: 
       - name: Clone Repo
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -34,15 +34,9 @@ jobs:
         run: composer install --prefer-dist --no-interaction
       
       - name: Execute Tests
-        run: phpunit
+        run: phpunit --configuration tests/phpunit.xml
         
       - name: CodeCov
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        
-      - name: SonarCloud
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
