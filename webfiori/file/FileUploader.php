@@ -625,7 +625,7 @@ class FileUploader implements JsonI {
                 return false;
             }
             case UPLOAD_ERR_INI_SIZE:{
-                $this->uploadStatusMessage = 'File Size is Larger Than '.(ini_get('upload_max_filesize') / 1000).'KB. Found in php.ini.';
+                $this->uploadStatusMessage = 'File Size is Larger Than '.(intval(ini_get('upload_max_filesize')) / 1000).'KB. Found in php.ini.';
                 break;
             }
             case UPLOAD_ERR_FORM_SIZE:{
