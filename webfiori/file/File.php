@@ -345,7 +345,7 @@ class File implements JsonI {
      *
      * @since 1.1.7
      */
-    public function getLastModified(?string $format) {
+    public function getLastModified(?string $format = 'Y-m-d H:i:s') {
         if ($this->isExist()) {
             clearstatcache();
 
