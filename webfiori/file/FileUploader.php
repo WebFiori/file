@@ -537,7 +537,7 @@ class FileUploader implements JsonI {
             'path' => ''
         ];
     }
-    private function getFileArr($fileOrFiles,$replaceIfExist, $idx = null): array {
+    private function getFileArr($fileOrFiles,$replaceIfExist, ?string $idx): array {
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
         $fileInfoArr = [];
