@@ -628,10 +628,6 @@ class FileUploader implements JsonI {
                 $this->uploadStatusMessage = 'File Size is Larger Than '.(intval(ini_get('upload_max_filesize')) / 1000).'KB. Found in php.ini.';
                 break;
             }
-            case UPLOAD_ERR_FORM_SIZE:{
-                $this->uploadStatusMessage = 'File Size is Larger Than '.($this->getLimit() / 1000).'KB';
-                break;
-            }
             case UPLOAD_ERR_PARTIAL:{
                 $this->uploadStatusMessage = 'File Uploaded Partially';
                 break;
@@ -649,7 +645,7 @@ class FileUploader implements JsonI {
                 break;
             }
             default :{
-                $this->uploadStatusMessage = 'No File was Uploaded';
+                $this->uploadStatusMessage = 'No File was Uploaded due to uknown error';
             }
         }
 
