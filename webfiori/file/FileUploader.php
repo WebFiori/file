@@ -608,6 +608,27 @@ class FileUploader implements JsonI {
         return $fileInfoArr;
     }
     /**
+     * Returns the value of the directive 'upload_max_filesize' in KB.
+     * 
+     * @return int
+     */
+    public static function getMaxFileSize() : int {
+        $val = ini_get('upload_max_filesize');
+        $lastChar = strtoupper($val[strlen($val) - 1]);
+        
+        switch ($lastChar) {
+            case 'M' : {
+                return intval($val) * 1000;
+            } case 'K' : {
+                return intval($val);
+            } case 'G' : {
+                return intval($val) * 1000000;
+            } default : {
+                return intval($val) / 1000;
+            }
+        }
+    }
+    /**
      * Checks if PHP upload code is error or not.
      * 
      * @param int $code PHP upload code.
@@ -625,7 +646,7 @@ class FileUploader implements JsonI {
                 return false;
             }
             case UPLOAD_ERR_INI_SIZE:{
-                $this->uploadStatusMessage = 'File Size is Larger Than '.(intval(ini_get('upload_max_filesize')) / 1000).'KB. Found in php.ini.';
+                $this->uploadStatusMessage = 'File Size is Larger Than '.(self::getMaxFileSize()).'KB. Found in php.ini.';
                 break;
             }
             case UPLOAD_ERR_PARTIAL:{
