@@ -257,7 +257,7 @@ class FileTest extends TestCase {
     public function testLastModified01() {
         $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $time = filemtime($file->getAbsolutePath());
-        $this->assertEquals($time, $file->getLastModified());
+        $this->assertEquals($time, $file->getLastModified(null));
         $this->assertEquals(date('Y-m-d H:i:s', $time), $file->getLastModified('Y-m-d H:i:s'));
     }
     /**

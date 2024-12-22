@@ -345,7 +345,7 @@ class File implements JsonI {
      *
      * @since 1.1.7
      */
-    public function getLastModified(string $format = null) {
+    public function getLastModified(?string $format = 'Y-m-d H:i:s') {
         if ($this->isExist()) {
             clearstatcache();
 
@@ -889,7 +889,10 @@ class File implements JsonI {
         }
 
         foreach ($headersArr as $h) {
-            header($h);
+            //Check if in PHP Unit or not. If in 
+            if (!defined('TESTING') || TESTING === false) {
+                header($h);
+            }
         }
         echo $this->getRawData();
         die();
