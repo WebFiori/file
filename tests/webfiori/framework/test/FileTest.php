@@ -134,6 +134,7 @@ class FileTest extends TestCase {
         $this->assertEquals(['54'], $file->toHexArray());
         $file->read();
         $this->assertEquals("This is to test if read from same directory is working.\n", $file->getRawData());
+        $this->assertEquals('{"id":-1,"mime":"text\/plain","name":"in-dir.txt","directory":"C:\\inetpub\\wwwroot\\dev\\IbrahimSpace\\file\\tests\\webfiori\\framework\\test","sizeInBytes":57,"sizeInKBytes":0.0556640625,"sizeInMBytes":5.4359436035156E-5}', $file.'');
     }
     /**
      * @test
