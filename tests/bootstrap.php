@@ -6,6 +6,7 @@ ini_set('display_errors', 1);
 error_reporting(-1);
 
 define('DS', DIRECTORY_SEPARATOR);
+define('TESTING', true);
 require_once __DIR__.DS.'..'.DS.'vendor'.DS.'autoload.php';
 
 $testsDirName = 'tests';

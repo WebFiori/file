@@ -889,7 +889,10 @@ class File implements JsonI {
         }
 
         foreach ($headersArr as $h) {
-            header($h);
+            //Check if in PHP Unit or not. If in 
+            if (!defined('TESTING') || TESTING === false) {
+                header($h);
+            }
         }
         echo $this->getRawData();
         die();
