@@ -139,6 +139,21 @@ class FileTest extends TestCase {
     /**
      * @test
      */
+    public function testAppend00() {
+        $file = new File('text-file-x.txt',ROOT_PATH.DS.'tests'.DS.'files');
+        $this->assertEquals('', $file->getRawData());
+        $file->append('Hello');
+        $this->assertEquals('Hello', $file->getRawData());
+        $file->append(' World!');
+        $file->append([
+            ' More ',
+            'Data'
+        ]);
+        $this->assertEquals('Hello World! More Data', $file->getRawData());
+    }
+    /**
+     * @test
+     */
     public function testReadChunk01() {
         $file = new File('text-file-3.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->read();
