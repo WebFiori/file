@@ -134,6 +134,22 @@ class FileTest extends TestCase {
         $this->assertEquals(['54'], $file->toHexArray());
         $file->read();
         $this->assertEquals("This is to test if read from same directory is working.\n", $file->getRawData());
+        $this->assertEquals('{"id":-1,"mime":"text\/plain","name":"in-dir.txt","directory":"'.Json::escapeJSONSpecialChars($file->getDir()).'","sizeInBytes":'.$file->getSize().',"sizeInKBytes":'.($file->getSize() / 1024).',"sizeInMBytes":'.(($file->getSize() / 1024) / 1024).'}', $file.'');
+    }
+    /**
+     * @test
+     */
+    public function testAppend00() {
+        $file = new File('text-file-x.txt',ROOT_PATH.DS.'tests'.DS.'files');
+        $this->assertEquals('', $file->getRawData());
+        $file->append('Hello');
+        $this->assertEquals('Hello', $file->getRawData());
+        $file->append(' World!');
+        $file->append([
+            ' More ',
+            'Data'
+        ]);
+        $this->assertEquals('Hello World! More Data', $file->getRawData());
     }
     /**
      * @test
@@ -257,7 +273,7 @@ class FileTest extends TestCase {
     public function testLastModified01() {
         $file = new File('text-file.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $time = filemtime($file->getAbsolutePath());
-        $this->assertEquals($time, $file->getLastModified());
+        $this->assertEquals($time, $file->getLastModified(null));
         $this->assertEquals(date('Y-m-d H:i:s', $time), $file->getLastModified('Y-m-d H:i:s'));
     }
     /**
