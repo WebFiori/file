@@ -468,7 +468,7 @@ class FileUploader implements JsonI {
                     }
                 } else {
                     //single file upload
-                    $fileInfoArr = $this->getFileArr($fileOrFiles, $replaceIfExist);
+                    $fileInfoArr = $this->getFileArr($fileOrFiles, $replaceIfExist, null);
                     $this->files[] = $fileInfoArr;
                 }
             }
