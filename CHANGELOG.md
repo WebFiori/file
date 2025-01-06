@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.8](https://github.com/WebFiori/file/compare/v1.3.7...v1.3.8) (2025-01-06)
+
+
+### Bug Fixes
+
+* Single File Upload ([4126efc](https://github.com/WebFiori/file/commit/4126efc3ff15e030b0bdd58c302eb3aa7e971c0e))
+
 ## [1.3.7](https://github.com/WebFiori/file/compare/v1.3.6...v1.3.7) (2024-12-22)
 
 
