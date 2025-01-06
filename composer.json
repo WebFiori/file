@@ -2,7 +2,7 @@
     "name": "webfiori/file",
     "description": "Basic class library to read, write and view files using PHP.",
     "type": "library",
-    "version": "1.3.7",
+    "version": "1.3.8",
     "authors": [
         {
             "name": "Ibrahim BinAlshikh",
