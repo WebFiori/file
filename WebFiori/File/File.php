@@ -2,7 +2,7 @@
 namespace WebFiori\File;
 
 use WebFiori\File\Exceptions\FileException;
-use webfiori\http\Response;
+use WebFiori\HTTP\Response;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
 /**
@@ -1039,7 +1039,7 @@ class File implements JsonI {
     private function viewFileHelper($asAttachment) {
         $contentType = $this->getMIME();
 
-        if (class_exists('\webfiori\http\Response')) {
+        if (class_exists('\WebFiori\HTTP\Response')) {
             $this->useClassResponse($contentType, $asAttachment);
         } else {
             $this->doNotUseClassResponse($contentType, $asAttachment);
