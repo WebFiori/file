@@ -10,3 +10,4 @@ clover.xml
 tests/files/not-exist/new.txt
 tests/webfiori/framework/test/testUpload.txt
 *.Identifier
+*.Identifier
