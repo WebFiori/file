@@ -12,10 +12,11 @@
     "license": "MIT",
     "require": {
         "php": ">=7.0",
-        "webfiori/jsonx": "3.3.x"
+        "webfiori/jsonx": "4.0.x"
     },
     "require-dev": {
-        "webfiori/http": "*"
+        "webfiori/http": "*",
+        "phpunit/phpunit": "^10.0"
     },
     "keywords": [
         "php",
@@ -27,6 +28,11 @@
     "autoload": {
         "psr-4": {
             "WebFiori\\File\\": "WebFiori/File/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WebFiori\\Framework\\Test\\File\\": "tests/WebFiori/Framework/Test/File/"
         }
     }
 }
