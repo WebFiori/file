@@ -1,7 +1,7 @@
 <?php
-namespace webfiori\file;
+namespace WebFiori\File;
 
-use webfiori\file\exceptions\FileException;
+use WebFiori\File\Exceptions\FileException;
 use webfiori\http\Response;
 use webfiori\json\Json;
 use webfiori\json\JsonI;

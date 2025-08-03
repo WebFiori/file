@@ -3,10 +3,10 @@
 namespace webfiori\framework\test;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\file\exceptions\FileException;
-use webfiori\file\File;
-use webfiori\file\FileUploader;
-use webfiori\file\UploadedFile;
+use WebFiori\File\Exceptions\FileException;
+use WebFiori\File\File;
+use WebFiori\File\FileUploader;
+use WebFiori\File\UploadedFile;
 use webfiori\json\Json;
 /**
  * Description of UploaderTest

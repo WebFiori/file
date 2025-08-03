@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\file;
+namespace WebFiori\File;
 
 use webfiori\json\Json;
 /**
