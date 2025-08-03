@@ -1,6 +1,6 @@
 <?php
 
-namespace webfiori\framework\test;
+namespace WebFiori\Framework\Test\File;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\File\Exceptions\FileException;

@@ -4,11 +4,11 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>../webfiori/file/File.php</file>
-            <file>../webfiori/file/MIME.php</file>
-            <file>../webfiori/file/UploadedFile.php</file>
-            <file>../webfiori/file/FileUploader.php</file>
-            <file>../webfiori/file/exceptions/FileException.php</file>
+            <file>../WebFiori/File/File.php</file>
+            <file>../WebFiori/File/MIME.php</file>
+            <file>../WebFiori/File/UploadedFile.php</file>
+            <file>../WebFiori/File/FileUploader.php</file>
+            <file>../WebFiori/File/Exceptions/FileException.php</file>
         </whitelist>
     </filter>
     <logging>
@@ -16,7 +16,7 @@
     </logging>
     <testsuites>
         <testsuite name="Tests">
-            <directory>./webfiori/framework/test</directory>
+            <directory>./WebFiori/Framework/Test</directory>
         </testsuite>
     </testsuites>
 </phpunit>
