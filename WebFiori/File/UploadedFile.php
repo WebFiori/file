@@ -1,7 +1,7 @@
 <?php
 namespace WebFiori\File;
 
-use webfiori\json\Json;
+use WebFiori\Json\Json;
 /**
  * A class which is used by the class 'Uploader' to represents uploaded files.
  * 

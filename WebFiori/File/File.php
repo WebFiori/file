@@ -3,8 +3,8 @@ namespace WebFiori\File;
 
 use WebFiori\File\Exceptions\FileException;
 use webfiori\http\Response;
-use webfiori\json\Json;
-use webfiori\json\JsonI;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonI;
 /**
  * A wrapper class around PHP's file handling functions which can be used to deal with files in simple way.
  * 

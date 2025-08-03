@@ -2,8 +2,8 @@
 namespace WebFiori\File;
 
 use WebFiori\File\Exceptions\FileException;
-use webfiori\json\Json;
-use webfiori\json\JsonI;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonI;
 /**
  * A helper class that is used to upload most types of files to the server's file system.
  * 
