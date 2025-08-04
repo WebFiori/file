@@ -895,6 +895,10 @@ class File implements JsonI {
             }
         }
         echo $this->getRawData();
+        
+        if (http_response_code() === false) {
+            return;
+        }
         die();
     }
     private function extractMimeFromName() {
