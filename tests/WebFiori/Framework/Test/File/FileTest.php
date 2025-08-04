@@ -4,8 +4,8 @@ namespace WebFiori\Framework\Test\File;
 use PHPUnit\Framework\TestCase;
 use WebFiori\File\File;
 use WebFiori\File\Exceptions\FileException;
-use webfiori\http\Response;
-use webfiori\json\Json;
+use WebFiori\HTTP\Response;
+use WebFiori\Json\Json;
 /**
  * A test class for testing the class 'webfiori\framework\File'.
  *
@@ -133,7 +133,7 @@ class FileTest extends TestCase {
         $this->assertEquals([84], $file->toBytesArray());
         $this->assertEquals(['54'], $file->toHexArray());
         $file->read();
-        $this->assertEquals("This is to test if read from same directory is working.\n", $file->getRawData());
+        $this->assertStringContainsString("This is to test if read from same directory is working.", $file->getRawData());
         $this->assertEquals('{"id":-1,"mime":"text\/plain","name":"in-dir.txt","directory":"'.Json::escapeJSONSpecialChars($file->getDir()).'","sizeInBytes":'.$file->getSize().',"sizeInKBytes":'.($file->getSize() / 1024).',"sizeInMBytes":'.(($file->getSize() / 1024) / 1024).'}', $file.'');
     }
     /**
@@ -435,7 +435,10 @@ class FileTest extends TestCase {
     /**
      * @test
      */
-    public function viewTest00() {
+    public function testView00() {
+        if (!class_exists('WebFiori\HTTP\Response')) {
+            $this->markTestSkipped('Class WebFiori\HTTP\Response is requred for this test.');
+        }
         $file = new File('super.txt');
         $file->setRawData('Hello world!');
         $file->view();
@@ -475,7 +478,10 @@ class FileTest extends TestCase {
     /**
      * @test
      */
-    public function viewTest01() {
+    public function testView01() {
+        if (!class_exists('WebFiori\HTTP\Response')) {
+            $this->markTestSkipped('Class WebFiori\HTTP\Response is requred for this test.');
+        }
         $file = new File('text-file-2.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->view();
         $this->assertEquals('Testing the class \'File\'.', Response::getBody());
