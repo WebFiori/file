@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\file;
+namespace WebFiori\File;
 
 /**
  * A class which is used to hold constants used by the class "FileUploader"

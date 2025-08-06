@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\file;
+namespace WebFiori\File;
 
 /**
  * A helper class with single method which is used to detect MIME of file
@@ -7,14 +7,12 @@ namespace webfiori\file;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MIME {
     /**
      * An associative array that contains MIME types of common files.
      * 
      * 
-     * @since 1.1.1
      */
     const TYPES = [
         'gac' => 'application/vnd.groove-account',

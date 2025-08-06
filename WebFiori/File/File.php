@@ -1,10 +1,10 @@
 <?php
-namespace webfiori\file;
+namespace WebFiori\File;
 
-use webfiori\file\exceptions\FileException;
-use webfiori\http\Response;
-use webfiori\json\Json;
-use webfiori\json\JsonI;
+use WebFiori\File\Exceptions\FileException;
+use WebFiori\HTTP\Response;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonI;
 /**
  * A wrapper class around PHP's file handling functions which can be used to deal with files in simple way.
  * 
@@ -13,7 +13,6 @@ use webfiori\json\JsonI;
  * 
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class File implements JsonI {
     /**
@@ -27,7 +26,6 @@ class File implements JsonI {
      * 
      * @var string 
      * 
-     * @since 1.0
      */
     private $fileName;
     /**
@@ -35,7 +33,6 @@ class File implements JsonI {
      * 
      * @var int
      * 
-     * @since 1.0
      */
     private $fileSize;
     /**
@@ -43,7 +40,6 @@ class File implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $id;
     /**
@@ -51,7 +47,6 @@ class File implements JsonI {
      * 
      * @var string 
      * 
-     * @since 1.0
      */
     private $mimeType;
     /**
@@ -65,7 +60,6 @@ class File implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0
      */
     private $rawData;
     /**
@@ -81,7 +75,6 @@ class File implements JsonI {
      * @param string $fPath The path of the file such as 'C:/Images/Test'. This can 
      * be ignored if absolute path of the file was provided for the first parameter.
      * 
-     * @since 1.0
      */
     public function __construct(string $fNameOrAbsPath = '', string $fPath = '') {
         $this->mimeType = self::DEFAULT_MIME;
@@ -121,7 +114,6 @@ class File implements JsonI {
      * This also can be an array that holds multiple strings that will be
      * appended.
      * 
-     * @since 1.1.9
      */
     public function append($data) {
         if (gettype($data) == 'array') {
@@ -156,6 +148,16 @@ class File implements JsonI {
             }
         }
     }
+    /**
+     * Fixes and normalizes a file path by converting slashes to system directory separator.
+     * 
+     * This method standardizes path separators and removes trailing/leading slashes
+     * while preserving absolute path indicators.
+     * 
+     * @param string $fPath The file path to fix and normalize.
+     * 
+     * @return string The normalized path with proper directory separators.
+     */
     public static function fixPath($fPath) {
         $DS = DIRECTORY_SEPARATOR;
         $trimmedPath = str_replace('/', $DS, str_replace('\\', $DS, trim($fPath)));
@@ -191,7 +193,6 @@ class File implements JsonI {
      * If the name of the file is not set or the path is not set, the method
      * will return empty string.
      *
-     * @since 1.1.1
      */
     public function getAbsolutePath() : string {
         $fPath = $this->getDir();
@@ -247,7 +248,6 @@ class File implements JsonI {
      * @return array The method will return an array that holds file data as
      * chunks.
      *
-     * @since 1.2.1
      */
     public function getChunks(int $chunkSize = 50, bool $encode = true) : array {
         if ($chunkSize < 0) {
@@ -282,7 +282,6 @@ class File implements JsonI {
      *
      * @return string The directory at which the file exist on.
      *
-     * @since 1.0
      */
     public function getDir() : string {
         return $this->path;
@@ -297,7 +296,6 @@ class File implements JsonI {
      * @return string A string such as 'mp3' or 'jpeg'. Default return value is
      * 'bin' which stands for binary file.
      *
-     * @since 1.2.0
      */
     public function getExtension() : string {
         $fArr = explode('.', $this->getName());
@@ -325,7 +323,6 @@ class File implements JsonI {
      * @return string The ID of the file. If the ID is not set, the method
      * will return -1.
      *
-     * @since 1.0
      */
     public function getID() {
         return $this->id;
@@ -343,7 +340,6 @@ class File implements JsonI {
      * specified by the format. If the file does not exist, the method will return
      * 0.
      *
-     * @since 1.1.7
      */
     public function getLastModified(?string $format = 'Y-m-d H:i:s') {
         if ($this->isExist()) {
@@ -368,7 +364,6 @@ class File implements JsonI {
      * @return string MIME type of the file. If MIME type of the file is not set
      * or not detected, the method will return 'application/octet-stream'.
      *
-     * @since 1.0
      */
     public function getMIME() : string {
         return $this->mimeType;
@@ -383,7 +378,6 @@ class File implements JsonI {
      * @return string The name of the file. If the name is not set, the method
      * will return empty string.
      *
-     * @since 1.0
      */
     public function getName() : string {
         return $this->fileName;
@@ -417,7 +411,6 @@ class File implements JsonI {
      * @return string Raw data of the file. If no data is set, the method
      * will return empty string.
      *
-     * @since 1.0
      */
     public function getRawData(bool $encode = false) : string {
         $retVal = $this->rawData;
@@ -459,7 +452,6 @@ class File implements JsonI {
      * given directory does not exist. The method will return true only
      * in two cases, If the directory exits, or it does not exist but was created.
      *
-     * @since 1.0
      */
     public static function isDirectory(string $dir, bool $createIfNot = false) : bool {
         $dirFix = str_replace('\\', '/', $dir);
@@ -480,7 +472,6 @@ class File implements JsonI {
      * @return bool If the file exist, the method will return true. Other than
      * that, the method will return false.
      *
-     * @since 1.1.6
      */
     public function isExist() : bool {
         return self::isFileExist($this->getAbsolutePath());
@@ -494,7 +485,6 @@ class File implements JsonI {
      *
      * @param string $path File path.
      *
-     * @since 1.1.8
      */
     public static function isFileExist(string $path) : bool {
         self::initErrHandler();
@@ -555,7 +545,6 @@ class File implements JsonI {
      * @return bool If the file was removed, the method will return
      * true. Other than that, the method will return false.
      *
-     * @since 1.1.2
      */
     public function remove() : bool {
         if ($this->isExist()) {
@@ -580,7 +569,6 @@ class File implements JsonI {
      * @return bool The method will return true if the directory is set. Other
      * than that, the method will return false.
      *
-     * @since 1.0
      */
     public function setDir(string $dir): bool {
         return $this->setPath($dir);
@@ -592,7 +580,6 @@ class File implements JsonI {
      *
      * @param string $id The unique ID of the file.
      *
-     * @since 1.0
      */
     public function setId(string $id) {
         $this->id = $id;
@@ -606,7 +593,6 @@ class File implements JsonI {
      *
      * @param string $type MIME type (such as 'application/pdf')
      *
-     * @since 1.0
      */
     public function setMIME(string $type) {
         if (strlen($type) != 0) {
@@ -621,7 +607,6 @@ class File implements JsonI {
      *
      * @param string $name The name of the file.
      *
-     * @since 1.0
      */
     public function setName(string $name) {
         $trimmed = trim($name);
@@ -650,7 +635,6 @@ class File implements JsonI {
      *
      * @throws FileException
      *
-     * @since 1.0
      */
     public function setRawData(string $raw, bool $decode = false, bool $strict = false) {
         if (strlen($raw) > 0) {
@@ -728,7 +712,6 @@ class File implements JsonI {
      * &nbsp;&nbsp;"path":"",<br/>&nbsp;&nbsp;"sizeInBytes":"",<br/>&nbsp;&nbsp;"sizeInKBytes":"",<br/>
      * &nbsp;&nbsp;"sizeInMBytes":""<br/>}</b>
      *
-     * @since 1.0
      */
     public function toJSON() : Json {
         $size = $this->getSize() != -1 ? $this->getSize() : 0;
@@ -757,7 +740,6 @@ class File implements JsonI {
      * @throws FileException An exception with the message "MIME type of raw data is not set."
      * If MIME type of the file is not set.
      *
-     * @since 1.1.1
      */
     public function view(bool $asAttachment = false) {
         $raw = $this->getRawData();
@@ -787,7 +769,6 @@ class File implements JsonI {
      * <li>If the file does not exist and the parameter $create is set to false.</li>
      * </ul>
      *
-     * @since 1.1.1
      */
     public function write(bool $append = true, bool $createIfNotExist = false) {
         $pathV = $this->checkNameAndPath();
@@ -895,6 +876,10 @@ class File implements JsonI {
             }
         }
         echo $this->getRawData();
+        
+        if (http_response_code() === false) {
+            return;
+        }
         die();
     }
     private function extractMimeFromName() {
@@ -905,6 +890,16 @@ class File implements JsonI {
             $this->setMIME(MIME::getType($ext));
         }
     }
+    /**
+     * Extracts directory path and filename from an absolute path.
+     * 
+     * This method splits an absolute file path into its directory component
+     * and filename component, normalizing directory separators in the process.
+     * 
+     * @param string $absPath The absolute path to extract from.
+     * 
+     * @return array An associative array with 'path' and 'name' keys.
+     */
     private function extractPathAndName($absPath): array {
         $DS = DIRECTORY_SEPARATOR;
         $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
@@ -929,6 +924,12 @@ class File implements JsonI {
             'path' => ''
         ];
     }
+    /**
+     * Initializes the error handler function for file operations.
+     * 
+     * This method sets up a custom error handler that converts PHP errors
+     * into FileException instances during file operations.
+     */
     private static function initErrHandler() {
         self::$errFunc = function (int $errno, string $errstr, string $errfile, int $errline)
         {
@@ -990,7 +991,6 @@ class File implements JsonI {
      * @return bool The method will return true if the path is set. Other
      * than that, the method will return false.
      * 
-     * @since 1.0
      * 
      * @deprecated since version 1.1.5 Use File::setDir() instead.
      */
@@ -1039,7 +1039,7 @@ class File implements JsonI {
     private function viewFileHelper($asAttachment) {
         $contentType = $this->getMIME();
 
-        if (class_exists('\webfiori\http\Response')) {
+        if (class_exists('\WebFiori\Http\Response')) {
             $this->useClassResponse($contentType, $asAttachment);
         } else {
             $this->doNotUseClassResponse($contentType, $asAttachment);

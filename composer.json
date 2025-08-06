@@ -11,11 +11,16 @@
     ],
     "license": "MIT",
     "require": {
-        "php": ">=7.0",
-        "webfiori/jsonx": "3.3.x"
+        "php": ">=8.0",
+        "webfiori/jsonx": "4.0.x"
     },
     "require-dev": {
-        "webfiori/http": "*"
+        "webfiori/http": "*",
+        "phpunit/phpunit": "^10.0"
+    },
+    "scripts":{
+        "test": "phpunit --configuration tests/phpunit.xml",
+        "test-10": "phpunit --configuration tests/phpunit10.xml"
     },
     "keywords": [
         "php",
@@ -26,7 +31,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "webfiori\\file\\": "webfiori/file/"
+            "WebFiori\\File\\": "WebFiori/File/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WebFiori\\Framework\\Test\\File\\": "tests/WebFiori/Framework/Test/File/"
         }
     }
 }

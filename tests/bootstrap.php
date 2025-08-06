@@ -1,6 +1,6 @@
 <?php
 
-use webfiori\file\File;
+use WebFiori\File\File;
 
 
 ini_set('display_startup_errors', 1);
