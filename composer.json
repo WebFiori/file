@@ -2,7 +2,7 @@
     "name": "webfiori/file",
     "description": "Basic class library to read, write and view files using PHP.",
     "type": "library",
-    "version": "1.3.8",
+    "version": "2.0.0",
     "authors": [
         {
             "name": "Ibrahim BinAlshikh",
@@ -18,7 +18,7 @@
         "webfiori/http": "*",
         "phpunit/phpunit": "^10.0"
     },
-    "scripts":{
+    "scripts": {
         "test": "phpunit --configuration tests/phpunit.xml",
         "test-10": "phpunit --configuration tests/phpunit10.xml"
     },
