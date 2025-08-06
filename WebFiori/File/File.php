@@ -1043,7 +1043,7 @@ class File implements JsonI {
     private function viewFileHelper($asAttachment) {
         $contentType = $this->getMIME();
 
-        if (class_exists('\WebFiori\HTTP\Response')) {
+        if (class_exists('\WebFiori\Http\Response')) {
             $this->useClassResponse($contentType, $asAttachment);
         } else {
             $this->doNotUseClassResponse($contentType, $asAttachment);

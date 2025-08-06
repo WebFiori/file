@@ -4,7 +4,7 @@ namespace WebFiori\Framework\Test\File;
 use PHPUnit\Framework\TestCase;
 use WebFiori\File\File;
 use WebFiori\File\Exceptions\FileException;
-use WebFiori\HTTP\Response;
+use WebFiori\Http\Response;
 use WebFiori\Json\Json;
 /**
  * A test class for testing the class 'webfiori\framework\File'.
@@ -436,8 +436,8 @@ class FileTest extends TestCase {
      * @test
      */
     public function testView00() {
-        if (!class_exists('WebFiori\HTTP\Response')) {
-            $this->markTestSkipped('Class WebFiori\HTTP\Response is requred for this test.');
+        if (!class_exists('WebFiori\Http\Response')) {
+            $this->markTestSkipped('Class WebFiori\Http\Response is requred for this test.');
         }
         $file = new File('super.txt');
         $file->setRawData('Hello world!');
@@ -479,8 +479,8 @@ class FileTest extends TestCase {
      * @test
      */
     public function testView01() {
-        if (!class_exists('WebFiori\HTTP\Response')) {
-            $this->markTestSkipped('Class WebFiori\HTTP\Response is requred for this test.');
+        if (!class_exists('WebFiori\Http\Response')) {
+            $this->markTestSkipped('Class WebFiori\Http\Response is requred for this test.');
         }
         $file = new File('text-file-2.txt',ROOT_PATH.DS.'tests'.DS.'files');
         $file->view();
