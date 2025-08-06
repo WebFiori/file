@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\file\exceptions;
+namespace WebFiori\File\Exceptions;
 
 use Exception;
 /**
@@ -7,7 +7,6 @@ use Exception;
  * well.
  *
  * @author Ibrahim
- * @version 1.0
  */
 class FileException extends Exception {
 }

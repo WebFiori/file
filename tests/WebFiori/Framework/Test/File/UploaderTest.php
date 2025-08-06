@@ -1,13 +1,12 @@
 <?php
 
-namespace webfiori\framework\test;
+namespace WebFiori\Framework\Test\File;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\file\exceptions\FileException;
-use webfiori\file\File;
-use webfiori\file\FileUploader;
-use webfiori\file\UploadedFile;
-use webfiori\json\Json;
+use WebFiori\File\Exceptions\FileException;
+use WebFiori\File\FileUploader;
+use WebFiori\File\UploadedFile;
+use WebFiori\Json\Json;
 /**
  * Description of UploaderTest
  *

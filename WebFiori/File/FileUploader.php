@@ -1,9 +1,9 @@
 <?php
-namespace webfiori\file;
+namespace WebFiori\File;
 
-use webfiori\file\exceptions\FileException;
-use webfiori\json\Json;
-use webfiori\json\JsonI;
+use WebFiori\File\Exceptions\FileException;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonI;
 /**
  * A helper class that is used to upload most types of files to the server's file system.
  * 
@@ -18,7 +18,7 @@ use webfiori\json\JsonI;
  * </ul>
  * A basic example on how to use this class:
  * <pre>
- * $uploader = new Uploader();
+ * $uploader = new FileUploader();
  * //allow png only
  * $uploader->addExt('png');
  * $uploader->setUploadDir('\home\my-site\uploads');
@@ -41,7 +41,6 @@ class FileUploader implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0
      */
     private $asscociatedName;
     /**
@@ -49,7 +48,6 @@ class FileUploader implements JsonI {
      * 
      * @var array An array of strings. 
      * 
-     * @since 1.0
      */
     private $extentions = [];
     /**
@@ -57,7 +55,6 @@ class FileUploader implements JsonI {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $files;
     /**
@@ -65,7 +62,6 @@ class FileUploader implements JsonI {
      * 
      * @var string A directory. 
      * 
-     * @since 1.0
      */
     private $uploadDir;
     /**
@@ -73,7 +69,6 @@ class FileUploader implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $uploadStatusMessage;
 
@@ -87,7 +82,6 @@ class FileUploader implements JsonI {
      * array can have values such as 'jpg', 'png', 'doc', etc...
      *
      * @throws FileException
-     * @since 1.0
      */
     public function __construct(string $uploadPath = '', array $allowedTypes = []) {
         $this->uploadStatusMessage = 'NO ACTION';
@@ -125,7 +119,6 @@ class FileUploader implements JsonI {
      * 
      * @return bool If the extension is added, the method will return true.
      * 
-     * @since 1.0
      */
     public function addExt(string $ext) : bool {
         $ext = str_replace('.', '', $ext);
@@ -160,7 +153,6 @@ class FileUploader implements JsonI {
      * The key value will be the extension name and the value represents the status 
      * of the addition. If added, it will be set to true.
      * 
-     * @since 1.2.2
      */
     public function addExts(array $arr) : array {
         $retVal = [];
@@ -242,7 +234,6 @@ class FileUploader implements JsonI {
      * 
      * @return array
      * 
-     * @since 1.0
      */
     public function getExts() : array {
         return $this->extentions;
@@ -271,7 +262,6 @@ class FileUploader implements JsonI {
      * @return array An indexed array that contains sub associative arrays or 
      * objects of type 'UploadFile'.
      * 
-     * @since 1.0
      * 
      */
     public function getFiles(bool $asObj = true) : array {
@@ -293,7 +283,6 @@ class FileUploader implements JsonI {
      * 
      * @return string upload directory. Default return value is empty string.
      * 
-     * @since 1.0
      */
     public function getUploadDir() : string {
         return $this->uploadDir;
@@ -305,7 +294,6 @@ class FileUploader implements JsonI {
      * 
      * @return bool If the extension was removed, the method will return true.
      * 
-     * @since 1.0
      */
     public function removeExt(string $ext) : bool {
         $exts = $this->getExts();
@@ -339,7 +327,6 @@ class FileUploader implements JsonI {
      * @param string $name The name of the index at which the file is stored in the array $_FILES.
      * input element.
      * 
-     * @since 1.0
      */
     public function setAssociatedFileName(string $name) {
         $trimmed = trim($name);
@@ -361,7 +348,6 @@ class FileUploader implements JsonI {
      * 
      * @throws FileException If given directory is invalid or was not set.
      * 
-     * @since 1.0
      */
     public function setUploadDir(string $dir) {
         $fixedPath = File::fixPath($dir);
@@ -386,7 +372,6 @@ class FileUploader implements JsonI {
      * 
      * @return Json an object of type <b>Json</b>
      * 
-     * @since 1.0
      */
     public function toJSON() : Json {
         $j = new Json();
@@ -424,7 +409,6 @@ class FileUploader implements JsonI {
      * </ul>
      *
      * @throws FileException If the path for uploading files is not set.
-     * @since 1.0
      */
     public function upload(bool $replaceIfExist = false) : array {
         $this->files = [];
@@ -486,7 +470,6 @@ class FileUploader implements JsonI {
      * @return array An array that contains objects of type 'UploadedFile'.
      *
      * @throws FileException
-     * @since 1.2.3
      */
     public function uploadAsFileObj(bool $replaceIfExist = false) : array {
         $uploadedFiles = $this->upload($replaceIfExist);
@@ -513,6 +496,16 @@ class FileUploader implements JsonI {
 
         return $file;
     }
+    /**
+     * Extracts directory path and filename from an absolute path.
+     * 
+     * This method splits an absolute file path into its directory component
+     * and filename component, normalizing directory separators in the process.
+     * 
+     * @param string $absPath The absolute path to extract from.
+     * 
+     * @return array An associative array with 'path' and 'name' keys.
+     */
     private static function extractPathAndName($absPath): array {
         $DS = DIRECTORY_SEPARATOR;
         $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
@@ -537,6 +530,18 @@ class FileUploader implements JsonI {
             'path' => ''
         ];
     }
+    /**
+     * Processes file upload data and creates file information array.
+     * 
+     * This method handles both single and multiple file uploads, performing
+     * validation, error checking, and file movement operations.
+     * 
+     * @param array $fileOrFiles The file data from $_FILES array.
+     * @param bool $replaceIfExist Whether to replace existing files.
+     * @param string|null $idx The index for multiple file uploads, null for single file.
+     * 
+     * @return array An associative array containing file upload information.
+     */
     private function getFileArr($fileOrFiles,$replaceIfExist, ?string $idx): array {
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
@@ -636,7 +641,6 @@ class FileUploader implements JsonI {
      * @return bool If the given code does not equal to UPLOAD_ERR_OK, the
      * method will return true.
      * 
-     * @since 1.0
      */
     private function isError(int $code): bool {
         switch ($code) {
@@ -680,7 +684,6 @@ class FileUploader implements JsonI {
      * @return bool If file extension is in the array of allowed types,
      * the method will return true.
      * 
-     * @since 1.0
      */
     private function isValidExt(string $fileName) : bool {
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
