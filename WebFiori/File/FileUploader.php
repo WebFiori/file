@@ -18,7 +18,7 @@ use WebFiori\Json\JsonI;
  * </ul>
  * A basic example on how to use this class:
  * <pre>
- * $uploader = new Uploader();
+ * $uploader = new FileUploader();
  * //allow png only
  * $uploader->addExt('png');
  * $uploader->setUploadDir('\home\my-site\uploads');
@@ -496,6 +496,16 @@ class FileUploader implements JsonI {
 
         return $file;
     }
+    /**
+     * Extracts directory path and filename from an absolute path.
+     * 
+     * This method splits an absolute file path into its directory component
+     * and filename component, normalizing directory separators in the process.
+     * 
+     * @param string $absPath The absolute path to extract from.
+     * 
+     * @return array An associative array with 'path' and 'name' keys.
+     */
     private static function extractPathAndName($absPath): array {
         $DS = DIRECTORY_SEPARATOR;
         $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
@@ -520,6 +530,18 @@ class FileUploader implements JsonI {
             'path' => ''
         ];
     }
+    /**
+     * Processes file upload data and creates file information array.
+     * 
+     * This method handles both single and multiple file uploads, performing
+     * validation, error checking, and file movement operations.
+     * 
+     * @param array $fileOrFiles The file data from $_FILES array.
+     * @param bool $replaceIfExist Whether to replace existing files.
+     * @param string|null $idx The index for multiple file uploads, null for single file.
+     * 
+     * @return array An associative array containing file upload information.
+     */
     private function getFileArr($fileOrFiles,$replaceIfExist, ?string $idx): array {
         $errIdx = 'error';
         $tempIdx = 'tmp_name';

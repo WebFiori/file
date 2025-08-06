@@ -148,6 +148,16 @@ class File implements JsonI {
             }
         }
     }
+    /**
+     * Fixes and normalizes a file path by converting slashes to system directory separator.
+     * 
+     * This method standardizes path separators and removes trailing/leading slashes
+     * while preserving absolute path indicators.
+     * 
+     * @param string $fPath The file path to fix and normalize.
+     * 
+     * @return string The normalized path with proper directory separators.
+     */
     public static function fixPath($fPath) {
         $DS = DIRECTORY_SEPARATOR;
         $trimmedPath = str_replace('/', $DS, str_replace('\\', $DS, trim($fPath)));
@@ -880,6 +890,16 @@ class File implements JsonI {
             $this->setMIME(MIME::getType($ext));
         }
     }
+    /**
+     * Extracts directory path and filename from an absolute path.
+     * 
+     * This method splits an absolute file path into its directory component
+     * and filename component, normalizing directory separators in the process.
+     * 
+     * @param string $absPath The absolute path to extract from.
+     * 
+     * @return array An associative array with 'path' and 'name' keys.
+     */
     private function extractPathAndName($absPath): array {
         $DS = DIRECTORY_SEPARATOR;
         $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
@@ -904,6 +924,12 @@ class File implements JsonI {
             'path' => ''
         ];
     }
+    /**
+     * Initializes the error handler function for file operations.
+     * 
+     * This method sets up a custom error handler that converts PHP errors
+     * into FileException instances during file operations.
+     */
     private static function initErrHandler() {
         self::$errFunc = function (int $errno, string $errstr, string $errfile, int $errline)
         {
