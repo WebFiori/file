@@ -29,15 +29,26 @@ A comprehensive PHP library for file operations, providing an object-oriented ab
   * [Basic File Operations](#basic-file-operations)
     * [Reading Files](#reading-files)
     * [Writing Files](#writing-files)
+    * [File Information](#file-information)
   * [File Upload](#file-upload)
     * [Basic Upload](#basic-upload)
     * [Upload as File Objects](#upload-as-file-objects)
+    * [Upload Configuration](#upload-configuration)
   * [Base64 Encoding/Decoding](#base64-encodingdecoding)
   * [File Serving](#file-serving)
   * [Chunked Processing](#chunked-processing)
+  * [MIME Type Detection](#mime-type-detection)
+* [Working Example](#working-example)
+* [Testing](#testing)
 * [API Reference](#api-reference)
   * [File Class](#file-class)
   * [FileUploader Class](#fileuploader-class)
+  * [UploadedFile Class](#uploadedfile-class)
+  * [MIME Class](#mime-class)
+* [Error Handling](#error-handling)
+* [Security Considerations](#security-considerations)
+* [Performance Tips](#performance-tips)
+* [Contributing](#contributing)
 * [License](#license)
 
 ## Installation
@@ -67,13 +78,16 @@ composer require webfiori/file
 
 ## Key Features
 
-- **Object-Oriented File Operations**: Clean, intuitive API for file manipulation
-- **Advanced File Upload**: Multi-file upload with type validation and error handling
-- **Base64 Encoding/Decoding**: Built-in support for binary data encoding
-- **MIME Type Detection**: Automatic MIME type detection for file extensions
-- **File Serving**: HTTP-compliant file serving with range request support
-- **Chunked Processing**: Memory-efficient processing of large files
-- **JSON Serialization**: Convert file objects to JSON for APIs
+- **Object-Oriented File Operations**: Clean, intuitive API for file manipulation with comprehensive error handling
+- **Advanced File Upload**: Multi-file upload with type validation, size limits, and detailed error reporting
+- **Base64 Encoding/Decoding**: Built-in support for binary data encoding with strict validation options
+- **MIME Type Detection**: Automatic MIME type detection for common file extensions
+- **File Serving**: HTTP-compliant file serving with range request support for streaming
+- **Chunked Processing**: Memory-efficient processing of large files with configurable chunk sizes
+- **JSON Serialization**: Convert file objects to JSON for APIs and data interchange
+- **Path Normalization**: Cross-platform path handling with automatic directory separator conversion
+- **Security Features**: File type validation, directory traversal protection, and safe file operations
+- **Comprehensive Testing**: Full test coverage with PHPUnit for reliability and stability
 
 ## Quick Start
 
@@ -136,9 +150,9 @@ $partialContent = $file->getRawData();
 
 // Check if file exists
 if ($file->isExist()) {
-    echo "File size: " . $file->getSize() . " bytes";
-    echo "MIME type: " . $file->getMIME();
-    echo "Last modified: " . $file->getLastModified();
+    echo "File size: " . $file->getSize() . " bytes\n";
+    echo "MIME type: " . $file->getMIME() . "\n";
+    echo "Last modified: " . $file->getLastModified() . "\n";
 }
 ```
 
@@ -155,12 +169,37 @@ $file->setRawData('Hello, World!');
 $file->write();
 
 // Append to existing file
-$file->setRawData('\\nAppended content');
+$file->setRawData("\nAppended content");
 $file->write(true); // true = append mode
 
 // Override file content
 $file->setRawData('New content');
 $file->write(false); // false = override mode
+```
+
+#### File Information
+
+```php
+<?php
+use WebFiori\File\File;
+
+$file = new File('document.pdf', '/uploads');
+
+// Get file properties
+echo "Name: " . $file->getName() . "\n";
+echo "Extension: " . $file->getExtension() . "\n";
+echo "Directory: " . $file->getDir() . "\n";
+echo "Full path: " . $file->getAbsolutePath() . "\n";
+echo "MIME type: " . $file->getMIME() . "\n";
+echo "Size: " . $file->getSize() . " bytes\n";
+
+// Get last modified time
+echo "Modified: " . $file->getLastModified('Y-m-d H:i:s') . "\n";
+
+// Convert to different formats
+$bytesArray = $file->toBytesArray();
+$hexArray = $file->toHexArray();
+$jsonData = $file->toJSON();
 ```
 
 ### File Upload
@@ -211,18 +250,45 @@ $uploadedFiles = $uploader->uploadAsFileObj();
 foreach ($uploadedFiles as $file) {
     if ($file instanceof UploadedFile) {
         if ($file->isUploaded()) {
-            echo "File: " . $file->getName();
-            echo "Size: " . $file->getSize() . " bytes";
-            echo "MIME: " . $file->getMIME();
+            echo "File: " . $file->getName() . "\n";
+            echo "Size: " . $file->getSize() . " bytes\n";
+            echo "MIME: " . $file->getMIME() . "\n";
+            echo "Replaced existing: " . ($file->isReplace() ? 'Yes' : 'No') . "\n";
             
             // Process the uploaded file
             $file->read();
             $content = $file->getRawData();
         } else {
-            echo "Upload failed: " . $file->getUploadError();
+            echo "Upload failed: " . $file->getUploadError() . "\n";
         }
     }
 }
+```
+
+#### Upload Configuration
+
+```php
+<?php
+use WebFiori\File\FileUploader;
+
+$uploader = new FileUploader('/uploads');
+
+// Configure allowed file types
+$uploader->addExts(['jpg', 'png', 'gif', 'pdf', 'docx']);
+
+// Remove specific extensions
+$uploader->removeExt('gif');
+
+// Set form input name
+$uploader->setAssociatedFileName('user_files');
+
+// Get current configuration
+$allowedTypes = $uploader->getExts();
+$uploadDir = $uploader->getUploadDir();
+$inputName = $uploader->getAssociatedFileName();
+
+// Get maximum upload size (from PHP configuration)
+$maxSize = FileUploader::getMaxFileSize(); // Returns size in KB
 ```
 
 ### Base64 Encoding/Decoding
@@ -298,56 +364,266 @@ foreach ($chunks as $index => $chunk) {
 $rawChunks = $file->getChunks(1024, false);
 ```
 
-## API Reference
+### MIME Type Detection
 
-### File Class
+```php
+<?php
+use WebFiori\File\MIME;
+
+// Get MIME type by extension
+$mimeType = MIME::getType('jpg'); // Returns: image/jpeg
+$pdfMime = MIME::getType('pdf');  // Returns: application/pdf
+$txtMime = MIME::getType('txt');  // Returns: text/plain
+
+// Unknown extensions return default MIME type
+$unknownMime = MIME::getType('xyz'); // Returns: application/octet-stream
+
+// The library supports common file extensions including:
+// - Images: jpg, png, gif, bmp, svg, webp, tiff
+// - Documents: pdf, doc, docx, xls, xlsx, ppt, pptx
+// - Audio: mp3, wav, ogg, flac, aac
+// - Video: mp4, avi, mov, wmv, flv
+// - Archives: zip, rar, 7z, tar, gz
+// - And many more...
+```
+
+## Working Example
+
+The library includes a complete working example demonstrating file upload functionality with a modern web interface. The example consists of:
+
+- **Frontend**: Vue.js application with Vuetify UI components
+- **Backend**: PHP script using WebFiori File library
+- **Features**: Drag-and-drop upload, progress feedback, error handling
+
+### Running the Example
+
+```bash
+# Navigate to the example directory
+cd example
+
+# Start PHP development server
+php -S localhost:8000
+
+# Open browser and visit
+# http://localhost:8000/page.html
+```
+
+The example demonstrates:
+- File type validation (txt, doc, docx, png, jpg)
+- Real-time upload progress
+- Error handling and user feedback
+- Secure file storage
+
+For detailed setup instructions, see [example/readme.md](example/readme.md).
+
+## Testing
+
+The library includes comprehensive test coverage using PHPUnit:
+
+```bash
+# Run all tests
+composer test
+
+# Run tests with PHPUnit 10
+composer test-10
+
+# Run specific test class
+./vendor/bin/phpunit tests/WebFiori/Framework/Test/File/FileTest.php
+```
+
+### Test Coverage
+
+The test suite covers:
+- **File Operations**: Reading, writing, creating, deleting files
+- **Upload Functionality**: Single and multi-file uploads, validation
+- **Base64 Encoding**: Encoding/decoding with error handling
+- **MIME Detection**: Extension-based MIME type detection
+- **Error Scenarios**: Invalid paths, permissions, file not found
+- **Edge Cases**: Empty files, large files, special characters
+
+The library includes comprehensive test coverage with extensive test cases.
+
+### UploadedFile Class
 
 #### Constructor
 ```php
-public function __construct(string $fNameOrAbsPath = '', string $fPath = '')
+public function __construct(string $fName = '', string $fPath = '')
 ```
 
 #### Core Methods
 
 | Method | Description | Parameters | Return Type |
 |--------|-------------|------------|-------------|
-| `read($from, $to)` | Read file content | `int $from = -1`, `int $to = -1` | `void` |
-| `write($append, $createIfNotExist)` | Write data to file | `bool $append = true`, `bool $createIfNotExist = false` | `void` |
-| `create($createDirIfNotExist)` | Create new file | `bool $createDirIfNotExist = false` | `void` |
-| `remove()` | Delete file | - | `bool` |
-| `isExist()` | Check if file exists | - | `bool` |
-| `getSize()` | Get file size in bytes | - | `int` |
-| `getMIME()` | Get MIME type | - | `string` |
-| `getName()` | Get file name | - | `string` |
-| `getExtension()` | Get file extension | - | `string` |
-| `getDir()` | Get directory path | - | `string` |
-| `getAbsolutePath()` | Get full file path | - | `string` |
-| `getRawData($encode)` | Get file content | `bool $encode = false` | `string` |
-| `setRawData($data, $decode, $strict)` | Set file content | `string $data`, `bool $decode = false`, `bool $strict = false` | `void` |
-| `getChunks($chunkSize, $encode)` | Split content into chunks | `int $chunkSize = 50`, `bool $encode = true` | `array` |
-| `view($asAttachment)` | Serve file via HTTP | `bool $asAttachment = false` | `void` |
-| `toJSON()` | Convert to JSON | - | `Json` |
+| `isUploaded()` | Check if file was uploaded successfully | - | `bool` |
+| `isReplace()` | Check if file replaced existing file | - | `bool` |
+| `getUploadError()` | Get upload error message | - | `string` |
+| `setIsUploaded($bool)` | Set upload status | `bool $bool` | `void` |
+| `setIsReplace($bool)` | Set replacement status | `bool $bool` | `void` |
+| `setUploadErr($err)` | Set upload error message | `string $err` | `void` |
 
-### FileUploader Class
+### MIME Class
 
-#### Constructor
-```php
-public function __construct(string $uploadPath = '', array $allowedTypes = [])
-```
-
-#### Core Methods
+#### Static Methods
 
 | Method | Description | Parameters | Return Type |
 |--------|-------------|------------|-------------|
-| `addExt($ext)` | Add allowed extension | `string $ext` | `bool` |
-| `addExts($arr)` | Add multiple extensions | `array $arr` | `array` |
-| `removeExt($ext)` | Remove allowed extension | `string $ext` | `bool` |
-| `setUploadDir($dir)` | Set upload directory | `string $dir` | `void` |
-| `setAssociatedFileName($name)` | Set form input name | `string $name` | `void` |
-| `upload($replaceIfExist)` | Upload files (array result) | `bool $replaceIfExist = false` | `array` |
-| `uploadAsFileObj($replaceIfExist)` | Upload files (object result) | `bool $replaceIfExist = false` | `array` |
-| `getExts()` | Get allowed extensions | - | `array` |
-| `getUploadDir()` | Get upload directory | - | `string` |
+| `getType($ext)` | Get MIME type by extension | `string $ext` | `string` |
+
+The MIME class contains a comprehensive mapping of file extensions to their corresponding MIME types.
+
+## Error Handling
+
+The library uses the `FileException` class for error handling:
+
+```php
+<?php
+use WebFiori\File\File;
+use WebFiori\File\Exceptions\FileException;
+
+try {
+    $file = new File('/path/to/nonexistent.txt');
+    $file->read();
+} catch (FileException $e) {
+    echo "Error: " . $e->getMessage();
+    // Handle specific error scenarios
+    switch ($e->getCode()) {
+        case 0:
+            // File not found
+            break;
+        default:
+            // Other errors
+            break;
+    }
+}
+```
+
+Common exceptions thrown:
+- **File not found**: When attempting to read non-existent files
+- **Permission denied**: When lacking read/write permissions
+- **Invalid path**: When providing malformed file paths
+- **Base64 decode error**: When decoding invalid Base64 data
+- **Upload errors**: Various upload-related failures
+
+## Security Considerations
+
+### File Upload Security
+
+```php
+<?php
+use WebFiori\File\FileUploader;
+
+$uploader = new FileUploader('/secure/uploads');
+
+// 1. Restrict file types
+$uploader->addExts(['jpg', 'png', 'pdf']); // Only allow safe file types
+
+// 2. Validate file size (handled by PHP settings)
+// Set in php.ini: upload_max_filesize = 5M
+
+// 3. Use secure upload directory outside web root
+// Store files outside public_html or www directories
+
+// 4. Sanitize file names (handled automatically)
+// The library normalizes file paths and names
+```
+
+### Path Traversal Protection
+
+The library automatically:
+- Normalizes directory separators across platforms
+- Prevents directory traversal attacks
+- Validates file paths before operations
+- Uses secure file handling functions
+
+### Best Practices
+
+1. **Always validate file types** before processing
+2. **Store uploads outside the web root** when possible
+3. **Set appropriate file permissions** (644 for files, 755 for directories)
+4. **Implement file size limits** via PHP configuration
+5. **Scan uploaded files** for malware when possible
+6. **Use HTTPS** for file upload forms
+
+## Performance Tips
+
+### Memory Management
+
+```php
+<?php
+use WebFiori\File\File;
+
+// For large files, use chunked processing
+$file = new File('/path/to/large-video.mp4');
+$file->read();
+
+// Process in 1MB chunks to avoid memory issues
+$chunks = $file->getChunks(1024 * 1024, false);
+foreach ($chunks as $chunk) {
+    // Process each chunk separately
+    processChunk($chunk);
+}
+```
+
+### Optimization Tips
+
+1. **Use appropriate chunk sizes** for large files (1MB recommended)
+2. **Read only necessary byte ranges** when possible
+3. **Cache MIME type detection** results for repeated operations
+4. **Use streaming** for file serving when available
+5. **Implement proper error handling** to avoid resource leaks
+
+### File Serving Optimization
+
+```php
+<?php
+use WebFiori\File\File;
+
+$file = new File('/path/to/document.pdf');
+$file->read();
+
+// Enable range requests for better streaming
+$file->view(false); // Serves with proper HTTP headers
+```
+
+## Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+1. **Fork the repository** and create a feature branch
+2. **Write tests** for new functionality
+3. **Follow PSR-12** coding standards
+4. **Update documentation** for new features
+5. **Submit a pull request** with clear description
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/WebFiori/file.git
+cd file
+
+# Install dependencies
+composer install
+
+# Run tests
+composer test
+
+# Run code style checks
+./vendor/bin/php-cs-fixer fix --dry-run
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+composer test
+
+# Run with coverage
+./vendor/bin/phpunit --coverage-html coverage/
+
+# Run specific test file
+./vendor/bin/phpunit tests/WebFiori/Framework/Test/File/FileTest.php
+```
 
 
 ## License
