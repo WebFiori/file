@@ -7,7 +7,6 @@ use Exception;
  * well.
  *
  * @author Ibrahim
- * @version 1.0
  */
 class FileException extends Exception {
 }

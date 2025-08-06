@@ -7,14 +7,12 @@ namespace WebFiori\File;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MIME {
     /**
      * An associative array that contains MIME types of common files.
      * 
      * 
-     * @since 1.1.1
      */
     const TYPES = [
         'gac' => 'application/vnd.groove-account',

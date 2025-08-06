@@ -9,7 +9,6 @@ use WebFiori\Json\Json;
  * 
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class UploadedFile extends File {
     /**
@@ -17,7 +16,6 @@ class UploadedFile extends File {
      * 
      * @var bool
      * 
-     * @since 1.0 
      */
     private $isReplace;
     /**
@@ -25,7 +23,6 @@ class UploadedFile extends File {
      * 
      * @var bool
      * 
-     * @since 1.0 
      */
     private $isUploaded;
     /**
@@ -33,7 +30,6 @@ class UploadedFile extends File {
      * 
      * @var string 
      * 
-     * @since 1.0
      */
     private $uploadError;
     /**
@@ -59,7 +55,6 @@ class UploadedFile extends File {
      * @return string A string that can be used to identify the cause of upload 
      * failure. If no upload error, empty string is returned.
      * 
-     * @since 1.0
      */
     public function getUploadError() : string {
         return $this->uploadError;
@@ -71,7 +66,6 @@ class UploadedFile extends File {
      * which has the same name was uploaded, the method will return true. Default 
      * return value is false.
      * 
-     * @since 1.0
      */
     public function isReplace() : bool {
         return $this->isReplace;
@@ -82,7 +76,6 @@ class UploadedFile extends File {
      * @return bool If the file was uploaded to the server without any errors,
      * the method will return true. Default return value is false.
      * 
-     * @since 1.0
      */
     public function isUploaded() : bool {
         return $this->isUploaded;
@@ -95,7 +88,6 @@ class UploadedFile extends File {
      * @param bool $bool A boolean. If true is passed, it means the file was replaced
      * by new one with the same name.
      * 
-     * @since 1.0
      */
     public function setIsReplace(bool $bool) {
         $this->isReplace = $bool === true;
@@ -107,7 +99,6 @@ class UploadedFile extends File {
      * @param bool $bool A boolean. If true is passed, it means the file was uploaded
      * without any errors.
      * 
-     * @since 1.0
      */
     public function setIsUploaded(bool $bool) {
         $this->isUploaded = $bool === true;
@@ -117,7 +108,6 @@ class UploadedFile extends File {
      * 
      * @param string $err Error message.
      * 
-     * @since 1.0
      */
     public function setUploadErr(string $err) {
         $this->uploadError = $err;
@@ -136,7 +126,6 @@ class UploadedFile extends File {
      * &nbsp;&nbsp;"sizeInMBytes":"",<br/>&nbsp;&nbsp;"uploaded":"",<br/>
      * &nbsp;&nbsp;"isReplace":"",<br/>&nbsp;&nbsp;"uploadError":"",<br/>}</b>
      * 
-     * @since 1.0
      */
     public function toJSON() : Json {
         $json = parent::toJSON();
