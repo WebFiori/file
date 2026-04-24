@@ -16,6 +16,7 @@
     },
     "require-dev": {
         "webfiori/http": "*",
+        "webfiori/framework": "dev-dev",
         "phpunit/phpunit": "^10.0"
     },
     "scripts": {
