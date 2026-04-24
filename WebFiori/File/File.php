@@ -2,7 +2,8 @@
 namespace WebFiori\File;
 
 use WebFiori\File\Exceptions\FileException;
-use WebFiori\HTTP\Response;
+use WebFiori\Framework\App;
+use WebFiori\Http\Response;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
 /**
@@ -1013,27 +1014,32 @@ class File implements JsonI {
     }
 
     private function useClassResponse($contentType, $asAttachment) {
-        Response::addHeader('Accept-Ranges', 'bytes');
-        Response::addHeader('content-type', $contentType);
+        if (class_exists('\Webfiori\Framework\App')) {
+            $response = App::getResponse();
+        } else {
+            $response = new Response();
+        }
+        $response->addHeader('Accept-Ranges', 'bytes');
+        $response->addHeader('content-type', $contentType);
 
         if (isset($_SERVER['HTTP_RANGE'])) {
             $expl = $this->readRange();
-            Response::setCode(206);
-            Response::addHeader('content-range', 'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize());
-            Response::addHeader('content-length', $expl[1] - $expl[0]);
+            $response->setCode(206);
+            $response->addHeader('content-range', 'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize());
+            $response->addHeader('content-length', $expl[1] - $expl[0]);
         } else {
-            Response::addHeader('Content-Length', $this->getSize());
+            $response->addHeader('Content-Length', $this->getSize());
         }
 
         if ($asAttachment === true) {
-            Response::addHeader('Content-Disposition', 'attachment; filename="'.$this->getName().'"');
+            $response->addHeader('Content-Disposition', 'attachment; filename="'.$this->getName().'"');
         } else {
-            Response::addHeader('Content-Disposition', 'inline; filename="'.$this->getName().'"');
+            $response->addHeader('Content-Disposition', 'inline; filename="'.$this->getName().'"');
         }
-        Response::write($this->getRawData());
+        $response->write($this->getRawData());
 
         if (!defined('__PHPUNIT_PHAR__')) {
-            Response::send();
+            $response->send();
         }
     }
     private function viewFileHelper($asAttachment) {
