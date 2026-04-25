@@ -10,5 +10,5 @@ clover.xml
 tests/files/not-exist/new.txt
 tests/webfiori/framework/test/testUpload.txt
 *.Identifier
-*.Identifier
-/example/uploads
+/examples/tmp
+tests/WebFiori/Framework/Test/File/testUpload.txt
