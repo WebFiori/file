@@ -5,7 +5,7 @@
  * Demonstrates converting file data to byte arrays and hex arrays.
  * Useful for binary analysis, checksums, or low-level data inspection.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 

@@ -5,7 +5,7 @@
  * Demonstrates static utility methods for path normalization, directory
  * checking/creation, and file existence checking.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 
@@ -26,7 +26,7 @@ echo "  '/var/www/'         => " . File::fixPath('/var/www/') . "\n";
 // --- isDirectory(): check if a directory exists, optionally create it ---
 
 echo "\nisDirectory examples:\n";
-$tmpDir = __DIR__ . '/tmp';
+$tmpDir = __DIR__ . '/../tmp';
 
 echo "  Exists (tmp):     " . (File::isDirectory($tmpDir) ? 'yes' : 'no') . "\n";
 echo "  Exists (fake):    " . (File::isDirectory($tmpDir . '/nope') ? 'yes' : 'no') . "\n";

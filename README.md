@@ -63,24 +63,24 @@ The [examples/](examples/) directory contains runnable PHP scripts covering ever
 
 | Example | Description |
 |---------|-------------|
-| [read-and-write](examples/read-and-write.php) | Create, write, read, append, and remove files |
-| [file-information](examples/file-information.php) | File metadata: name, extension, MIME, size, timestamps, constructor variants |
-| [partial-read](examples/partial-read.php) | Read specific byte ranges from a file |
-| [appending-data](examples/appending-data.php) | Build up in-memory content with `append()` |
-| [base64-encoding](examples/base64-encoding.php) | Encode/decode Base64, `writeEncoded()`, `readDecoded()` |
-| [chunked-processing](examples/chunked-processing.php) | Split file data into fixed-size chunks |
-| [bytes-and-hex](examples/bytes-and-hex.php) | Convert data to byte arrays and hex strings |
-| [mime-detection](examples/mime-detection.php) | Look up MIME types by extension |
-| [error-handling](examples/error-handling.php) | `FileException` scenarios and how to handle them |
-| [json-serialization](examples/json-serialization.php) | Convert `File` objects to JSON |
-| [path-utilities](examples/path-utilities.php) | Path normalization, directory creation, file existence checks |
-| [file-upload](examples/file-upload.php) | Configure and process uploads with `FileUploader` |
-| [serving-files](examples/serving-files.php) | Serve files over HTTP with proper headers |
+| [Reading and Writing Files](examples/read-and-write/) | Create, write, read, append, and remove files |
+| [File Information](examples/file-information/) | File metadata: name, extension, MIME, size, timestamps, constructor variants |
+| [Partial Read](examples/partial-read/) | Read specific byte ranges from a file |
+| [Appending Data](examples/appending-data/) | Build up in-memory content with `append()` |
+| [Base64 Encoding](examples/base64-encoding/) | Encode/decode Base64, `writeEncoded()`, `readDecoded()` |
+| [Chunked Processing](examples/chunked-processing/) | Split file data into fixed-size chunks |
+| [Bytes and Hex](examples/bytes-and-hex/) | Convert data to byte arrays and hex strings |
+| [MIME Detection](examples/mime-detection/) | Look up MIME types by extension |
+| [Error Handling](examples/error-handling/) | `FileException` scenarios and how to handle them |
+| [JSON Serialization](examples/json-serialization/) | Convert `File` objects to JSON |
+| [Path Utilities](examples/path-utilities/) | Path normalization, directory creation, file existence checks |
+| [File Upload](examples/file-upload/) | Configure and process uploads with `FileUploader` |
+| [Serving Files](examples/serving-files/) | Serve files over HTTP with proper headers |
 
 Each example has its own README with detailed explanations. Run any example with:
 
 ```bash
-php examples/read-and-write.php
+php examples/read-and-write/read-and-write.php
 ```
 
 ## Testing

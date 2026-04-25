@@ -5,12 +5,12 @@
  * Demonstrates how to retrieve file metadata: name, extension, directory,
  * MIME type, size, last modified time, and ID assignment for database use.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 
 // Create a sample file to inspect
-$file = new File(__DIR__ . '/tmp/document.txt');
+$file = new File(__DIR__ . '/../tmp/document.txt');
 $file->create(true);
 $file->setRawData('Sample content for inspection.');
 $file->write(false);

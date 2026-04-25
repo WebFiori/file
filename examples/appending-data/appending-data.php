@@ -7,7 +7,7 @@
  * 
  * Note: append() modifies the in-memory raw data. Call write() to persist.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 

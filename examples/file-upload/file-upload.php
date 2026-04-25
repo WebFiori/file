@@ -17,7 +17,7 @@
  *     <button type="submit">Upload</button>
  *   </form>
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // DS constant is required by FileUploader::addTestFile()
 if (!defined('DS')) {
@@ -30,7 +30,7 @@ use WebFiori\File\Exceptions\FileException;
 
 // --- Configuration ---
 
-$uploadDir = __DIR__ . '/tmp/uploads';
+$uploadDir = __DIR__ . '/../tmp/uploads';
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
@@ -58,7 +58,7 @@ echo "Max file size:  " . FileUploader::getMaxFileSize() . " KB\n";
 // --- Simulated upload (for testing without a browser) ---
 
 // Create sample files to upload
-$samplePath = __DIR__ . '/tmp/sample-upload.txt';
+$samplePath = __DIR__ . '/../tmp/sample-upload.txt';
 file_put_contents($samplePath, 'Sample upload content.');
 
 // addTestFile() populates $_FILES for CLI testing

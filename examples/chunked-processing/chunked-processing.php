@@ -9,7 +9,7 @@
  * 
  * Chunks can be returned as raw bytes or Base64-encoded strings.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 
