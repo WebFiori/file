@@ -12,7 +12,7 @@
  *   http://localhost:8080              (inline display)
  *   http://localhost:8080?download=1   (force download)
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 

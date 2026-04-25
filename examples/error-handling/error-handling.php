@@ -6,7 +6,7 @@
  * conditions: missing files, empty names/paths, invalid Base64, and
  * end-of-file overruns.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 use WebFiori\File\Exceptions\FileException;
@@ -40,19 +40,19 @@ try {
 
 // 4. Writing with no data set
 try {
-    $file = new File(__DIR__ . '/tmp/empty-write.txt');
+    $file = new File(__DIR__ . '/../tmp/empty-write.txt');
     $file->create(true);
     $file->write(false); // No data set via setRawData()
 } catch (FileException $e) {
     echo "Error 4: " . $e->getMessage() . "\n";
     // "No data is set to write."
     // Cleanup
-    (new File(__DIR__ . '/tmp/empty-write.txt'))->remove();
+    (new File(__DIR__ . '/../tmp/empty-write.txt'))->remove();
 }
 
 // 5. Reading past end of file
 try {
-    $file = new File(__DIR__ . '/tmp/small.txt');
+    $file = new File(__DIR__ . '/../tmp/small.txt');
     $file->create(true);
     $file->setRawData('Short');
     $file->write(false);
@@ -60,7 +60,7 @@ try {
 } catch (FileException $e) {
     echo "Error 5: " . $e->getMessage() . "\n";
     // "Reached end of file while trying to read 100 byte(s)."
-    (new File(__DIR__ . '/tmp/small.txt'))->remove();
+    (new File(__DIR__ . '/../tmp/small.txt'))->remove();
 }
 
 // 6. Strict Base64 decoding with invalid characters

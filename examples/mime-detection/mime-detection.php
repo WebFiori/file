@@ -6,7 +6,7 @@
  * The library includes ~600 extension-to-MIME mappings.
  * Unknown extensions return 'application/octet-stream'.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\MIME;
 

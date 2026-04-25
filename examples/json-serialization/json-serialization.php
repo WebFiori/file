@@ -5,12 +5,12 @@
  * Demonstrates converting File objects to JSON. Useful for API responses
  * or storing file metadata. The File class implements JsonI interface.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 
 // Create a file with some data
-$file = new File(__DIR__ . '/tmp/report.txt');
+$file = new File(__DIR__ . '/../tmp/report.txt');
 $file->create(true);
 $file->setRawData('Quarterly report content.');
 $file->write(false);

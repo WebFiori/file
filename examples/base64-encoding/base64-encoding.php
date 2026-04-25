@@ -7,7 +7,7 @@
  * 
  * Also shows writeEncoded() / readDecoded() for persisting encoded files.
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 use WebFiori\File\Exceptions\FileException;
@@ -40,13 +40,13 @@ try {
 // --- File-based encoding/decoding ---
 
 // writeEncoded() saves Base64-encoded content to a .bin file
-$original = new File(__DIR__ . '/tmp/secret.txt');
+$original = new File(__DIR__ . '/../tmp/secret.txt');
 $original->create(true);
 $original->setRawData('Confidential content');
 $original->writeEncoded(); // Creates secret.txt.bin
 
 // readDecoded() reads a Base64-encoded file and decodes it
-$binFile = new File(__DIR__ . '/tmp/secret.txt.bin');
+$binFile = new File(__DIR__ . '/../tmp/secret.txt.bin');
 $binFile->readDecoded();
 echo "Restored: " . $binFile->getRawData() . "\n"; // Confidential content
 
