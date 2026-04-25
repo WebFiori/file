@@ -25,7 +25,7 @@ composer require webfiori/file
 
 ## Requirements
 
-- PHP 8.0 or higher
+- PHP 8.1 or higher
 - `webfiori/jsonx` ^4.0
 
 ## Supported PHP Versions
@@ -33,7 +33,6 @@ composer require webfiori/file
 |                                                                                       Build Status                                                                                        |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php80.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php80.yaml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php81.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php81.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php82.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php83.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php84.yaml/badge.svg?branch=main"></a> |
@@ -91,7 +90,7 @@ php examples/read-and-write.php
 composer test
 
 # Run tests with PHPUnit 10
-composer test-10
+composer test10
 ```
 
 ## Contributing
