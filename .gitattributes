@@ -2,7 +2,7 @@
 * text=auto
 # Files and folders here will be not included when creating package
 /tests export-ignore
-/example export-ignore
+/examples export-ignore
 /php_cs.php.dist export-ignore
 /.github export-ignore
 /.gitignore export-ignore

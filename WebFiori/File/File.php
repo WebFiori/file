@@ -64,6 +64,12 @@ class File implements JsonI {
      */
     private $rawData;
     /**
+     * The response object used when serving the file.
+     * 
+     * @var Response|null
+     */
+    private $response;
+    /**
      * Creates new instance of the class.
      * 
      * This method will set the path and name to empty string. Also, it will 
@@ -368,6 +374,17 @@ class File implements JsonI {
      */
     public function getMIME() : string {
         return $this->mimeType;
+    }
+    /**
+     * Returns the response object that was used to serve the file.
+     *
+     * This method is useful for testing. It returns the response
+     * object that was created when view() was called.
+     *
+     * @return Response|null The response object, or null if view() was not called.
+     */
+    public function getResponse() {
+        return $this->response;
     }
 
     /**
@@ -1037,6 +1054,7 @@ class File implements JsonI {
             $response->addHeader('Content-Disposition', 'inline; filename="'.$this->getName().'"');
         }
         $response->write($this->getRawData());
+        $this->response = $response;
 
         if (!defined('__PHPUNIT_PHAR__')) {
             $response->send();
