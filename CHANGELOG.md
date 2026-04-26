@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/WebFiori/file/compare/v2.0.0...v2.0.1) (2026-04-25)
+
+
+### Miscellaneous Chores
+
+* Updated PHP Version ([a0502f0](https://github.com/WebFiori/file/commit/a0502f01e3fdc7b850174aa17a75044bcb0a88a7))
+
 ## [2.0.0](https://github.com/WebFiori/file/compare/v1.3.8...v2.0.0) (2025-08-06)
 
 
