@@ -1,22 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit colors="true" bootstrap="bootstrap.php" displayDetailsOnSkippedTests="true">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         colors="true"
+         bootstrap="bootstrap.php"
+         displayDetailsOnSkippedTests="true">
+    
     <php>
     </php>
-    <filter>
-        <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>../WebFiori/File/File.php</file>
-            <file>../WebFiori/File/MIME.php</file>
-            <file>../WebFiori/File/UploadedFile.php</file>
-            <file>../WebFiori/File/FileUploader.php</file>
-            <file>../WebFiori/File/Exceptions/FileException.php</file>
-        </whitelist>
-    </filter>
-    <logging>
-        <log type="coverage-clover" target="clover.xml"/>
-    </logging>
+    
     <testsuites>
-        <testsuite name="Tests">
+        <testsuite name="File Tests">
             <directory>./WebFiori/Framework/Test</directory>
         </testsuite>
     </testsuites>
+    
+    <source>
+        <include>
+            <directory>../WebFiori/File</directory>
+        </include>
+    </source>
+    
+    <coverage>
+        <report>
+            <clover outputFile="clover.xml"/>
+        </report>
+    </coverage>
+    
 </phpunit>

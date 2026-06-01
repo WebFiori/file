@@ -21,7 +21,6 @@
     },
     "scripts": {
         "test": "phpunit --configuration tests/phpunit.xml",
-        "test10": "phpunit --configuration tests/phpunit10.xml"
     },
     "keywords": [
         "php",
