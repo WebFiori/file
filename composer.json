@@ -20,7 +20,7 @@
         "phpunit/phpunit": "^10.0"
     },
     "scripts": {
-        "test": "phpunit --configuration tests/phpunit.xml",
+        "test": "phpunit --configuration tests/phpunit.xml"
     },
     "keywords": [
         "php",
