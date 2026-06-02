@@ -54,7 +54,6 @@ class FileTest extends TestCase {
         $this->assertEquals('application/octet-stream',$file->getMIME());
         $file->setId(100);
         $this->assertEquals(100, $file->getID());
-        return $file;
     }
     /**
      * @test
@@ -66,8 +65,6 @@ class FileTest extends TestCase {
         $this->assertEquals(-1,$file->getID());
         $this->assertEquals('', $file->getRawData());
         $this->assertEquals('text/plain',$file->getMIME());
-
-        return $file;
     }
     /**
      * @test
@@ -329,7 +326,6 @@ class FileTest extends TestCase {
     }
     /**
      * @test
-     * @depends testRead00
      */
     public function removeTest() {
         $file = new File(ROOT_PATH.'/not-exist.txt');
@@ -358,7 +354,6 @@ class FileTest extends TestCase {
     }
     /**
      * @test
-     * @depends testCreate01
      */
     public function testCreate02() {
         $file = new File(ROOT_PATH.DS.'tests'.DS.'files'.DS.'not-exist'.DS.'new.txt');
@@ -370,7 +365,7 @@ class FileTest extends TestCase {
         $this->assertFalse($file->isExist());
     }
     /**
-     * @depends test07
+     * @test
      */
     public function testWrite01() {
         $file = new File('hello.txt', ROOT_PATH);
@@ -390,10 +385,10 @@ class FileTest extends TestCase {
         $file->write();
         $file->read();
         $this->assertEquals('World.Hello.', $file->getRawData());
-        return $file;
+        $file->remove();
     }
     /**
-     * @depends test07
+     * @test
      */
     public function testWriteEncoded00() {
         $file = new File('hello-encoded.txt', ROOT_PATH);
@@ -403,13 +398,16 @@ class FileTest extends TestCase {
         $this->assertTrue($file2->isExist());
         $file2->readDecoded();
         $this->assertEquals('b', $file2->getRawData());
+        $file2->remove();
     }
     /**
      * @test
-     * @param File $file
-     * @depends testWrite01
      */
-    public function toJson00($file) {
+    public function toJson00() {
+        $file = new File('hello.txt', ROOT_PATH);
+        $file->create();
+        $file->setRawData('World.Hello.');
+        $file->write(false);
         $j = $file->toJSON();
         $j->setPropsStyle('camel');
         $this->assertEquals('{'
@@ -421,14 +419,16 @@ class FileTest extends TestCase {
                 . '"sizeInKBytes":0.01171875,'
                 . '"sizeInMBytes":1.1444091796875E-5'
                 . '}',$j.'');
-        return $file;
+        $file->remove();
     }
     /**
      * @test
-     * @depends toJson00
-     * @param File $file
      */
-    public function testRemove00($file) {
+    public function testRemove00() {
+        $file = new File('hello.txt', ROOT_PATH);
+        $file->create();
+        $file->setRawData('test');
+        $file->write(false);
         $this->assertTrue($file->remove());
         $this->assertFalse(file_exists($file->getAbsolutePath()));
     }

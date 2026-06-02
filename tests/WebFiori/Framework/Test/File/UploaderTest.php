@@ -98,13 +98,19 @@ class UploaderTest extends TestCase {
                'uploaded' => true
            ] 
         ], $r);
-        return  $u;
+        $files = $u->getFiles(true);
+        $files[0]->remove();
     }
     /**
      * @test
-     * @depends testUpload00
      */
-    public function testUpload01(FileUploader $u) {
+    public function testUpload01() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, [
+            'txt'
+        ]);
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $u->upload();
         $r = $u->getFiles(true);
         $file = $r[0];
         $this->assertTrue($file instanceof UploadedFile);

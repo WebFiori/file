@@ -10,3 +10,5 @@
 /phpunit.xml export-ignore
 /sonar-project.properties export-ignore
 /CHANGELOG.md
+tests/files/*.txt text eol=lf
+tests/tmp/*.txt text eol=lf
