@@ -196,8 +196,7 @@ class FileUploader implements JsonI {
             $_FILES[$trimmed]['error'] = [];
         }
         $info = self::extractPathAndName($filePath);
-        $path = $info['path'].DS.$info['name'];
-
+        $path = $info['path'].DIRECTORY_SEPARATOR.$info['name'];
 
         if (!File::isFileExist($path)) {
             throw new FileException('No file was found at \''.$path.'\'.');
@@ -278,27 +277,6 @@ class FileUploader implements JsonI {
         }
 
         return $retVal;
-    }
-    /**
-     * Returns the value of the directive 'upload_max_filesize' in KB.
-     * 
-     * @return int
-     */
-    public static function getMaxFileSize() : int {
-        $val = ini_get('upload_max_filesize');
-        $lastChar = strtoupper($val[strlen($val) - 1]);
-
-        switch ($lastChar) {
-            case 'M' : {
-                return intval($val) * 1000;
-            } case 'K' : {
-                return intval($val);
-            } case 'G' : {
-                return intval($val) * 1000000;
-            } default : {
-                return intval($val) / 1000;
-            }
-        }
     }
     /**
      * Returns the directory at which the file or files will be uploaded to.
@@ -393,19 +371,18 @@ class FileUploader implements JsonI {
     public function setUploadDir(string $dir) {
         $fixedPath = File::fixPath($dir);
 
-        $dir = str_replace('/', '\\', $fixedPath);
-
-        if (strlen($dir) == 0) {
+        if (strlen($fixedPath) == 0) {
             throw new FileException('Upload directory should not be an empty string.');
         }
-        try {
-            $this->uploadDir = !File::isDirectory($fixedPath) ? '\\'.$fixedPath : $fixedPath;
 
-            if (!File::isDirectory($this->uploadDir)) {
-                throw new FileException('Invalid upload directory: '.$this->uploadDir);
+        try {
+            if (!File::isDirectory($fixedPath)) {
+                throw new FileException('Invalid upload directory: '.$fixedPath);
             }
+
+            $this->uploadDir = $fixedPath;
         } catch (FileException $ex) {
-            throw new FileException('Invalid upload directory: '.$dir);
+            throw new FileException('Invalid upload directory: '.$fixedPath);
         }
     }
     /**
@@ -583,7 +560,7 @@ class FileUploader implements JsonI {
      * 
      * @return array An associative array containing file upload information.
      */
-    private function getFileArr($fileOrFiles,$replaceIfExist, ?string $idx): array {
+    private function getFileArr($fileOrFiles,$replaceIfExist, ?int $idx): array {
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
         $fileInfoArr = [];
@@ -601,10 +578,7 @@ class FileUploader implements JsonI {
         if (!$isErr) {
             if ($this->isValidExt($fileInfoArr[UploaderConst::NAME_INDEX])) {
                 if (File::isDirectory($this->getUploadDir())) {
-                    $filePath = $this->getUploadDir().'\\'.$fileInfoArr[UploaderConst::NAME_INDEX];
-                    $filePath = str_replace('\\', '/', $filePath);
-
-                    //If in CLI, use copy (testing env)
+                    $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
                     $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
 
                     if (!File::isFileExist($filePath)) {
@@ -655,7 +629,27 @@ class FileUploader implements JsonI {
         return $fileInfoArr;
     }
     /**
-     * Checks if PHP upload code is error or not.
+     * Returns the value of the directive 'upload_max_filesize' in KB.
+     * 
+     * @return int
+     */
+    public static function getMaxFileSize() : int {
+        $val = ini_get('upload_max_filesize');
+        $lastChar = strtoupper($val[strlen($val) - 1]);
+        
+        switch ($lastChar) {
+            case 'M' : {
+                return intval($val) * 1024;
+            } case 'K' : {
+                return intval($val);
+            } case 'G' : {
+                return intval($val) * 1048576;
+            } default : {
+                return intval($val) / 1024;
+            }
+        }
+    }
+    /**
      * 
      * @param int $code PHP upload code.
      * 

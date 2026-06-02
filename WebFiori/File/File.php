@@ -296,13 +296,6 @@ class File implements JsonI {
             $retVal[] = substr($data, $index, $chunkSize);
             $index += $chunkSize;
         }
-
-        $remainingChars = $dataLen - count($retVal) * $chunkSize;
-
-        if ($remainingChars > 0) {
-            $retVal[] = substr($data, $index);
-        }
-
         return $retVal;
     }
     /**
