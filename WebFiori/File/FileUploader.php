@@ -49,7 +49,7 @@ class FileUploader implements JsonI {
      * @var array An array of strings. 
      * 
      */
-    private $extentions = [];
+    private $extensions = [];
     /**
      * An array which contains uploaded files.
      * 
@@ -136,7 +136,7 @@ class FileUploader implements JsonI {
             }
 
             if ($retVal === true) {
-                $this->extentions[] = $ext;
+                $this->extensions[] = $ext;
             }
         } else {
             $retVal = false;
@@ -180,9 +180,9 @@ class FileUploader implements JsonI {
         if ($reset) {
             $_FILES = [];
         }
-        
+
         $trimmed = trim($fileIdx);
-        
+
         if (strlen($trimmed) == 0) {
             return;
         }
@@ -196,27 +196,27 @@ class FileUploader implements JsonI {
             $_FILES[$trimmed]['error'] = [];
         }
         $info = self::extractPathAndName($filePath);
-        $path = $info['path'].DS.$info['name'];
-        
-        
+        $path = $info['path'].DIRECTORY_SEPARATOR.$info['name'];
+
         if (!File::isFileExist($path)) {
             throw new FileException('No file was found at \''.$path.'\'.');
         }
-        
+
         $nameExpl = explode('.', $info['name']);
+
         if (count($nameExpl) == 2) {
             $ext = $nameExpl[1];
         } else {
             $ext = 'bin';
         }
-        
+
         $_FILES[$trimmed]['name'][] = $info['name'];
         $_FILES[$trimmed]['type'][] = MIME::getType($ext);
         $_FILES[$trimmed]['size'][] = filesize($path);
         $_FILES[$trimmed]['tmp_name'][] = $path;
         $_FILES[$trimmed]['error'][] = 0;
     }
-    
+
     /**
      * Returns the name of the index at which the uploaded files will exist on in the array $_FILES.
      * 
@@ -236,7 +236,7 @@ class FileUploader implements JsonI {
      * 
      */
     public function getExts() : array {
-        return $this->extentions;
+        return $this->extensions;
     }
     /**
      * Returns an array which contains all information about the uploaded files.
@@ -309,9 +309,28 @@ class FileUploader implements JsonI {
                 $retVal = true;
             }
         }
-        $this->extentions = $temp;
+        $this->extensions = $temp;
 
         return $retVal;
+    }
+    /**
+     * Sanitizes an uploaded filename to prevent path traversal and filesystem issues.
+     *
+     * This method strips path separators, null bytes, and replaces special
+     * characters that could cause security vulnerabilities or filesystem problems.
+     *
+     * @param string $name The raw filename from the upload.
+     *
+     * @return string The sanitized filename safe for filesystem use.
+     */
+    public static function sanitizeFilename(string $name): string {
+        $name = str_replace("\\", "/", $name);
+        $name = basename($name);
+        $name = str_replace("\0", '', $name);
+        $name = preg_replace('/[^\w\-. ]/', '_', $name);
+        $name = ltrim($name, '.');
+
+        return $name;
     }
     /**
      * Sets The name of the index at which the file is stored in the array $_FILES.
@@ -352,19 +371,18 @@ class FileUploader implements JsonI {
     public function setUploadDir(string $dir) {
         $fixedPath = File::fixPath($dir);
 
-        $dir = str_replace('/', '\\', $fixedPath);
-
-        if (strlen($dir) == 0) {
+        if (strlen($fixedPath) == 0) {
             throw new FileException('Upload directory should not be an empty string.');
         }
-        try {
-            $this->uploadDir = !File::isDirectory($fixedPath) ? '\\'.$fixedPath : $fixedPath;
 
-            if (!File::isDirectory($this->uploadDir)) {
-                throw new FileException('Invalid upload directory: '.$this->uploadDir);
+        try {
+            if (!File::isDirectory($fixedPath)) {
+                throw new FileException('Invalid upload directory: '.$fixedPath);
             }
+
+            $this->uploadDir = $fixedPath;
         } catch (FileException $ex) {
-            throw new FileException('Invalid upload directory: '.$dir);
+            throw new FileException('Invalid upload directory: '.$fixedPath);
         }
     }
     /**
@@ -427,7 +445,7 @@ class FileUploader implements JsonI {
         if (strtoupper($reqMeth) == 'POST') {
             $fileOrFiles = null;
             $associatedInputName = filter_input(INPUT_POST, 'file');
-            
+
             if (gettype($associatedInputName) != 'string' && isset($_POST['file'])) {
                 //Probably in cli (test env)
                 $associatedInputName = filter_var($_POST['file']);
@@ -542,37 +560,35 @@ class FileUploader implements JsonI {
      * 
      * @return array An associative array containing file upload information.
      */
-    private function getFileArr($fileOrFiles,$replaceIfExist, ?string $idx): array {
+    private function getFileArr($fileOrFiles,$replaceIfExist, ?int $idx): array {
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
         $fileInfoArr = [];
         $fileInfoArr[UploaderConst::NAME_INDEX] = $idx === null ? filter_var($fileOrFiles[UploaderConst::NAME_INDEX]) : filter_var($fileOrFiles[UploaderConst::NAME_INDEX][$idx]);
+        $fileInfoArr[UploaderConst::NAME_INDEX] = self::sanitizeFilename($fileInfoArr[UploaderConst::NAME_INDEX]);
         $fileInfoArr[UploaderConst::SIZE_INDEX] = $idx === null ? filter_var($fileOrFiles[UploaderConst::SIZE_INDEX], FILTER_SANITIZE_NUMBER_INT) : filter_var($fileOrFiles[UploaderConst::SIZE_INDEX][$idx], FILTER_SANITIZE_NUMBER_INT);
         $fileInfoArr[UploaderConst::PATH_INDEX] = $this->getUploadDir();
         $fileInfoArr[UploaderConst::ERR_INDEX] = '';
         $nameSplit = explode('.', $fileInfoArr[UploaderConst::NAME_INDEX]);
         $fileInfoArr[UploaderConst::MIME_INDEX] = MIME::getType($nameSplit[count($nameSplit) - 1]);
         $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
-                
+
         $isErr = $idx === null ? $this->isError($fileOrFiles[$errIdx]) : $this->isError($fileOrFiles[$errIdx][$idx]);
 
         if (!$isErr) {
             if ($this->isValidExt($fileInfoArr[UploaderConst::NAME_INDEX])) {
                 if (File::isDirectory($this->getUploadDir())) {
-                    $filePath = $this->getUploadDir().'\\'.$fileInfoArr[UploaderConst::NAME_INDEX];
-                    $filePath = str_replace('\\', '/', $filePath);
-                    
-                    //If in CLI, use copy (testing env)
+                    $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
                     $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
-                        
+
                     if (!File::isFileExist($filePath)) {
                         $fileInfoArr[UploaderConst::EXIST_INDEX] = false;
                         $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
                         $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
                         $sanitizedName = filter_var($name);
-                        
-                        
-                        
+
+
+
                         if (!($moveFunc($sanitizedName, $filePath))) {
                             $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_MOVE_TEMP;
                         } else {
@@ -623,18 +639,17 @@ class FileUploader implements JsonI {
         
         switch ($lastChar) {
             case 'M' : {
-                return intval($val) * 1000;
+                return intval($val) * 1024;
             } case 'K' : {
                 return intval($val);
             } case 'G' : {
-                return intval($val) * 1000000;
+                return intval($val) * 1048576;
             } default : {
-                return intval($val) / 1000;
+                return intval($val) / 1024;
             }
         }
     }
     /**
-     * Checks if PHP upload code is error or not.
      * 
      * @param int $code PHP upload code.
      * 
