@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Example 12: File Upload Handling
  * 
@@ -17,20 +18,21 @@
  *     <button type="submit">Upload</button>
  *   </form>
  */
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__.'/../../vendor/autoload.php';
 
 // DS constant is required by FileUploader::addTestFile()
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
 
+use WebFiori\File\Exceptions\FileException;
 use WebFiori\File\FileUploader;
 use WebFiori\File\UploadedFile;
-use WebFiori\File\Exceptions\FileException;
 
 // --- Configuration ---
 
-$uploadDir = __DIR__ . '/../tmp/uploads';
+$uploadDir = __DIR__.'/../tmp/uploads';
+
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
@@ -50,15 +52,15 @@ $uploader->removeExt('csv');
 $uploader->setAssociatedFileName('user_files');
 
 // Check configuration
-echo "Upload dir:     " . $uploader->getUploadDir() . "\n";
-echo "Input name:     " . $uploader->getAssociatedFileName() . "\n";
-echo "Allowed types:  " . implode(', ', $uploader->getExts()) . "\n";
-echo "Max file size:  " . FileUploader::getMaxFileSize() . " KB\n";
+echo "Upload dir:     ".$uploader->getUploadDir()."\n";
+echo "Input name:     ".$uploader->getAssociatedFileName()."\n";
+echo "Allowed types:  ".implode(', ', $uploader->getExts())."\n";
+echo "Max file size:  ".FileUploader::getMaxFileSize()." KB\n";
 
 // --- Simulated upload (for testing without a browser) ---
 
 // Create sample files to upload
-$samplePath = __DIR__ . '/../tmp/sample-upload.txt';
+$samplePath = __DIR__.'/../tmp/sample-upload.txt';
 file_put_contents($samplePath, 'Sample upload content.');
 
 // addTestFile() populates $_FILES for CLI testing
@@ -73,24 +75,24 @@ try {
     foreach ($files as $file) {
         if ($file instanceof UploadedFile) {
             echo "\n--- UploadedFile ---\n";
-            echo "Name:      " . $file->getName() . "\n";
-            echo "MIME:      " . $file->getMIME() . "\n";
-            echo "Uploaded:  " . ($file->isUploaded() ? 'yes' : 'no') . "\n";
-            echo "Replaced:  " . ($file->isReplace() ? 'yes' : 'no') . "\n";
+            echo "Name:      ".$file->getName()."\n";
+            echo "MIME:      ".$file->getMIME()."\n";
+            echo "Uploaded:  ".($file->isUploaded() ? 'yes' : 'no')."\n";
+            echo "Replaced:  ".($file->isReplace() ? 'yes' : 'no')."\n";
 
             if (!$file->isUploaded()) {
-                echo "Error:     " . $file->getUploadError() . "\n";
+                echo "Error:     ".$file->getUploadError()."\n";
             }
 
             // UploadedFile extends File, so you can read/write/serialize
-            echo "JSON:      " . $file->toJSON() . "\n";
+            echo "JSON:      ".$file->toJSON()."\n";
 
             // Cleanup uploaded file
             $file->remove();
         }
     }
 } catch (FileException $e) {
-    echo "Upload failed: " . $e->getMessage() . "\n";
+    echo "Upload failed: ".$e->getMessage()."\n";
 }
 
 // Cleanup
