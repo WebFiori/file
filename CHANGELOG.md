@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.3](https://github.com/WebFiori/file/compare/v2.0.2...v2.0.3) (2026-06-02)
+
+
+### Features
+
+* file locking, view terminate param, return types, hasKnownSize, typo fix ([ddc2344](https://github.com/WebFiori/file/commit/ddc2344c1f13a280676e27e41621c8b4cbce2f24))
+* phase 2 stability improvements ([8f0ae0d](https://github.com/WebFiori/file/commit/8f0ae0d09f455093926b2a52f3937f4ed871aea2))
+
+
+### Bug Fixes
+
+* resolve misc bugs in FileUploader, File, and MIME ([1c09298](https://github.com/WebFiori/file/commit/1c0929881316f976db685622b55ed1e331523d52))
+* **security:** path traversal, directory permissions, filename sanitization, range validation ([1e7ccfe](https://github.com/WebFiori/file/commit/1e7ccfefc3a962942cd733d55a491b3b46129c48))
+* **security:** path traversal, permissions, sanitization, range validation ([8fb802c](https://github.com/WebFiori/file/commit/8fb802caa86565cea558ed70151f04e5bf20356b))
+* setUploadDir paths, type mismatch, DS constant, file size math, MIME types, dead code ([c5b16fe](https://github.com/WebFiori/file/commit/c5b16fef2f4455d5d14ed349db1719ef848a650e))
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#90](https://github.com/WebFiori/file/issues/90) from WebFiori/dev ([b409c4c](https://github.com/WebFiori/file/commit/b409c4c6e42c808e559019272bad8f35f23eea58))
+
 ## [2.0.2](https://github.com/WebFiori/file/compare/v2.0.1...v2.0.2) (2026-06-02)
 
 
