@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.2](https://github.com/WebFiori/file/compare/v2.0.1...v2.0.2) (2026-06-02)
+
+
+### Miscellaneous Chores
+
+* align CI with ecosystem baseline ([6370e6e](https://github.com/WebFiori/file/commit/6370e6e26473d09c48c6155f8788286b14e25454))
+* align CI with ecosystem baseline ([5177c9f](https://github.com/WebFiori/file/commit/5177c9fe6f43ab183ca5c8c6be6566d226193835))
+* Fix Config File For Composer ([13de542](https://github.com/WebFiori/file/commit/13de54294bad319f04d80d861eab0f95aace821d))
+
 ## [2.0.1](https://github.com/WebFiori/file/compare/v2.0.0...v2.0.1) (2026-04-25)
 
 
