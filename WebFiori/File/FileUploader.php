@@ -49,7 +49,7 @@ class FileUploader implements JsonI {
      * @var array An array of strings. 
      * 
      */
-    private $extentions = [];
+    private $extensions = [];
     /**
      * An array which contains uploaded files.
      * 
@@ -136,7 +136,7 @@ class FileUploader implements JsonI {
             }
 
             if ($retVal === true) {
-                $this->extentions[] = $ext;
+                $this->extensions[] = $ext;
             }
         } else {
             $retVal = false;
@@ -236,7 +236,7 @@ class FileUploader implements JsonI {
      * 
      */
     public function getExts() : array {
-        return $this->extentions;
+        return $this->extensions;
     }
     /**
      * Returns an array which contains all information about the uploaded files.
@@ -309,7 +309,7 @@ class FileUploader implements JsonI {
                 $retVal = true;
             }
         }
-        $this->extentions = $temp;
+        $this->extensions = $temp;
 
         return $retVal;
     }
