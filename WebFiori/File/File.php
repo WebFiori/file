@@ -101,8 +101,11 @@ class File implements JsonI {
 
         if (self::isFileExist($this->getAbsolutePath())) {
             set_error_handler(self::$errFunc);
-            $this->fileSize = filesize($this->getAbsolutePath());
-            restore_error_handler();
+            try {
+                $this->fileSize = filesize($this->getAbsolutePath());
+            } finally {
+                restore_error_handler();
+            }
         }
         $this->id = -1;
     }
@@ -154,6 +157,28 @@ class File implements JsonI {
                 fclose($resource);
             }
         }
+    }
+    /**
+     * 
+     * @param string $mode
+     * 
+     * @param string $path
+     * 
+     * @return bool|resource
+     */
+    public static function createResource(string $mode, string $path) {
+        set_error_handler(self::$errFunc);
+        try {
+            $resource = fopen($path, $mode);
+        } finally {
+            restore_error_handler();
+        }
+
+        if (is_resource($resource)) {
+            return $resource;
+        }
+
+        return false;
     }
     /**
      * Fixes and normalizes a file path by converting slashes to system directory separator.
@@ -368,17 +393,6 @@ class File implements JsonI {
     public function getMIME() : string {
         return $this->mimeType;
     }
-    /**
-     * Returns the response object that was used to serve the file.
-     *
-     * This method is useful for testing. It returns the response
-     * object that was created when view() was called.
-     *
-     * @return Response|null The response object, or null if view() was not called.
-     */
-    public function getResponse() {
-        return $this->response;
-    }
 
     /**
      * Returns the name of the file.
@@ -443,6 +457,17 @@ class File implements JsonI {
         return base64_encode($this->rawData);
     }
     /**
+     * Returns the response object that was used to serve the file.
+     *
+     * This method is useful for testing. It returns the response
+     * object that was created when view() was called.
+     *
+     * @return Response|null The response object, or null if view() was not called.
+     */
+    public function getResponse() {
+        return $this->response;
+    }
+    /**
      * Returns the size of the file in bytes.
      *
      * @return int Size of the file in bytes. If the raw data of the file
@@ -459,16 +484,18 @@ class File implements JsonI {
      * @param bool $createIfNot If set to true and the given directory does
      * not exists, The method will try to create the directory.
      *
+     * @param int $permissions The permissions for the new directory. Default is 0755.
+     *
      * @return bool In general, the method will return false if the
      * given directory does not exist. The method will return true only
      * in two cases, If the directory exits, or it does not exist but was created.
      *
      */
-    public static function isDirectory(string $dir, bool $createIfNot = false) : bool {
+    public static function isDirectory(string $dir, bool $createIfNot = false, int $permissions = 0755) : bool {
         $dirFix = str_replace('\\', '/', $dir);
 
         if (!is_dir($dirFix)) {
-            if ($createIfNot === true && mkdir($dir, 0777 , true)) {
+            if ($createIfNot === true && mkdir($dir, $permissions, true)) {
                 return true;
             }
 
@@ -500,8 +527,11 @@ class File implements JsonI {
     public static function isFileExist(string $path) : bool {
         self::initErrHandler();
         set_error_handler(self::$errFunc);
-        $isExist = file_exists($path);
-        restore_error_handler();
+        try {
+            $isExist = file_exists($path);
+        } finally {
+            restore_error_handler();
+        }
 
         return $isExist;
     }
@@ -530,6 +560,13 @@ class File implements JsonI {
      * </ul>
      */
     public function read(int $from = -1, int $to = -1) {
+        if ($from < -1 || $to < -1) {
+            throw new FileException('Range values must be >= 0 (or -1 for default).');
+        }
+
+        if ($from > -1 && $to > -1 && $from >= $to) {
+            throw new FileException('Range start must be less than range end.');
+        }
         $fPath = $this->checkNameAndPath();
 
         if (!$this->readHelper($fPath,$from,$to)) {
@@ -839,25 +876,6 @@ class File implements JsonI {
         }
         throw new FileException('File name cannot be empty string.');
     }
-    /**
-     * 
-     * @param string $mode
-     * 
-     * @param string $path
-     * 
-     * @return bool|resource
-     */
-    public static function createResource(string $mode, string $path) {
-        set_error_handler(self::$errFunc);
-        $resource = fopen($path, $mode);
-        restore_error_handler();
-
-        if (is_resource($resource)) {
-            return $resource;
-        }
-
-        return false;
-    }
 
     private function doNotUseClassResponse($contentType, $asAttachment) {
         $headersArr = [
@@ -887,7 +905,7 @@ class File implements JsonI {
             }
         }
         echo $this->getRawData();
-        
+
         if (http_response_code() === false) {
             return;
         }
