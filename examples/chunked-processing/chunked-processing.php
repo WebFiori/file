@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Example 6: Chunked Processing
  * 
@@ -9,7 +10,7 @@
  * 
  * Chunks can be returned as raw bytes or Base64-encoded strings.
  */
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__.'/../../vendor/autoload.php';
 
 use WebFiori\File\File;
 
@@ -18,10 +19,10 @@ $file->setRawData('ABCDEFGHIJ'); // 10 bytes
 
 // Split into 3-byte raw chunks
 $chunks = $file->getChunks(3, false);
-echo "Raw chunks (" . count($chunks) . "):\n";
+echo "Raw chunks (".count($chunks)."):\n";
 
 foreach ($chunks as $i => $chunk) {
-    echo "  Chunk $i: '$chunk' (" . strlen($chunk) . " bytes)\n";
+    echo "  Chunk $i: '$chunk' (".strlen($chunk)." bytes)\n";
 }
 // Chunk 0: 'ABC' (3 bytes)
 // Chunk 1: 'DEF' (3 bytes)
@@ -34,7 +35,7 @@ echo "Reassembled: $reassembled\n"; // ABCDEFGHIJ
 
 // Split into Base64-encoded chunks (useful for JSON APIs)
 $encodedChunks = $file->getChunks(4, true);
-echo "\nBase64 chunks (" . count($encodedChunks) . "):\n";
+echo "\nBase64 chunks (".count($encodedChunks)."):\n";
 
 foreach ($encodedChunks as $i => $chunk) {
     echo "  Chunk $i: '$chunk'\n";
@@ -46,4 +47,4 @@ echo "Decoded: $decoded\n"; // ABCDEFGHIJ
 
 // Negative chunk size defaults to 50 bytes
 $defaultChunks = $file->getChunks(-1, false);
-echo "\nDefault chunk size: " . count($defaultChunks) . " chunk(s)\n"; // 1 (data < 50 bytes)
+echo "\nDefault chunk size: ".count($defaultChunks)." chunk(s)\n"; // 1 (data < 50 bytes)

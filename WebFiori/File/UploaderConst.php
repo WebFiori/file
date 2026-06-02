@@ -8,6 +8,10 @@ namespace WebFiori\File;
  */
 class UploaderConst {
     /**
+     * A constant that is used to indicate uploaded file with same name was already uploaded.
+     */
+    const ALREADY_EXIST = 'already_uploaded';
+    /**
      * One of the constants which is used to initialize uploaded file array.
      */
     const ERR_INDEX = 'upload-error';
@@ -24,10 +28,6 @@ class UploaderConst {
      * A constant that is used to indicate uploaded file type is not allowed.
      */
     const ERR_NOT_ALLOWED = 'not_allowed_type';
-    /**
-     * A constant that is used to indicate uploaded file with same name was already uploaded.
-     */
-    const ALREADY_EXIST = 'already_uploaded';
     /**
      * One of the constants which is used to initialize uploaded file array.
      */
