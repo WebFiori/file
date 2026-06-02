@@ -12,3 +12,4 @@ tests/webfiori/framework/test/testUpload.txt
 *.Identifier
 /examples/tmp
 tests/WebFiori/Framework/Test/File/testUpload.txt
+.php-cs-fixer.cache

@@ -747,7 +747,21 @@ class MIME {
         'wvx' => 'video/x-ms-wvx',
         'movie' => 'video/x-sgi-movie',
         'smv' => 'video/x-smv',
-        'ice' => 'x-conference/x-cooltalk'
+        'ice' => 'x-conference/x-cooltalk',
+        'pdf' => 'application/pdf',
+        'doc' => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'json' => 'application/json',
+        'gz' => 'application/gzip',
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'zip' => 'application/zip',
+        'tar' => 'application/x-tar',
+        'csv' => 'text/csv',
+        'yaml' => 'application/x-yaml',
+        'yml' => 'application/x-yaml',
     ];
     /**
      * Returns MIME type of file given its extension.
