@@ -111,7 +111,7 @@ class File implements JsonI {
      * 
      * @return string
      */
-    public function __toString() {
+    public function __toString() : string {
         return $this->toJSON().'';
     }
     /**
@@ -122,7 +122,7 @@ class File implements JsonI {
      * appended.
      * 
      */
-    public function append($data) {
+    public function append(string|array $data) : void {
         if (gettype($data) == 'array') {
             foreach ($data as $str) {
                 $this->rawData .= $str;
@@ -140,7 +140,7 @@ class File implements JsonI {
      *
      * @throws FileException
      */
-    public function create(bool $createDirIfNotExist = false) {
+    public function create(bool $createDirIfNotExist = false) : void {
         $fPath = $this->getAbsolutePath();
 
         if (!$this->isExist()) {
@@ -165,7 +165,7 @@ class File implements JsonI {
      * 
      * @return string The normalized path with proper directory separators.
      */
-    public static function fixPath($fPath) {
+    public static function fixPath(string $fPath) : string {
         $DS = DIRECTORY_SEPARATOR;
         $trimmedPath = str_replace('/', $DS, str_replace('\\', $DS, trim($fPath)));
         $len = strlen($trimmedPath);
@@ -331,7 +331,7 @@ class File implements JsonI {
      * will return -1.
      *
      */
-    public function getID() {
+    public function getID() : string|int {
         return $this->id;
     }
     /**
@@ -348,7 +348,7 @@ class File implements JsonI {
      * 0.
      *
      */
-    public function getLastModified(?string $format = 'Y-m-d H:i:s') {
+    public function getLastModified(?string $format = 'Y-m-d H:i:s') : string|int {
         if ($this->isExist()) {
             clearstatcache();
 
@@ -459,6 +459,14 @@ class File implements JsonI {
         return $this->fileSize;
     }
     /**
+     * Checks if the file has a known size.
+     *
+     * @return bool True if the file size has been determined, false if unknown (-1).
+     */
+    public function hasKnownSize() : bool {
+        return $this->fileSize >= 0;
+    }
+    /**
      * Checks if a given directory exists or not.
      *
      * @param string $dir A string in a form of directory (Such as 'root/home/res').
@@ -536,7 +544,7 @@ class File implements JsonI {
      * <li>If the file does not exist.</li>
      * </ul>
      */
-    public function read(int $from = -1, int $to = -1) {
+    public function read(int $from = -1, int $to = -1) : void {
         $fPath = $this->checkNameAndPath();
 
         if (!$this->readHelper($fPath,$from,$to)) {
@@ -549,7 +557,7 @@ class File implements JsonI {
      *
      * @throws FileException
      */
-    public function readDecoded() {
+    public function readDecoded() : void {
         $this->read();
         $raw = $this->getRawData();
         $this->setRawData($raw, true);
@@ -599,7 +607,7 @@ class File implements JsonI {
      * @param string $id The unique ID of the file.
      *
      */
-    public function setId(string $id) {
+    public function setId(string $id) : void {
         $this->id = $id;
     }
     /**
@@ -612,7 +620,7 @@ class File implements JsonI {
      * @param string $type MIME type (such as 'application/pdf')
      *
      */
-    public function setMIME(string $type) {
+    public function setMIME(string $type) : void {
         if (strlen($type) != 0) {
             $this->mimeType = $type;
         }
@@ -626,7 +634,7 @@ class File implements JsonI {
      * @param string $name The name of the file.
      *
      */
-    public function setName(string $name) {
+    public function setName(string $name) : void {
         $trimmed = trim($name);
 
         if (strlen($trimmed) != 0) {
@@ -654,7 +662,7 @@ class File implements JsonI {
      * @throws FileException
      *
      */
-    public function setRawData(string $raw, bool $decode = false, bool $strict = false) {
+    public function setRawData(string $raw, bool $decode = false, bool $strict = false) : void {
         if (strlen($raw) > 0) {
             if ($decode === true) {
                 $this->setRawDataDecoded($raw, $strict);
@@ -680,7 +688,7 @@ class File implements JsonI {
      *
      * @throws FileException
      */
-    public function setRawDataDecoded(string $raw, bool $strict = false) {
+    public function setRawDataDecoded(string $raw, bool $strict = false) : void {
         $decoded = base64_decode($raw, $strict);
 
         if ($decoded === false) {
@@ -759,13 +767,13 @@ class File implements JsonI {
      * If MIME type of the file is not set.
      *
      */
-    public function view(bool $asAttachment = false) {
+    public function view(bool $asAttachment = false, bool $terminate = true) : void {
         $raw = $this->getRawData();
 
         if (strlen($raw) == 0) {
             $this->read();
         }
-        $this->viewFileHelper($asAttachment);
+        $this->viewFileHelper($asAttachment, $terminate);
     }
     /**
      * Write raw binary data into a file.
@@ -788,13 +796,13 @@ class File implements JsonI {
      * </ul>
      *
      */
-    public function write(bool $append = true, bool $createIfNotExist = false) {
+    public function write(bool $append = true, bool $createIfNotExist = false, bool $lock = true) : void {
         $pathV = $this->checkNameAndPath();
 
         if ($createIfNotExist) {
             $this->create(true);
         }
-        $this->writeHelper($pathV, $append === true);
+        $this->writeHelper($pathV, $append === true, false, $lock);
     }
 
     /**
@@ -807,7 +815,7 @@ class File implements JsonI {
      *
      * @throws FileException
      */
-    public function writeEncoded() {
+    public function writeEncoded() : void {
         $currentName = $this->getName();
         $this->setName($currentName.'.bin');
         $this->create(true);
@@ -847,7 +855,7 @@ class File implements JsonI {
         throw new FileException('File name cannot be empty string.');
     }
     /**
-     * 
+     * @internal This method is not part of the public API and may change without notice.
      * @param string $mode
      * 
      * @param string $path
@@ -866,7 +874,7 @@ class File implements JsonI {
         return false;
     }
 
-    private function doNotUseClassResponse($contentType, $asAttachment) {
+    private function doNotUseClassResponse($contentType, $asAttachment, bool $terminate = true) {
         $headersArr = [
             'Accept-Ranges: bytes',
             'content-type: '.$contentType
@@ -898,7 +906,7 @@ class File implements JsonI {
         if (http_response_code() === false) {
             return;
         }
-        die();
+        if ($terminate) { die(); }
     }
     private function extractMimeFromName() {
         $exp = explode('.', $this->getName());
@@ -1060,13 +1068,13 @@ class File implements JsonI {
             $response->send();
         }
     }
-    private function viewFileHelper($asAttachment) {
+    private function viewFileHelper($asAttachment, bool $terminate = true) {
         $contentType = $this->getMIME();
 
         if (class_exists('\WebFiori\Http\Response')) {
             $this->useClassResponse($contentType, $asAttachment);
         } else {
-            $this->doNotUseClassResponse($contentType, $asAttachment);
+            $this->doNotUseClassResponse($contentType, $asAttachment, $terminate);
         }
     }
 
@@ -1078,7 +1086,7 @@ class File implements JsonI {
      * @return bool
      * @throws FileException
      */
-    private function writeHelper(string $fPath, bool $append, bool $encode = false) {
+    private function writeHelper(string $fPath, bool $append, bool $encode = false, bool $lock = true) {
         if (strlen($this->getRawData()) == 0) {
             throw new FileException("No data is set to write.");
         }
@@ -1096,7 +1104,15 @@ class File implements JsonI {
         if (!is_resource($resource)) {
             throw new FileException('Unable to open the file at \''.$fPath.'\'.');
         } else {
+            if ($lock && !flock($resource, LOCK_EX)) {
+                fclose($resource);
+                throw new FileException('Unable to acquire lock on \''.$fPath.'\'.');
+            }
             fwrite($resource, $this->getRawData($encode));
+            fflush($resource);
+            if ($lock) {
+                flock($resource, LOCK_UN);
+            }
             fclose($resource);
 
             return true;
