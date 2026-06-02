@@ -196,7 +196,7 @@ class FileUploader implements JsonI {
             $_FILES[$trimmed]['error'] = [];
         }
         $info = self::extractPathAndName($filePath);
-        $path = $info['path'].DS.$info['name'];
+        $path = $info['path'].DIRECTORY_SEPARATOR.$info['name'];
         
         
         if (!File::isFileExist($path)) {
@@ -352,19 +352,18 @@ class FileUploader implements JsonI {
     public function setUploadDir(string $dir) {
         $fixedPath = File::fixPath($dir);
 
-        $dir = str_replace('/', '\\', $fixedPath);
-
-        if (strlen($dir) == 0) {
+        if (strlen($fixedPath) == 0) {
             throw new FileException('Upload directory should not be an empty string.');
         }
-        try {
-            $this->uploadDir = !File::isDirectory($fixedPath) ? '\\'.$fixedPath : $fixedPath;
 
-            if (!File::isDirectory($this->uploadDir)) {
-                throw new FileException('Invalid upload directory: '.$this->uploadDir);
+        try {
+            if (!File::isDirectory($fixedPath)) {
+                throw new FileException('Invalid upload directory: '.$fixedPath);
             }
+
+            $this->uploadDir = $fixedPath;
         } catch (FileException $ex) {
-            throw new FileException('Invalid upload directory: '.$dir);
+            throw new FileException('Invalid upload directory: '.$fixedPath);
         }
     }
     /**
@@ -542,7 +541,7 @@ class FileUploader implements JsonI {
      * 
      * @return array An associative array containing file upload information.
      */
-    private function getFileArr($fileOrFiles,$replaceIfExist, ?string $idx): array {
+    private function getFileArr($fileOrFiles,$replaceIfExist, ?int $idx): array {
         $errIdx = 'error';
         $tempIdx = 'tmp_name';
         $fileInfoArr = [];
@@ -559,8 +558,7 @@ class FileUploader implements JsonI {
         if (!$isErr) {
             if ($this->isValidExt($fileInfoArr[UploaderConst::NAME_INDEX])) {
                 if (File::isDirectory($this->getUploadDir())) {
-                    $filePath = $this->getUploadDir().'\\'.$fileInfoArr[UploaderConst::NAME_INDEX];
-                    $filePath = str_replace('\\', '/', $filePath);
+                    $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
                     
                     //If in CLI, use copy (testing env)
                     $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
@@ -623,13 +621,13 @@ class FileUploader implements JsonI {
         
         switch ($lastChar) {
             case 'M' : {
-                return intval($val) * 1000;
+                return intval($val) * 1024;
             } case 'K' : {
                 return intval($val);
             } case 'G' : {
-                return intval($val) * 1000000;
+                return intval($val) * 1048576;
             } default : {
-                return intval($val) / 1000;
+                return intval($val) / 1024;
             }
         }
     }
