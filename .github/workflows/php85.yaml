@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main ]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,3 +26,18 @@ jobs:
       coverage-file: 'php-8.5-coverage.xml'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  code-quality:
+    name: Code Quality
+    needs: test
+    uses: WebFiori/workflows/.github/workflows/quality-sonarcloud.yaml@v1.2.5
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  release-prod:
+    name: Prepare Production Release Branch / Publish Release
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: [code-coverage, code-quality]
+    uses: WebFiori/workflows/.github/workflows/release-php.yaml@v1.2.5
+    with:
+      branch: 'main'
