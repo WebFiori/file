@@ -137,7 +137,12 @@ The [examples/](examples/) directory contains runnable PHP scripts covering ever
 | [JSON Serialization](examples/json-serialization/) | Convert `File` objects to JSON |
 | [Path Utilities](examples/path-utilities/) | Path normalization, directory creation, file existence checks |
 | [File Upload](examples/file-upload/) | Configure and process uploads with `FileUploader` |
-| [Serving Files](examples/serving-files/) | Serve files over HTTP with proper headers |
+| [Serving Files](examples/serving-files/) | Serve files over HTTP with ResponseEmitter |
+| [Streaming I/O](examples/streaming/) | Read chunks, lines, and ranges with `FileStream` |
+| [Copy and Move](examples/copy-and-move/) | Copy and move files with streaming |
+| [Atomic Write](examples/atomic-write/) | Crash-safe writes with temp + rename |
+| [Streaming Upload](examples/streaming-upload/) | Receive large files from `php://input` |
+| [Upload Callbacks](examples/upload-callbacks/) | Before/after hooks for validation and logging |
 
 Each example has its own README with detailed explanations. Run any example with:
 
