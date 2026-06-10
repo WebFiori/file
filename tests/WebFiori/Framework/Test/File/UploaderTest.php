@@ -227,4 +227,18 @@ class UploaderTest extends TestCase {
             'txt', 'jpg', 'png'
         ], $u->getExts());
     }
+    /**
+     * @test
+     */
+    public function testGetMaxFileSize() {
+        $val = ini_get('upload_max_filesize');
+        $lastChar = strtoupper($val[strlen($val) - 1]);
+        $expected = match ($lastChar) {
+            'M' => intval($val) * 1024,
+            'K' => intval($val),
+            'G' => intval($val) * 1048576,
+            default => intval($val) / 1024,
+        };
+        $this->assertEquals($expected, FileUploader::getMaxFileSize());
+    }
 }
