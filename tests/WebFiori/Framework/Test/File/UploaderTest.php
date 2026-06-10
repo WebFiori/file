@@ -294,4 +294,60 @@ class UploaderTest extends TestCase {
         $u->setMaxFileSize(-100);
         $this->assertNull($u->getMaxFileSizeLimit());
     }
+    /**
+     * @test
+     */
+    public function testStreamProcessorDefault() {
+        $u = new FileUploader(__DIR__, ['txt']);
+        $this->assertNull($u->getStreamProcessor());
+    }
+    /**
+     * @test
+     */
+    public function testStreamProcessorUpload() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $hashResult = null;
+
+        $u->setStreamProcessor(function(\Generator $chunks, string $destPath) use (&$hashResult) {
+            $hash = hash_init('sha256');
+            $dest = fopen($destPath, 'wb');
+
+            foreach ($chunks as $chunk) {
+                hash_update($hash, $chunk);
+                fwrite($dest, $chunk);
+            }
+
+            fclose($dest);
+            $hashResult = hash_final($hash);
+        });
+
+        $this->assertNotNull($u->getStreamProcessor());
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertTrue($r[0]['uploaded']);
+        $this->assertNotNull($hashResult);
+        $this->assertEquals(
+            hash('sha256', file_get_contents(ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt')),
+            $hashResult
+        );
+        // cleanup
+        $files = $u->getFiles(true);
+        $files[0]->remove();
+    }
+    /**
+     * @test
+     */
+    public function testStreamProcessorFailure() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+
+        $u->setStreamProcessor(function(\Generator $chunks, string $destPath) {
+            throw new \RuntimeException('Processing failed');
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertFalse($r[0]['uploaded']);
+    }
 }

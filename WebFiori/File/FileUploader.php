@@ -71,6 +71,12 @@ class FileUploader implements JsonI {
      */
     private $maxFileSize;
     /**
+     * Stream processor callable for upload processing.
+     * 
+     * @var callable|null
+     */
+    private $streamProcessor;
+    /**
      * Upload status message.
      * 
      * @var string
@@ -93,6 +99,7 @@ class FileUploader implements JsonI {
         $this->uploadStatusMessage = 'NO ACTION';
         $this->files = [];
         $this->maxFileSize = null;
+        $this->streamProcessor = null;
         $this->setAssociatedFileName('files');
         $this->addExts($allowedTypes);
         $this->uploadDir = '';
@@ -311,6 +318,27 @@ class FileUploader implements JsonI {
      */
     public function getMaxFileSizeLimit() : ?int {
         return $this->maxFileSize;
+    }
+    /**
+     * Sets a stream processor for upload processing.
+     *
+     * When set, uploaded files are streamed through this callable instead
+     * of using move_uploaded_file(). The callable receives a Generator of
+     * chunks and the destination path.
+     *
+     * @param callable|null $processor A callable with signature:
+     *        function(\Generator $chunks, string $destPath): void
+     */
+    public function setStreamProcessor(?callable $processor): void {
+        $this->streamProcessor = $processor;
+    }
+    /**
+     * Returns the current stream processor.
+     *
+     * @return callable|null
+     */
+    public function getStreamProcessor(): ?callable {
+        return $this->streamProcessor;
     }
     /**
      * Removes an extension from the array of allowed files types.
@@ -573,7 +601,6 @@ class FileUploader implements JsonI {
                     $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_FILE_TOO_LARGE;
                 } else if (File::isDirectory($this->getUploadDir())) {
                     $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
-                    $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
 
                     if (!File::isFileExist($filePath)) {
                         $fileInfoArr[UploaderConst::EXIST_INDEX] = false;
@@ -581,9 +608,7 @@ class FileUploader implements JsonI {
                         $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
                         $sanitizedName = filter_var($name);
 
-
-
-                        if (!($moveFunc($sanitizedName, $filePath))) {
+                        if (!$this->moveFile($sanitizedName, $filePath)) {
                             $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_MOVE_TEMP;
                         } else {
                             $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
@@ -595,9 +620,9 @@ class FileUploader implements JsonI {
                             $fileInfoArr[UploaderConst::REPLACE_INDEX] = true;
                             unlink($filePath);
                             $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
-                            $sanitizedName = $sanitizedName = filter_var($name);
+                            $sanitizedName = filter_var($name);
 
-                            if ($moveFunc($sanitizedName, $filePath)) {
+                            if ($this->moveFile($sanitizedName, $filePath)) {
                                 $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
                             } else {
                                 $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
@@ -698,5 +723,32 @@ class FileUploader implements JsonI {
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
 
         return in_array($ext, $this->getExts(),true) || in_array(strtolower($ext), $this->getExts(),true);
+    }
+    /**
+     * Moves or streams a file from source to destination.
+     *
+     * If a stream processor is set, uses FileStream to pipe chunks through
+     * the processor. Otherwise uses move_uploaded_file or copy.
+     *
+     * @param string $source Source file path.
+     * @param string $dest Destination file path.
+     *
+     * @return bool True on success.
+     */
+    private function moveFile(string $source, string $dest): bool {
+        if ($this->streamProcessor !== null) {
+            try {
+                $stream = new FileStream($source);
+                ($this->streamProcessor)($stream->readChunks(), $dest);
+
+                return true;
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
+
+        return $moveFunc($source, $dest);
     }
 }
