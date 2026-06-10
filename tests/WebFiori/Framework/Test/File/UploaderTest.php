@@ -230,6 +230,13 @@ class UploaderTest extends TestCase {
     /**
      * @test
      */
+    public function testUploadedFileImplementsFileInterface() {
+        $file = new UploadedFile();
+        $this->assertInstanceOf(\WebFiori\File\FileInterface::class, $file);
+    }
+    /**
+     * @test
+     */
     public function testGetMaxFileSize() {
         $val = ini_get('upload_max_filesize');
         $lastChar = strtoupper($val[strlen($val) - 1]);
