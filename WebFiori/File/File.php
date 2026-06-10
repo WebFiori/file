@@ -807,7 +807,7 @@ class File implements FileInterface, JsonI {
      * If MIME type of the file is not set.
      *
      */
-    public function view(bool $asAttachment = false, bool $terminate = true) : void {
+    public function view(bool $asAttachment = false, bool $terminate = false) : void {
         $raw = $this->getRawData();
 
         if (strlen($raw) == 0) {
