@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streaming Upload - Pause/Resume</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+        h1 { margin-bottom: 20px; font-size: 1.4em; }
+        .drop-zone {
+            border: 2px dashed #ccc; border-radius: 8px; padding: 40px;
+            text-align: center; margin-bottom: 20px; cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #4a90d9; }
+        input[type="file"] { display: none; }
+        .progress-container { display: none; margin-bottom: 20px; }
+        .progress-bar {
+            width: 100%; height: 24px; background: #eee; border-radius: 4px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: #4a90d9; transition: width 0.2s; width: 0%;
+        }
+        .progress-text { margin-top: 8px; font-size: 0.9em; color: #666; }
+        .controls { display: none; gap: 10px; margin-bottom: 20px; }
+        button {
+            padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;
+            font-size: 0.95em; font-weight: 500;
+        }
+        .btn-pause { background: #f0ad4e; color: white; }
+        .btn-resume { background: #5cb85c; color: white; }
+        .btn-cancel { background: #d9534f; color: white; }
+        .btn-pause:disabled, .btn-resume:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 12px; border-radius: 4px; font-size: 0.9em; display: none; }
+        .status.success { display: block; background: #dff0d8; color: #3c763d; }
+        .status.error { display: block; background: #f2dede; color: #a94442; }
+        .stats { margin-top: 12px; font-size: 0.85em; color: #888; }
+    </style>
+</head>
+<body>
+    <h1>Streaming Upload with Pause/Resume</h1>
+
+    <div class="drop-zone" id="dropZone">
+        <p>Drop a file here or click to select</p>
+        <p style="font-size: 0.85em; color: #999; margin-top: 8px;">Supports any file size</p>
+        <input type="file" id="fileInput">
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <div class="controls" id="controls">
+        <button class="btn-pause" id="btnPause" onclick="pauseUpload()">Pause</button>
+        <button class="btn-resume" id="btnResume" onclick="resumeUpload()" disabled>Resume</button>
+        <button class="btn-cancel" id="btnCancel" onclick="cancelUpload()">Cancel</button>
+    </div>
+
+    <div class="status" id="status"></div>
+    <div class="stats" id="stats"></div>
+
+    <script>
+    const CHUNK_SIZE = 1024 * 1024; // 1MB per chunk
+    const SERVER_URL = '/server.php';
+
+    let file = null;
+    let uploadId = null;
+    let currentChunk = 0;
+    let totalChunks = 0;
+    let paused = false;
+    let cancelled = false;
+    let startTime = 0;
+    let bytesUploaded = 0;
+
+    // Drop zone
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) startUpload(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) startUpload(fileInput.files[0]);
+    });
+
+    function startUpload(selectedFile) {
+        file = selectedFile;
+        uploadId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        currentChunk = 0;
+        totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        paused = false;
+        cancelled = false;
+        bytesUploaded = 0;
+        startTime = Date.now();
+
+        document.getElementById('progressContainer').style.display = 'block';
+        document.getElementById('controls').style.display = 'flex';
+        document.getElementById('status').className = 'status';
+        document.getElementById('stats').textContent = '';
+        document.getElementById('btnPause').disabled = false;
+        document.getElementById('btnResume').disabled = true;
+
+        dropZone.innerHTML = `<p><strong>${file.name}</strong></p><p style="color:#999">${formatSize(file.size)} — ${totalChunks} chunks</p>`;
+
+        sendNextChunk();
+    }
+
+    async function sendNextChunk() {
+        if (paused || cancelled || currentChunk >= totalChunks) return;
+
+        const start = currentChunk * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk = file.slice(start, end);
+
+        try {
+            const response = await fetch(SERVER_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'X-Filename': file.name,
+                    'X-Chunk-Index': currentChunk.toString(),
+                    'X-Total-Chunks': totalChunks.toString(),
+                    'X-Upload-Id': uploadId
+                },
+                body: chunk
+            });
+
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+            const result = await response.json();
+            currentChunk++;
+            bytesUploaded = currentChunk * CHUNK_SIZE;
+
+            updateProgress();
+
+            if (result.complete) {
+                onComplete(result);
+            } else if (!paused && !cancelled) {
+                sendNextChunk();
+            }
+        } catch (err) {
+            showStatus('error', `Upload failed: ${err.message}`);
+        }
+    }
+
+    function pauseUpload() {
+        paused = true;
+        document.getElementById('btnPause').disabled = true;
+        document.getElementById('btnResume').disabled = false;
+        showStats('Paused');
+    }
+
+    function resumeUpload() {
+        paused = false;
+        document.getElementById('btnPause').disabled = false;
+        document.getElementById('btnResume').disabled = true;
+        showStats('Resuming...');
+        sendNextChunk();
+    }
+
+    function cancelUpload() {
+        cancelled = true;
+        paused = false;
+        document.getElementById('controls').style.display = 'none';
+        showStatus('error', 'Upload cancelled.');
+    }
+
+    function onComplete(result) {
+        document.getElementById('controls').style.display = 'none';
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const speed = formatSize(file.size / (elapsed || 1)) + '/s';
+        showStatus('success',
+            `Upload complete: ${result.filename}<br>` +
+            `Size: ${formatSize(result.finalSize)}<br>` +
+            `SHA-256: <code>${result.sha256}</code><br>` +
+            `Time: ${elapsed}s (${speed})`
+        );
+    }
+
+    function updateProgress() {
+        const pct = Math.min(100, (currentChunk / totalChunks) * 100).toFixed(1);
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressText').textContent =
+            `${pct}% — Chunk ${currentChunk}/${totalChunks} — ${formatSize(bytesUploaded)} / ${formatSize(file.size)}`;
+
+        const elapsed = (Date.now() - startTime) / 1000;
+        const speed = bytesUploaded / (elapsed || 1);
+        const remaining = (file.size - bytesUploaded) / (speed || 1);
+        showStats(`Speed: ${formatSize(speed)}/s — ETA: ${remaining.toFixed(0)}s`);
+    }
+
+    function showStatus(type, msg) {
+        const el = document.getElementById('status');
+        el.className = 'status ' + type;
+        el.innerHTML = msg;
+    }
+
+    function showStats(msg) {
+        document.getElementById('stats').textContent = msg;
+    }
+
+    function formatSize(bytes) {
+        if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
+        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+        return bytes + ' B';
+    }
+    </script>
+</body>
+</html>
