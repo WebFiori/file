@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.1.0](https://github.com/WebFiori/file/compare/v2.0.4...v2.1.0) (2026-06-10)
+
+
+### Features
+
+* **examples:** add streaming upload frontend with pause/resume ([c7fb2d5](https://github.com/WebFiori/file/commit/c7fb2d5aa9de6eae4a52d825decb13d085058475))
+* extract AbstractUploader and add StreamingUploader ([1f9533b](https://github.com/WebFiori/file/commit/1f9533be362089aa0920576487204e579c47f633))
+* **File:** add copy() and moveTo() methods ([01073b8](https://github.com/WebFiori/file/commit/01073b8b8e0152f8e1ef563c9462d01fed175b71)), closes [#49](https://github.com/WebFiori/file/issues/49)
+* **File:** decouple from WebFiori framework dependencies ([206e90f](https://github.com/WebFiori/file/commit/206e90f8847a161d66cc42ff2c7011178bee8001))
+* **File:** define FileInterface contract ([9093832](https://github.com/WebFiori/file/commit/9093832dbb16e60affcf3a943a892fd6dfd0df3c)), closes [#66](https://github.com/WebFiori/file/issues/66)
+* **File:** define ResponseEmitter interface with implementations ([48a429a](https://github.com/WebFiori/file/commit/48a429a1b1d7d3c000364c9970bd81a3943c83e4)), closes [#74](https://github.com/WebFiori/file/issues/74)
+* **File:** define StreamableInterface and implement FileStream ([03ba986](https://github.com/WebFiori/file/commit/03ba98648961d74ce5a26019c7b39fcedb8f6de5))
+* **File:** File implements FileInterface ([55941dd](https://github.com/WebFiori/file/commit/55941dde8f2505bdb954ae4b3d5490f8bc5d4316)), closes [#67](https://github.com/WebFiori/file/issues/67)
+* **FileStream:** add atomic write support (temp + rename) ([4f03c54](https://github.com/WebFiori/file/commit/4f03c5432161725cb916eba567a7e05d99d76788)), closes [#79](https://github.com/WebFiori/file/issues/79)
+* **FileUploader:** add upload callback hooks ([c90a19c](https://github.com/WebFiori/file/commit/c90a19c7a2993a3bb59a06b1b581e3cd40fe2c23)), closes [#53](https://github.com/WebFiori/file/issues/53)
+* **FileUploader:** streaming upload processing with hash verification ([ba58b3a](https://github.com/WebFiori/file/commit/ba58b3a78223ba0ee45d331ba6cd0091779dbc28)), closes [#84](https://github.com/WebFiori/file/issues/84)
+* **FileUploader:** type-hint FileInterface in public API docs ([babde02](https://github.com/WebFiori/file/commit/babde0253da9a519f06ef9bb15a7d1186b631785)), closes [#69](https://github.com/WebFiori/file/issues/69)
+* **File:** use FileStream for copy() and moveTo() ([3cb1339](https://github.com/WebFiori/file/commit/3cb13396457d0147b3d4546ba069d30b7de91495)), closes [#83](https://github.com/WebFiori/file/issues/83)
+* **File:** view() no longer terminates by default ([422f18f](https://github.com/WebFiori/file/commit/422f18f91b0869ec038e8ad204ec9c446af9355e)), closes [#48](https://github.com/WebFiori/file/issues/48)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#96](https://github.com/WebFiori/file/issues/96) from WebFiori/dev ([2aab7d2](https://github.com/WebFiori/file/commit/2aab7d222f352618f842c66ed490d5311aa826c9))
+
 ## [2.0.4](https://github.com/WebFiori/file/compare/v2.0.3...v2.0.4) (2026-06-10)
 
 
