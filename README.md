@@ -52,10 +52,42 @@ echo $file->getRawData();
 
 ## Core Classes
 
-- **`File`** — Read, write, create, remove, and serve files. Supports byte-range reads, Base64 encoding/decoding, chunked processing, and JSON serialization.
-- **`FileUploader`** — Handle file uploads with extension validation, size limits, and detailed error reporting.
+- **`FileInterface`** — Contract defining core file operations. Use for type-hinting and mocking.
+- **`File`** — Read, write, create, remove, copy, move, and serve files. Supports byte-range reads, Base64 encoding/decoding, chunked processing, and JSON serialization.
+- **`FileStream`** — Streaming file I/O with constant memory usage. Read chunks, lines, ranges, and serve large files.
+- **`FileUploader`** — Handle file uploads with extension validation, size limits, stream processing, and callback hooks.
 - **`UploadedFile`** — Extends `File` with upload-specific properties (upload status, replacement status, error message).
+- **`ResponseEmitter`** — Interface for abstracting HTTP output when serving files.
 - **`MIME`** — Static lookup of ~600 file extension to MIME type mappings.
+
+## Using FileInterface
+
+Type-hint `FileInterface` when your code only needs I/O operations. Use the concrete `File` class when you need encoding, serialization, or HTTP features.
+
+```php
+use WebFiori\File\FileInterface;
+
+class DocumentService {
+    public function process(FileInterface $file): string {
+        $file->read();
+        return strtoupper($file->getRawData());
+    }
+}
+```
+
+### Mocking in Tests
+
+```php
+use WebFiori\File\FileInterface;
+
+$mockFile = $this->createMock(FileInterface::class);
+$mockFile->method('getRawData')->willReturn('test content');
+$mockFile->method('getName')->willReturn('test.txt');
+$mockFile->method('isExist')->willReturn(true);
+
+$service = new DocumentService();
+$result = $service->process($mockFile);
+```
 
 ## Examples
 
