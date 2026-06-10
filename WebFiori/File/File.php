@@ -85,14 +85,14 @@ class File implements JsonI {
      */
     public function __construct(string $fNameOrAbsPath = '', string $fPath = '') {
         $this->mimeType = self::DEFAULT_MIME;
-        $this->fileSize = -1;
+        $this->fileSize = null;
         $this->path = '';
         $this->fileName = '';
         $this->rawData = '';
         self::initErrHandler();
 
         if (!$this->setPath($fPath)) {
-            $info = $this->extractPathAndName($fNameOrAbsPath);
+            $info = self::extractPathAndName($fNameOrAbsPath);
             $this->setDir($info['path']);
             $this->setName($info['name']);
         } else {
@@ -470,19 +470,19 @@ class File implements JsonI {
     /**
      * Returns the size of the file in bytes.
      *
-     * @return int Size of the file in bytes. If the raw data of the file
-     * is not set or the file does not exist, the method will return -1.
+     * @return int|null Size of the file in bytes. If the raw data of the file
+     * is not set or the file does not exist, the method will return null.
      */
-    public function getSize() : int {
+    public function getSize() : ?int {
         return $this->fileSize;
     }
     /**
      * Checks if the file has a known size.
      *
-     * @return bool True if the file size has been determined, false if unknown (-1).
+     * @return bool True if the file size has been determined, false if unknown.
      */
     public function hasKnownSize() : bool {
-        return $this->fileSize >= 0;
+        return $this->fileSize !== null;
     }
     /**
      * Checks if a given directory exists or not.
@@ -770,7 +770,7 @@ class File implements JsonI {
      *
      */
     public function toJSON() : Json {
-        $size = $this->getSize() != -1 ? $this->getSize() : 0;
+        $size = $this->getSize() ?? 0;
 
         return new Json([
             'id' => $this->getID(),
@@ -936,7 +936,7 @@ class File implements JsonI {
      * 
      * @return array An associative array with 'path' and 'name' keys.
      */
-    private function extractPathAndName($absPath): array {
+    public static function extractPathAndName(string $absPath): array {
         $DS = DIRECTORY_SEPARATOR;
         $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
         $pathArr = explode($DS, $cleanPath);
@@ -976,19 +976,28 @@ class File implements JsonI {
         if ($this->isExist()) {
             $fSize = filesize($fPath);
             $this->setSize($fSize);
-            $bytesToRead = $to - $from > 0 ? $to - $from : $this->getSize();
-            $resource = self::createResource('rb', $fPath);
 
-            if ($bytesToRead > $this->getSize() || $to > $this->getSize()) {
+            if ($from === -1 && $to === -1) {
+                $bytesToRead = $fSize;
+                $from = 0;
+            } else {
+                $from = max($from, 0);
+
+                if ($to === -1) {
+                    $to = $fSize;
+                }
+                $bytesToRead = $to - $from;
+            }
+
+            if ($bytesToRead > $fSize || $to > $fSize) {
                 throw new FileException('Reached end of file while trying to read '.$bytesToRead.' byte(s).');
             }
+
+            $resource = self::createResource('rb', $fPath);
 
             if (is_resource($resource)) {
                 if ($bytesToRead > 0) {
                     fseek($resource, $from);
-                }
-
-                if ($bytesToRead > 0) {
                     $this->rawData = fread($resource, $bytesToRead);
                 }
                 fclose($resource);
@@ -1042,8 +1051,8 @@ class File implements JsonI {
 
         return $retVal;
     }
-    private function setSize($size) {
-        if ($size >= 0) {
+    private function setSize(?int $size) {
+        if ($size !== null && $size >= 0) {
             $this->fileSize = $size;
         }
     }

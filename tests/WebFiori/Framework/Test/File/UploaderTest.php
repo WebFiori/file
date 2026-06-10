@@ -227,4 +227,64 @@ class UploaderTest extends TestCase {
             'txt', 'jpg', 'png'
         ], $u->getExts());
     }
+    /**
+     * @test
+     */
+    public function testGetMaxFileSize() {
+        $val = ini_get('upload_max_filesize');
+        $lastChar = strtoupper($val[strlen($val) - 1]);
+        $expected = match ($lastChar) {
+            'M' => intval($val) * 1024,
+            'K' => intval($val),
+            'G' => intval($val) * 1048576,
+            default => intval($val) / 1024,
+        };
+        $this->assertEquals($expected, FileUploader::getMaxFileSize());
+    }
+    /**
+     * @test
+     */
+    public function testCustomMaxFileSize() {
+        $u = new FileUploader(__DIR__, ['txt']);
+        $this->assertNull($u->getMaxFileSizeLimit());
+        $u->setMaxFileSize(10);
+        $this->assertEquals(10, $u->getMaxFileSizeLimit());
+    }
+    /**
+     * @test
+     */
+    public function testCustomMaxFileSizeRejectsLargeFile() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $u->setMaxFileSize(10); // 10 bytes limit
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertFalse($r[0]['uploaded']);
+        $this->assertEquals('file_too_large', $r[0]['upload-error']);
+    }
+    /**
+     * @test
+     */
+    public function testCustomMaxFileSizeAllowsSmallFile() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $u->setMaxFileSize(1024); // 1KB limit — file is 51 bytes
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertTrue($r[0]['uploaded']);
+        $this->assertEquals('', $r[0]['upload-error']);
+        // cleanup
+        $files = $u->getFiles(true);
+        $files[0]->remove();
+    }
+    /**
+     * @test
+     */
+    public function testSetMaxFileSizeIgnoresInvalid() {
+        $u = new FileUploader(__DIR__, ['txt']);
+        $u->setMaxFileSize(0);
+        $this->assertNull($u->getMaxFileSizeLimit());
+        $u->setMaxFileSize(-100);
+        $this->assertNull($u->getMaxFileSizeLimit());
+    }
 }
