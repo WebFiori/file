@@ -616,7 +616,7 @@ class File implements FileInterface, JsonI {
         return false;
     }
     /**
-     * Copies the file to a new destination.
+     * Copies the file to a new destination using streaming for constant memory usage.
      *
      * @param string $destination The destination path including filename.
      *
@@ -633,14 +633,20 @@ class File implements FileInterface, JsonI {
 
         self::isDirectory($info['path'], true);
 
-        if (!@copy($this->getAbsolutePath(), $dest)) {
-            throw new FileException('Unable to copy file to \''.$dest.'\'.');
-        }
+        $destFile = new File($dest);
+        $destFile->create(true);
+
+        $source = new FileStream($this->getAbsolutePath());
+        $target = new FileStream($destFile->getAbsolutePath());
+        $target->writeFromStream($source->readChunks(), false);
 
         return new File($dest);
     }
     /**
      * Moves the file to a new destination, updating this instance's path and name.
+     *
+     * Tries rename() first (instant on same device), falls back to
+     * streaming copy + remove for cross-device moves.
      *
      * @param string $destination The destination path including filename.
      *
@@ -655,10 +661,17 @@ class File implements FileInterface, JsonI {
 
         self::isDirectory($info['path'], true);
 
-        if (!@rename($this->getAbsolutePath(), $dest)) {
-            throw new FileException('Unable to move file to \''.$dest.'\'.');
+        if (@rename($this->getAbsolutePath(), $dest)) {
+            $this->setDir($info['path']);
+            $this->setName($info['name']);
+
+            return;
         }
 
+        // Cross-device fallback: stream copy + remove
+        $this->copy($dest);
+        $this->rawData = '';
+        unlink($this->getAbsolutePath());
         $this->setDir($info['path']);
         $this->setName($info['name']);
     }
