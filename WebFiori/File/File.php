@@ -85,7 +85,7 @@ class File implements JsonI {
      */
     public function __construct(string $fNameOrAbsPath = '', string $fPath = '') {
         $this->mimeType = self::DEFAULT_MIME;
-        $this->fileSize = -1;
+        $this->fileSize = null;
         $this->path = '';
         $this->fileName = '';
         $this->rawData = '';
@@ -470,19 +470,19 @@ class File implements JsonI {
     /**
      * Returns the size of the file in bytes.
      *
-     * @return int Size of the file in bytes. If the raw data of the file
-     * is not set or the file does not exist, the method will return -1.
+     * @return int|null Size of the file in bytes. If the raw data of the file
+     * is not set or the file does not exist, the method will return null.
      */
-    public function getSize() : int {
+    public function getSize() : ?int {
         return $this->fileSize;
     }
     /**
      * Checks if the file has a known size.
      *
-     * @return bool True if the file size has been determined, false if unknown (-1).
+     * @return bool True if the file size has been determined, false if unknown.
      */
     public function hasKnownSize() : bool {
-        return $this->fileSize >= 0;
+        return $this->fileSize !== null;
     }
     /**
      * Checks if a given directory exists or not.
@@ -770,7 +770,7 @@ class File implements JsonI {
      *
      */
     public function toJSON() : Json {
-        $size = $this->getSize() != -1 ? $this->getSize() : 0;
+        $size = $this->getSize() ?? 0;
 
         return new Json([
             'id' => $this->getID(),
@@ -1051,8 +1051,8 @@ class File implements JsonI {
 
         return $retVal;
     }
-    private function setSize($size) {
-        if ($size >= 0) {
+    private function setSize(?int $size) {
+        if ($size !== null && $size >= 0) {
             $this->fileSize = $size;
         }
     }

@@ -18,7 +18,7 @@ Demonstrates how to retrieve file metadata and shows the two constructor forms.
 - `File::getName()` / `File::getNameWithNoExt()` / `File::getExtension()`
 - `File::getDir()` / `File::getAbsolutePath()`
 - `File::getMIME()` — Returns MIME type based on file extension.
-- `File::getSize()` — Returns size in bytes. Returns `-1` if file doesn't exist and no data is set.
+- `File::getSize()` — Returns size in bytes. Returns `null` if file doesn't exist and no data is set.
 - `File::getLastModified(?string $format)` — Pass a date format string, or `null` for a raw Unix timestamp. Returns `0` if the file doesn't exist.
 - `File::setId(string $id)` / `File::getID()` — Custom identifier for database-backed file storage.
 - `File::isExist()` — Checks if the file exists on disk.
