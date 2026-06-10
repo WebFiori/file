@@ -1,6 +1,6 @@
 # WebFiori File
 
-A PHP library for file operations, providing an object-oriented abstraction layer for reading, writing, uploading, and serving files with Base64 encoding/decoding, MIME type detection, and chunked file processing.
+A PHP library for file operations, providing an object-oriented abstraction layer for reading, writing, uploading, and serving files with streaming support, Base64 encoding/decoding, MIME type detection, and chunked file processing.
 
 <p align="center">
   <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php84.yaml">
@@ -12,21 +12,28 @@ A PHP library for file operations, providing an object-oriented abstraction laye
   <a href="https://sonarcloud.io/dashboard?id=WebFiori_file">
       <img src="https://sonarcloud.io/api/project_badges/measure?project=WebFiori_file&metric=alert_status" />
   </a>
+  <a href="https://github.com/WebFiori/file/releases">
+    <img src="https://img.shields.io/github/v/release/WebFiori/file">
+  </a>
   <a href="https://packagist.org/packages/webfiori/file">
     <img src="https://img.shields.io/packagist/dt/webfiori/file?color=light-green">
   </a>
 </p>
 
-## Installation
+## Table of Contents
 
-```bash
-composer require webfiori/file
-```
-
-## Requirements
-
-- PHP 8.1 or higher
-- `webfiori/jsonx` ^4.0
+- [Supported PHP Versions](#supported-php-versions)
+- [Key Features](#key-features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Core Classes](#core-classes)
+- [Using FileInterface](#using-fileinterface)
+- [Examples](#examples)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+- [Changelog](#changelog)
 
 ## Supported PHP Versions
 
@@ -36,6 +43,29 @@ composer require webfiori/file
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php82.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php83.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php84.yaml/badge.svg?branch=main"></a> |
+
+## Key Features
+
+- Object-oriented file read, write, create, remove, copy, and move
+- Streaming I/O with constant memory usage via `FileStream`
+- File upload handling with extension validation, size limits, and callback hooks
+- Stream processing during uploads with hash verification support
+- Atomic writes (temp + rename) for crash-safe operations
+- Base64 encoding/decoding
+- Byte-range reads for partial file access
+- MIME type detection for ~600 file extensions
+- `ResponseEmitter` interface for framework-agnostic HTTP file serving
+- `FileInterface` for dependency injection and mocking
+
+## Installation
+
+```bash
+composer require webfiori/file
+```
+
+**Requirements:**
+- PHP 8.1 or higher
+- `webfiori/jsonx` ^4.0
 
 ## Quick Start
 
@@ -135,3 +165,11 @@ composer test10
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.
+
+## Support
+
+Found a bug or have a feature request? [Open an issue](https://github.com/WebFiori/file/issues).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
