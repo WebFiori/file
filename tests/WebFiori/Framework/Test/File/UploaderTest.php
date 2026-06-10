@@ -230,6 +230,13 @@ class UploaderTest extends TestCase {
     /**
      * @test
      */
+    public function testUploadedFileImplementsFileInterface() {
+        $file = new UploadedFile();
+        $this->assertInstanceOf(\WebFiori\File\FileInterface::class, $file);
+    }
+    /**
+     * @test
+     */
     public function testGetMaxFileSize() {
         $val = ini_get('upload_max_filesize');
         $lastChar = strtoupper($val[strlen($val) - 1]);
@@ -286,5 +293,114 @@ class UploaderTest extends TestCase {
         $this->assertNull($u->getMaxFileSizeLimit());
         $u->setMaxFileSize(-100);
         $this->assertNull($u->getMaxFileSizeLimit());
+    }
+    /**
+     * @test
+     */
+    public function testStreamProcessorDefault() {
+        $u = new FileUploader(__DIR__, ['txt']);
+        $this->assertNull($u->getStreamProcessor());
+    }
+    /**
+     * @test
+     */
+    public function testStreamProcessorUpload() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $hashResult = null;
+
+        $u->setStreamProcessor(function(\Generator $chunks, string $destPath) use (&$hashResult) {
+            $hash = hash_init('sha256');
+            $dest = fopen($destPath, 'wb');
+
+            foreach ($chunks as $chunk) {
+                hash_update($hash, $chunk);
+                fwrite($dest, $chunk);
+            }
+
+            fclose($dest);
+            $hashResult = hash_final($hash);
+        });
+
+        $this->assertNotNull($u->getStreamProcessor());
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertTrue($r[0]['uploaded']);
+        $this->assertNotNull($hashResult);
+        $this->assertEquals(
+            hash('sha256', file_get_contents(ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt')),
+            $hashResult
+        );
+        // cleanup
+        $files = $u->getFiles(true);
+        $files[0]->remove();
+    }
+    /**
+     * @test
+     */
+    public function testStreamProcessorFailure() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+
+        $u->setStreamProcessor(function(\Generator $chunks, string $destPath) {
+            throw new \RuntimeException('Processing failed');
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertFalse($r[0]['uploaded']);
+    }
+    /**
+     * @test
+     */
+    public function testOnBeforeUploadAccept() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $called = false;
+
+        $u->setOnBeforeUpload(function(array $info) use (&$called) {
+            $called = true;
+            return true;
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertTrue($called);
+        $this->assertTrue($r[0]['uploaded']);
+        $u->getFiles(true)[0]->remove();
+    }
+    /**
+     * @test
+     */
+    public function testOnBeforeUploadReject() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+
+        $u->setOnBeforeUpload(function(array $info) {
+            return false;
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertFalse($r[0]['uploaded']);
+        $this->assertEquals('rejected_by_callback', $r[0]['upload-error']);
+    }
+    /**
+     * @test
+     */
+    public function testOnAfterUpload() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $uploadedFile = null;
+
+        $u->setOnAfterUpload(function(UploadedFile $file) use (&$uploadedFile) {
+            $uploadedFile = $file;
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $u->upload();
+        $this->assertNotNull($uploadedFile);
+        $this->assertEquals('testUpload.txt', $uploadedFile->getName());
+        $uploadedFile->remove();
     }
 }
