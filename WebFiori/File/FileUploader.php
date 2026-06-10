@@ -77,6 +77,18 @@ class FileUploader implements JsonI {
      */
     private $streamProcessor;
     /**
+     * Callback called before each file upload.
+     * 
+     * @var callable|null
+     */
+    private $onBeforeUpload;
+    /**
+     * Callback called after each successful file upload.
+     * 
+     * @var callable|null
+     */
+    private $onAfterUpload;
+    /**
      * Upload status message.
      * 
      * @var string
@@ -100,6 +112,8 @@ class FileUploader implements JsonI {
         $this->files = [];
         $this->maxFileSize = null;
         $this->streamProcessor = null;
+        $this->onBeforeUpload = null;
+        $this->onAfterUpload = null;
         $this->setAssociatedFileName('files');
         $this->addExts($allowedTypes);
         $this->uploadDir = '';
@@ -339,6 +353,27 @@ class FileUploader implements JsonI {
      */
     public function getStreamProcessor(): ?callable {
         return $this->streamProcessor;
+    }
+    /**
+     * Sets a callback to be called before each file is uploaded.
+     *
+     * The callback receives the file info array. If it returns false,
+     * the file upload is rejected.
+     *
+     * @param callable|null $callback Signature: function(array $fileInfo): bool
+     */
+    public function setOnBeforeUpload(?callable $callback): void {
+        $this->onBeforeUpload = $callback;
+    }
+    /**
+     * Sets a callback to be called after each successful file upload.
+     *
+     * The callback receives the UploadedFile object.
+     *
+     * @param callable|null $callback Signature: function(UploadedFile $file): void
+     */
+    public function setOnAfterUpload(?callable $callback): void {
+        $this->onAfterUpload = $callback;
     }
     /**
      * Removes an extension from the array of allowed files types.
@@ -600,6 +635,10 @@ class FileUploader implements JsonI {
                     $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
                     $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_FILE_TOO_LARGE;
                 } else if (File::isDirectory($this->getUploadDir())) {
+                    if ($this->onBeforeUpload !== null && ($this->onBeforeUpload)($fileInfoArr) === false) {
+                        $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                        $fileInfoArr[UploaderConst::ERR_INDEX] = 'rejected_by_callback';
+                    } else {
                     $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
 
                     if (!File::isFileExist($filePath)) {
@@ -632,6 +671,7 @@ class FileUploader implements JsonI {
                             $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ALREADY_EXIST;
                         }
                     }
+                    }
                 } else {
                     $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_NO_SUCH_DIR;
                     $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
@@ -643,6 +683,10 @@ class FileUploader implements JsonI {
         } else {
             $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
             $fileInfoArr[UploaderConst::ERR_INDEX] = $idx === null ? $fileOrFiles[$errIdx] : $fileOrFiles[$errIdx][$idx];
+        }
+
+        if ($fileInfoArr[UploaderConst::UPLOADED_INDEX] && $this->onAfterUpload !== null) {
+            ($this->onAfterUpload)($this->createFileObjFromArray($fileInfoArr));
         }
 
         return $fileInfoArr;

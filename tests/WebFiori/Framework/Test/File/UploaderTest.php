@@ -350,4 +350,57 @@ class UploaderTest extends TestCase {
         $r = $u->upload();
         $this->assertFalse($r[0]['uploaded']);
     }
+    /**
+     * @test
+     */
+    public function testOnBeforeUploadAccept() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $called = false;
+
+        $u->setOnBeforeUpload(function(array $info) use (&$called) {
+            $called = true;
+            return true;
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertTrue($called);
+        $this->assertTrue($r[0]['uploaded']);
+        $u->getFiles(true)[0]->remove();
+    }
+    /**
+     * @test
+     */
+    public function testOnBeforeUploadReject() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+
+        $u->setOnBeforeUpload(function(array $info) {
+            return false;
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $r = $u->upload();
+        $this->assertFalse($r[0]['uploaded']);
+        $this->assertEquals('rejected_by_callback', $r[0]['upload-error']);
+    }
+    /**
+     * @test
+     */
+    public function testOnAfterUpload() {
+        $_SERVER['REQUEST_METHOD'] = 'post';
+        $u = new FileUploader(__DIR__, ['txt']);
+        $uploadedFile = null;
+
+        $u->setOnAfterUpload(function(UploadedFile $file) use (&$uploadedFile) {
+            $uploadedFile = $file;
+        });
+
+        FileUploader::addTestFile('files', ROOT_PATH.'tests'.DS.'tmp'.DS.'testUpload.txt', true);
+        $u->upload();
+        $this->assertNotNull($uploadedFile);
+        $this->assertEquals('testUpload.txt', $uploadedFile->getName());
+        $uploadedFile->remove();
+    }
 }
