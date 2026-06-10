@@ -2,8 +2,6 @@
 namespace WebFiori\File;
 
 use WebFiori\File\Exceptions\FileException;
-use WebFiori\Framework\App;
-use WebFiori\Http\Response;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
 /**
@@ -15,7 +13,7 @@ use WebFiori\Json\JsonI;
  * @author Ibrahim
  * 
  */
-class File implements JsonI {
+class File implements FileInterface, JsonI {
     /**
      * The default MIME type of all files.
      * 
@@ -64,11 +62,11 @@ class File implements JsonI {
      */
     private $rawData;
     /**
-     * The response object used when serving the file.
+     * The response emitter used when serving the file.
      * 
-     * @var Response|null
+     * @var ResponseEmitter|null
      */
-    private $response;
+    private $emitter;
     /**
      * Creates new instance of the class.
      * 
@@ -457,15 +455,20 @@ class File implements JsonI {
         return base64_encode($this->rawData);
     }
     /**
-     * Returns the response object that was used to serve the file.
+     * Returns the response emitter used when serving the file.
      *
-     * This method is useful for testing. It returns the response
-     * object that was created when view() was called.
-     *
-     * @return Response|null The response object, or null if view() was not called.
+     * @return ResponseEmitter|null The emitter, or null if not set.
      */
-    public function getResponse() {
-        return $this->response;
+    public function getResponseEmitter(): ?ResponseEmitter {
+        return $this->emitter;
+    }
+    /**
+     * Sets the response emitter to use when serving the file.
+     *
+     * @param ResponseEmitter|null $emitter The emitter to use. Pass null to reset to default.
+     */
+    public function setResponseEmitter(?ResponseEmitter $emitter): void {
+        $this->emitter = $emitter;
     }
     /**
      * Returns the size of the file in bytes.
@@ -611,6 +614,66 @@ class File implements JsonI {
         }
 
         return false;
+    }
+    /**
+     * Copies the file to a new destination using streaming for constant memory usage.
+     *
+     * @param string $destination The destination path including filename.
+     *
+     * @return FileInterface A new instance representing the copy.
+     *
+     * @throws FileException If the file does not exist or copy fails.
+     */
+    public function copy(string $destination): FileInterface {
+        if (!$this->isExist()) {
+            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
+        }
+        $dest = self::fixPath($destination);
+        $info = self::extractPathAndName($dest);
+
+        self::isDirectory($info['path'], true);
+
+        $destFile = new File($dest);
+        $destFile->create(true);
+
+        $source = new FileStream($this->getAbsolutePath());
+        $target = new FileStream($destFile->getAbsolutePath());
+        $target->writeFromStream($source->readChunks(), false);
+
+        return new File($dest);
+    }
+    /**
+     * Moves the file to a new destination, updating this instance's path and name.
+     *
+     * Tries rename() first (instant on same device), falls back to
+     * streaming copy + remove for cross-device moves.
+     *
+     * @param string $destination The destination path including filename.
+     *
+     * @throws FileException If the file does not exist or move fails.
+     */
+    public function moveTo(string $destination): void {
+        if (!$this->isExist()) {
+            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
+        }
+        $dest = self::fixPath($destination);
+        $info = self::extractPathAndName($dest);
+
+        self::isDirectory($info['path'], true);
+
+        if (@rename($this->getAbsolutePath(), $dest)) {
+            $this->setDir($info['path']);
+            $this->setName($info['name']);
+
+            return;
+        }
+
+        // Cross-device fallback: stream copy + remove
+        $this->copy($dest);
+        $this->rawData = '';
+        unlink($this->getAbsolutePath());
+        $this->setDir($info['path']);
+        $this->setName($info['name']);
     }
     /**
      * Sets the name of the directory at which the file exist on.
@@ -783,6 +846,16 @@ class File implements JsonI {
         ]);
     }
     /**
+     * Returns a FileStream instance for streaming operations on this file.
+     *
+     * @param int $bufferSize The buffer size for streaming operations.
+     *
+     * @return FileStream
+     */
+    public function stream(int $bufferSize = 8192): FileStream {
+        return new FileStream($this->getAbsolutePath(), $bufferSize);
+    }
+    /**
      * Display the file.
      *
      * If the raw data of the file is null, the method will
@@ -797,13 +870,13 @@ class File implements JsonI {
      * If MIME type of the file is not set.
      *
      */
-    public function view(bool $asAttachment = false, bool $terminate = true) : void {
+    public function view(bool $asAttachment = false, bool $terminate = false) : void {
         $raw = $this->getRawData();
 
         if (strlen($raw) == 0) {
             $this->read();
         }
-        $this->viewFileHelper($asAttachment, $terminate);
+        $this->viewFileHelper($asAttachment);
     }
     /**
      * Write raw binary data into a file.
@@ -883,40 +956,6 @@ class File implements JsonI {
             throw new FileException('Path cannot be empty string.');
         }
         throw new FileException('File name cannot be empty string.');
-    }
-    private function doNotUseClassResponse($contentType, $asAttachment, bool $terminate = true) {
-        $headersArr = [
-            'Accept-Ranges: bytes',
-            'content-type: '.$contentType
-        ];
-
-        if (isset($_SERVER['HTTP_RANGE'])) {
-            $expl = $this->readRange();
-            http_response_code(206);
-            $headersArr[] = 'content-range: '.'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize();
-            $headersArr[] = 'content-length: '.($expl[1] - $expl[0]);
-        } else {
-            $headersArr[] = 'Content-Length: '.$this->getSize();
-        }
-
-        if ($asAttachment === true) {
-            $headersArr[] = 'Content-Disposition: attachment; filename="'.$this->getName().'"';
-        } else {
-            $headersArr[] = 'Content-Disposition: inline; filename="'.$this->getName().'"';
-        }
-
-        foreach ($headersArr as $h) {
-            //Check if in PHP Unit or not. If in 
-            if (!defined('TESTING') || TESTING === false) {
-                header($h);
-            }
-        }
-        echo $this->getRawData();
-
-        if (http_response_code() === false) {
-            return;
-        }
-        if ($terminate) { die(); }
     }
     private function extractMimeFromName() {
         $exp = explode('.', $this->getName());
@@ -1057,44 +1096,27 @@ class File implements JsonI {
         }
     }
 
-    private function useClassResponse($contentType, $asAttachment) {
-        if (class_exists('\Webfiori\Framework\App')) {
-            $response = App::getResponse();
-        } else {
-            $response = new Response();
-        }
-        $response->addHeader('Accept-Ranges', 'bytes');
-        $response->addHeader('content-type', $contentType);
+    private function viewFileHelper($asAttachment) {
+        $emitter = $this->emitter ?? new DefaultEmitter();
+        $contentType = $this->getMIME();
+
+        $emitter->setHeader('Accept-Ranges', 'bytes');
+        $emitter->setHeader('Content-Type', $contentType);
 
         if (isset($_SERVER['HTTP_RANGE'])) {
             $expl = $this->readRange();
-            $response->setCode(206);
-            $response->addHeader('content-range', 'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize());
-            $response->addHeader('content-length', $expl[1] - $expl[0]);
+            $emitter->setStatusCode(206);
+            $emitter->setHeader('Content-Range', 'bytes '.$expl[0].'-'.$expl[1].'/'.$this->getSize());
+            $emitter->setHeader('Content-Length', (string)($expl[1] - $expl[0]));
         } else {
-            $response->addHeader('Content-Length', $this->getSize());
+            $emitter->setHeader('Content-Length', (string)$this->getSize());
         }
 
-        if ($asAttachment === true) {
-            $response->addHeader('Content-Disposition', 'attachment; filename="'.$this->getName().'"');
-        } else {
-            $response->addHeader('Content-Disposition', 'inline; filename="'.$this->getName().'"');
-        }
-        $response->write($this->getRawData());
-        $this->response = $response;
+        $disposition = $asAttachment ? 'attachment' : 'inline';
+        $emitter->setHeader('Content-Disposition', $disposition.'; filename="'.$this->getName().'"');
 
-        if (!defined('__PHPUNIT_PHAR__')) {
-            $response->send();
-        }
-    }
-    private function viewFileHelper($asAttachment, bool $terminate = true) {
-        $contentType = $this->getMIME();
-
-        if (class_exists('\WebFiori\Http\Response')) {
-            $this->useClassResponse($contentType, $asAttachment);
-        } else {
-            $this->doNotUseClassResponse($contentType, $asAttachment, $terminate);
-        }
+        $data = $this->getRawData();
+        $emitter->sendBody((function () use ($data) { yield $data; })());
     }
 
     /**

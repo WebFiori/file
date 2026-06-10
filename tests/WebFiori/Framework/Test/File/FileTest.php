@@ -436,68 +436,35 @@ class FileTest extends TestCase {
      * @test
      */
     public function testView00() {
-        if (!class_exists('WebFiori\Http\Response')) {
-            $this->markTestSkipped('Class WebFiori\Http\Response is required for this test.');
-        }
         $file = new File('super.txt');
         $file->setRawData('Hello world!');
+        $emitter = new \WebFiori\Framework\Test\File\TestEmitter();
+        $file->setResponseEmitter($emitter);
         $file->view();
-        $response = $file->getResponse();
-        $this->assertNotNull($response);
-        $this->assertEquals([
-            'text/plain'
-        ], $response->getHeader('content-type'));
-        $this->assertEquals('Hello world!', $response->getBody());
-        $this->assertEquals([
-                'bytes'
-        ], $response->getHeader('accept-ranges'));
-        $this->assertEquals([
-                $file->getSize()
-        ], $response->getHeader('content-length'));
-        $this->assertEquals([
-                'inline; filename="super.txt"'
-        ], $response->getHeader('content-disposition'));
-        
+        $this->assertEquals('text/plain', $emitter->headers['Content-Type']);
+        $this->assertEquals('Hello world!', $emitter->body);
+        $this->assertEquals('bytes', $emitter->headers['Accept-Ranges']);
+        $this->assertEquals((string)$file->getSize(), $emitter->headers['Content-Length']);
+        $this->assertEquals('inline; filename="super.txt"', $emitter->headers['Content-Disposition']);
+
+        $emitter2 = new \WebFiori\Framework\Test\File\TestEmitter();
+        $file->setResponseEmitter($emitter2);
         $file->view(true);
-        $response = $file->getResponse();
-        $this->assertEquals([
-                'text/plain'
-        ], $response->getHeader('content-type'));
-        $this->assertEquals([
-                'bytes'
-        ], $response->getHeader('accept-ranges'));
-        $this->assertEquals([
-                $file->getSize()
-        ], $response->getHeader('content-length'));
-        $this->assertEquals([
-                'attachment; filename="super.txt"'
-        ], $response->getHeader('content-disposition'));
+        $this->assertEquals('attachment; filename="super.txt"', $emitter2->headers['Content-Disposition']);
     }
     /**
      * @test
      */
     public function testView01() {
-        if (!class_exists('WebFiori\Http\Response')) {
-            $this->markTestSkipped('Class WebFiori\Http\Response is required for this test.');
-        }
-        $file = new File('text-file-2.txt',ROOT_PATH.DS.'tests'.DS.'files');
+        $file = new File('text-file-2.txt', ROOT_PATH.DS.'tests'.DS.'files');
+        $emitter = new \WebFiori\Framework\Test\File\TestEmitter();
+        $file->setResponseEmitter($emitter);
         $file->view();
-        $response = $file->getResponse();
-        $this->assertNotNull($response);
-        $this->assertEquals('Testing the class \'File\'.', $response->getBody());
-        
-        $this->assertEquals([
-                'text/plain'
-        ], $response->getHeader('content-type'));
-        $this->assertEquals([
-                'bytes'
-        ], $response->getHeader('accept-ranges'));
-        $this->assertEquals([
-                $file->getSize()
-        ], $response->getHeader('content-length'));
-        $this->assertEquals([
-                'inline; filename="text-file-2.txt"'
-        ], $response->getHeader('content-disposition'));
+        $this->assertEquals("Testing the class 'File'.", $emitter->body);
+        $this->assertEquals('text/plain', $emitter->headers['Content-Type']);
+        $this->assertEquals('bytes', $emitter->headers['Accept-Ranges']);
+        $this->assertEquals((string)$file->getSize(), $emitter->headers['Content-Length']);
+        $this->assertEquals('inline; filename="text-file-2.txt"', $emitter->headers['Content-Disposition']);
     }
     /**
      * @test
@@ -592,5 +559,47 @@ class FileTest extends TestCase {
         $file = new File();
         $this->assertNull($file->getSize());
         $this->assertFalse($file->hasKnownSize());
+    }
+    /**
+     * @test
+     */
+    public function testCopy() {
+        $src = ROOT_PATH.DS.'tests'.DS.'files'.DS.'text-file.txt';
+        $dest = ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'copy-test.txt';
+        $file = new File($src);
+        $copy = $file->copy($dest);
+        $this->assertTrue($copy->isExist());
+        $this->assertEquals('copy-test.txt', $copy->getName());
+        $copy->remove();
+    }
+    /**
+     * @test
+     */
+    public function testCopyNonExistent() {
+        $this->expectException(FileException::class);
+        $file = new File('nonexistent.txt', ROOT_PATH.DS.'tests'.DS.'tmp');
+        $file->copy(ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'dest.txt');
+    }
+    /**
+     * @test
+     */
+    public function testMoveTo() {
+        $src = ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'move-src.txt';
+        $dest = ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'move-dest.txt';
+        file_put_contents($src, 'move test');
+        $file = new File($src);
+        $file->moveTo($dest);
+        $this->assertFalse(file_exists($src));
+        $this->assertTrue($file->isExist());
+        $this->assertEquals('move-dest.txt', $file->getName());
+        $file->remove();
+    }
+    /**
+     * @test
+     */
+    public function testMoveToNonExistent() {
+        $this->expectException(FileException::class);
+        $file = new File('nonexistent.txt', ROOT_PATH.DS.'tests'.DS.'tmp');
+        $file->moveTo(ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'dest.txt');
     }
 }
