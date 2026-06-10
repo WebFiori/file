@@ -783,6 +783,16 @@ class File implements FileInterface, JsonI {
         ]);
     }
     /**
+     * Returns a FileStream instance for streaming operations on this file.
+     *
+     * @param int $bufferSize The buffer size for streaming operations.
+     *
+     * @return FileStream
+     */
+    public function stream(int $bufferSize = 8192): FileStream {
+        return new FileStream($this->getAbsolutePath(), $bufferSize);
+    }
+    /**
      * Display the file.
      *
      * If the raw data of the file is null, the method will
