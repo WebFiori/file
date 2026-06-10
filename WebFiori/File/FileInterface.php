@@ -138,4 +138,20 @@ interface FileInterface {
      * @return bool True if successfully removed.
      */
     public function remove(): bool;
+
+    /**
+     * Copies the file to a new destination.
+     *
+     * @param string $destination The destination path including filename.
+     *
+     * @return FileInterface A new instance representing the copy.
+     */
+    public function copy(string $destination): FileInterface;
+
+    /**
+     * Moves the file to a new destination.
+     *
+     * @param string $destination The destination path including filename.
+     */
+    public function moveTo(string $destination): void;
 }

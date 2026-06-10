@@ -616,6 +616,53 @@ class File implements FileInterface, JsonI {
         return false;
     }
     /**
+     * Copies the file to a new destination.
+     *
+     * @param string $destination The destination path including filename.
+     *
+     * @return FileInterface A new instance representing the copy.
+     *
+     * @throws FileException If the file does not exist or copy fails.
+     */
+    public function copy(string $destination): FileInterface {
+        if (!$this->isExist()) {
+            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
+        }
+        $dest = self::fixPath($destination);
+        $info = self::extractPathAndName($dest);
+
+        self::isDirectory($info['path'], true);
+
+        if (!@copy($this->getAbsolutePath(), $dest)) {
+            throw new FileException('Unable to copy file to \''.$dest.'\'.');
+        }
+
+        return new File($dest);
+    }
+    /**
+     * Moves the file to a new destination, updating this instance's path and name.
+     *
+     * @param string $destination The destination path including filename.
+     *
+     * @throws FileException If the file does not exist or move fails.
+     */
+    public function moveTo(string $destination): void {
+        if (!$this->isExist()) {
+            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
+        }
+        $dest = self::fixPath($destination);
+        $info = self::extractPathAndName($dest);
+
+        self::isDirectory($info['path'], true);
+
+        if (!@rename($this->getAbsolutePath(), $dest)) {
+            throw new FileException('Unable to move file to \''.$dest.'\'.');
+        }
+
+        $this->setDir($info['path']);
+        $this->setName($info['name']);
+    }
+    /**
      * Sets the name of the directory at which the file exist on.
      *
      * The directory is simply the folder that contains the file. For example,

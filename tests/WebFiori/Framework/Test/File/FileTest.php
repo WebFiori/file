@@ -560,4 +560,46 @@ class FileTest extends TestCase {
         $this->assertNull($file->getSize());
         $this->assertFalse($file->hasKnownSize());
     }
+    /**
+     * @test
+     */
+    public function testCopy() {
+        $src = ROOT_PATH.DS.'tests'.DS.'files'.DS.'text-file.txt';
+        $dest = ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'copy-test.txt';
+        $file = new File($src);
+        $copy = $file->copy($dest);
+        $this->assertTrue($copy->isExist());
+        $this->assertEquals('copy-test.txt', $copy->getName());
+        $copy->remove();
+    }
+    /**
+     * @test
+     */
+    public function testCopyNonExistent() {
+        $this->expectException(FileException::class);
+        $file = new File('nonexistent.txt', ROOT_PATH.DS.'tests'.DS.'tmp');
+        $file->copy(ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'dest.txt');
+    }
+    /**
+     * @test
+     */
+    public function testMoveTo() {
+        $src = ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'move-src.txt';
+        $dest = ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'move-dest.txt';
+        file_put_contents($src, 'move test');
+        $file = new File($src);
+        $file->moveTo($dest);
+        $this->assertFalse(file_exists($src));
+        $this->assertTrue($file->isExist());
+        $this->assertEquals('move-dest.txt', $file->getName());
+        $file->remove();
+    }
+    /**
+     * @test
+     */
+    public function testMoveToNonExistent() {
+        $this->expectException(FileException::class);
+        $file = new File('nonexistent.txt', ROOT_PATH.DS.'tests'.DS.'tmp');
+        $file->moveTo(ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'dest.txt');
+    }
 }
