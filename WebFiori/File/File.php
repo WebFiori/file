@@ -15,7 +15,7 @@ use WebFiori\Json\JsonI;
  * @author Ibrahim
  * 
  */
-class File implements JsonI {
+class File implements FileInterface, JsonI {
     /**
      * The default MIME type of all files.
      * 
