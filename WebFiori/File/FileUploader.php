@@ -267,7 +267,7 @@ class FileUploader implements JsonI {
      * Default value is true.
      * 
      * @return array An indexed array that contains sub associative arrays or 
-     * objects of type 'UploadFile'.
+     * objects of type FileInterface.
      * 
      * 
      */
@@ -510,7 +510,7 @@ class FileUploader implements JsonI {
      * @param bool $replaceIfExist If a file with the given name found
      * and this parameter is set to true, the file will be replaced.
      *
-     * @return array An array that contains objects of type 'UploadedFile'.
+     * @return array An array that contains objects of type FileInterface.
      *
      * @throws FileException
      */
