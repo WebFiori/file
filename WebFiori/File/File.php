@@ -976,19 +976,28 @@ class File implements JsonI {
         if ($this->isExist()) {
             $fSize = filesize($fPath);
             $this->setSize($fSize);
-            $bytesToRead = $to - $from > 0 ? $to - $from : $this->getSize();
-            $resource = self::createResource('rb', $fPath);
 
-            if ($bytesToRead > $this->getSize() || $to > $this->getSize()) {
+            if ($from === -1 && $to === -1) {
+                $bytesToRead = $fSize;
+                $from = 0;
+            } else {
+                $from = max($from, 0);
+
+                if ($to === -1) {
+                    $to = $fSize;
+                }
+                $bytesToRead = $to - $from;
+            }
+
+            if ($bytesToRead > $fSize || $to > $fSize) {
                 throw new FileException('Reached end of file while trying to read '.$bytesToRead.' byte(s).');
             }
+
+            $resource = self::createResource('rb', $fPath);
 
             if (is_resource($resource)) {
                 if ($bytesToRead > 0) {
                     fseek($resource, $from);
-                }
-
-                if ($bytesToRead > 0) {
                     $this->rawData = fread($resource, $bytesToRead);
                 }
                 fclose($resource);
