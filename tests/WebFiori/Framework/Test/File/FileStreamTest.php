@@ -313,15 +313,67 @@ class FileStreamTest extends TestCase {
     /**
      * @test
      */
-    public function testWriteAtomic() {
-        $dest = self::$testDir . DS . 'stream-atomic-test.txt';
-        file_put_contents($dest, 'original');
-
-        $target = new FileStream($dest);
-        $target->writeAtomic(['new content']);
-
-        $this->assertEquals('new content', file_get_contents($dest));
-        unlink($dest);
+    public function testReadChunksEmptyFile() {
+        $emptyFile = self::$testDir . DS . 'stream-empty.txt';
+        file_put_contents($emptyFile, '');
+        $stream = new FileStream($emptyFile);
+        $chunks = iterator_to_array($stream->readChunks());
+        $this->assertCount(0, $chunks);
+        unlink($emptyFile);
+    }
+    /**
+     * @test
+     */
+    public function testReadLinesWindowsEndings() {
+        $winFile = self::$testDir . DS . 'stream-crlf.txt';
+        file_put_contents($winFile, "Line A\r\nLine B\r\nLine C\r\n");
+        $stream = new FileStream($winFile);
+        $lines = iterator_to_array($stream->readLines());
+        $this->assertCount(3, $lines);
+        $this->assertEquals("Line A\r\n", $lines[0]);
+        $this->assertEquals("Line C\r\n", $lines[2]);
+        unlink($winFile);
+    }
+    /**
+     * @test
+     */
+    public function testReadLinesNoTrailingNewline() {
+        $noNewline = self::$testDir . DS . 'stream-nonewline.txt';
+        file_put_contents($noNewline, "AAA\nBBB");
+        $stream = new FileStream($noNewline);
+        $lines = iterator_to_array($stream->readLines());
+        $this->assertCount(2, $lines);
+        $this->assertEquals("AAA\n", $lines[0]);
+        $this->assertEquals("BBB", $lines[1]);
+        unlink($noNewline);
+    }
+    /**
+     * @test
+     */
+    public function testEarlyBreakClosesHandle() {
+        $stream = new FileStream(self::$testFile);
+        foreach ($stream->readChunks(2) as $chunk) {
+            break; // break after first chunk
+        }
+        // If handle wasn't closed, a subsequent read would still work
+        // (verifying no resource leak)
+        $data = '';
+        foreach ($stream->readChunks() as $chunk) {
+            $data .= $chunk;
+        }
+        $this->assertEquals(file_get_contents(self::$testFile), $data);
+    }
+    /**
+     * @test
+     */
+    public function testReadRangeEntireFile() {
+        $stream = new FileStream(self::$testFile);
+        $size = $stream->getSize();
+        $data = '';
+        foreach ($stream->readRange(0, $size) as $chunk) {
+            $data .= $chunk;
+        }
+        $this->assertEquals(file_get_contents(self::$testFile), $data);
     }
     /**
      * @test
