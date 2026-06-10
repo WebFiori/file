@@ -195,7 +195,7 @@ class FileUploader implements JsonI {
             $_FILES[$trimmed]['tmp_name'] = [];
             $_FILES[$trimmed]['error'] = [];
         }
-        $info = self::extractPathAndName($filePath);
+        $info = File::extractPathAndName($filePath);
         $path = $info['path'].DIRECTORY_SEPARATOR.$info['name'];
 
         if (!File::isFileExist($path)) {
@@ -513,40 +513,6 @@ class FileUploader implements JsonI {
         $file->setUploadErr($arr[UploaderConst::ERR_INDEX]);
 
         return $file;
-    }
-    /**
-     * Extracts directory path and filename from an absolute path.
-     * 
-     * This method splits an absolute file path into its directory component
-     * and filename component, normalizing directory separators in the process.
-     * 
-     * @param string $absPath The absolute path to extract from.
-     * 
-     * @return array An associative array with 'path' and 'name' keys.
-     */
-    private static function extractPathAndName($absPath): array {
-        $DS = DIRECTORY_SEPARATOR;
-        $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
-        $pathArr = explode($DS, $cleanPath);
-
-        if (count($pathArr) != 0) {
-            $fPath = '';
-            $name = $pathArr[count($pathArr) - 1];
-
-            for ($x = 0 ; $x < count($pathArr) - 1 ; $x++) {
-                $fPath .= $pathArr[$x].$DS;
-            }
-
-            return [
-                'path' => $fPath,
-                'name' => $name
-            ];
-        }
-
-        return [
-            'name' => $cleanPath,
-            'path' => ''
-        ];
     }
     /**
      * Processes file upload data and creates file information array.

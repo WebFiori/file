@@ -92,7 +92,7 @@ class File implements JsonI {
         self::initErrHandler();
 
         if (!$this->setPath($fPath)) {
-            $info = $this->extractPathAndName($fNameOrAbsPath);
+            $info = self::extractPathAndName($fNameOrAbsPath);
             $this->setDir($info['path']);
             $this->setName($info['name']);
         } else {
@@ -936,7 +936,7 @@ class File implements JsonI {
      * 
      * @return array An associative array with 'path' and 'name' keys.
      */
-    private function extractPathAndName($absPath): array {
+    public static function extractPathAndName(string $absPath): array {
         $DS = DIRECTORY_SEPARATOR;
         $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
         $pathArr = explode($DS, $cleanPath);
