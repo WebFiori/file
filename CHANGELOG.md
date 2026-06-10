@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.0.4](https://github.com/WebFiori/file/compare/v2.0.3...v2.0.4) (2026-06-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **File:** getSize() return type changed from int to ?int. Callers checking === -1 must switch to === null or use hasKnownSize().
+
+### Features
+
+* **FileUploader:** add custom per-uploader file size limit ([65f382f](https://github.com/WebFiori/file/commit/65f382fc4c77babcca14d0588d45442a5ea5103e)), closes [#51](https://github.com/WebFiori/file/issues/51)
+* **File:** use null instead of -1 for unset file size ([e1a1eec](https://github.com/WebFiori/file/commit/e1a1eec2101715ef3383760df2c6b97495745530)), closes [#56](https://github.com/WebFiori/file/issues/56)
+
+
+### Bug Fixes
+
+* **File:** deduplicate extractPathAndName into File::extractPathAndName() ([e4db32b](https://github.com/WebFiori/file/commit/e4db32b0629f06b81a376e2f712f6ae0d1c268d6)), closes [#42](https://github.com/WebFiori/file/issues/42)
+* **File:** make byte-range logic in readHelper explicit ([fee88fe](https://github.com/WebFiori/file/commit/fee88fe72d2de5800ebd788724102d6c84b3773a)), closes [#36](https://github.com/WebFiori/file/issues/36)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#93](https://github.com/WebFiori/file/issues/93) from WebFiori/dev ([f986602](https://github.com/WebFiori/file/commit/f986602a44157edc568f7341bacb01e493a374fb))
+
 ## [2.0.3](https://github.com/WebFiori/file/compare/v2.0.2...v2.0.3) (2026-06-02)
 
 
