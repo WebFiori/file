@@ -121,6 +121,45 @@ class FileStream implements StreamableInterface {
         }
     }
 
+    /**
+     * Writes data atomically using a temp file and rename.
+     *
+     * Data is written to a temporary file first, then renamed to the target
+     * path. This ensures the target file is never left in a partial state.
+     *
+     * @param iterable $source An iterable yielding string chunks.
+     *
+     * @throws FileException If write or rename fails.
+     */
+    public function writeAtomic(iterable $source): void {
+        $tempPath = $this->path . '.tmp.' . getmypid();
+        $handle = @fopen($tempPath, 'wb');
+
+        if (!is_resource($handle)) {
+            throw new FileException('Unable to create temp file: \'' . $tempPath . '\'.');
+        }
+
+        try {
+            foreach ($source as $chunk) {
+                fwrite($handle, $chunk);
+            }
+            fflush($handle);
+            fclose($handle);
+            $handle = null;
+
+            if (!@rename($tempPath, $this->path)) {
+                throw new FileException('Atomic rename failed for \'' . $this->path . '\'.');
+            }
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+            if (file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+        }
+    }
+
     public function serve(bool $asAttachment = false, ?ResponseEmitter $emitter = null): void {
         if (!File::isFileExist($this->path)) {
             throw new FileException('File not found: \'' . $this->path . '\'.');

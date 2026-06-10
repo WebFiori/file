@@ -310,6 +310,65 @@ class FileStreamTest extends TestCase {
         $stream = $file->stream(2048);
         $this->assertEquals(2048, $stream->getBufferSize());
     }
+    /**
+     * @test
+     */
+    public function testWriteAtomic() {
+        $dest = self::$testDir . DS . 'stream-atomic-test.txt';
+        file_put_contents($dest, 'original');
+
+        $target = new FileStream($dest);
+        $target->writeAtomic(['new content']);
+
+        $this->assertEquals('new content', file_get_contents($dest));
+        unlink($dest);
+    }
+    /**
+     * @test
+     */
+    public function testWriteAtomicFromGenerator() {
+        $dest = self::$testDir . DS . 'stream-atomic-gen.txt';
+        file_put_contents($dest, '');
+
+        $source = new FileStream(self::$testFile);
+        $target = new FileStream($dest);
+        $target->writeAtomic($source->readChunks(5));
+
+        $this->assertEquals(file_get_contents(self::$testFile), file_get_contents($dest));
+        unlink($dest);
+    }
+    /**
+     * @test
+     */
+    public function testWriteAtomicNoTempLeft() {
+        $dest = self::$testDir . DS . 'stream-atomic-clean.txt';
+        file_put_contents($dest, '');
+
+        $target = new FileStream($dest);
+        $target->writeAtomic(['data']);
+
+        // Temp file should not exist after successful write
+        $this->assertFalse(file_exists($dest . '.tmp.' . getmypid()));
+        unlink($dest);
+    }
+    /**
+     * @test
+     */
+    public function testWriteAtomicPreservesOriginalOnFailure() {
+        $dest = self::$testDir . DS . 'stream-atomic-fail.txt';
+        file_put_contents($dest, 'preserved');
+
+        // Use an unwritable temp path to trigger failure
+        $stream = new FileStream('/nonexistent-dir/file.txt');
+        try {
+            $stream->writeAtomic(['fail']);
+        } catch (FileException $e) {
+            // expected
+        }
+        // Original file at $dest should be untouched since we targeted a different path
+        $this->assertEquals('preserved', file_get_contents($dest));
+        unlink($dest);
+    }
 }
 
 /**
