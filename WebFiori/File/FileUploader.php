@@ -65,6 +65,12 @@ class FileUploader implements JsonI {
      */
     private $uploadDir;
     /**
+     * Custom maximum file size in bytes.
+     * 
+     * @var int|null
+     */
+    private $maxFileSize;
+    /**
      * Upload status message.
      * 
      * @var string
@@ -86,6 +92,7 @@ class FileUploader implements JsonI {
     public function __construct(string $uploadPath = '', array $allowedTypes = []) {
         $this->uploadStatusMessage = 'NO ACTION';
         $this->files = [];
+        $this->maxFileSize = null;
         $this->setAssociatedFileName('files');
         $this->addExts($allowedTypes);
         $this->uploadDir = '';
@@ -195,7 +202,7 @@ class FileUploader implements JsonI {
             $_FILES[$trimmed]['tmp_name'] = [];
             $_FILES[$trimmed]['error'] = [];
         }
-        $info = self::extractPathAndName($filePath);
+        $info = File::extractPathAndName($filePath);
         $path = $info['path'].DIRECTORY_SEPARATOR.$info['name'];
 
         if (!File::isFileExist($path)) {
@@ -286,6 +293,24 @@ class FileUploader implements JsonI {
      */
     public function getUploadDir() : string {
         return $this->uploadDir;
+    }
+    /**
+     * Sets a custom maximum file size limit for this uploader instance.
+     * 
+     * @param int $bytes Maximum file size in bytes. Must be greater than 0.
+     */
+    public function setMaxFileSize(int $bytes) : void {
+        if ($bytes > 0) {
+            $this->maxFileSize = $bytes;
+        }
+    }
+    /**
+     * Returns the custom maximum file size limit.
+     * 
+     * @return int|null The limit in bytes, or null if no custom limit is set.
+     */
+    public function getMaxFileSizeLimit() : ?int {
+        return $this->maxFileSize;
     }
     /**
      * Removes an extension from the array of allowed files types.
@@ -515,40 +540,6 @@ class FileUploader implements JsonI {
         return $file;
     }
     /**
-     * Extracts directory path and filename from an absolute path.
-     * 
-     * This method splits an absolute file path into its directory component
-     * and filename component, normalizing directory separators in the process.
-     * 
-     * @param string $absPath The absolute path to extract from.
-     * 
-     * @return array An associative array with 'path' and 'name' keys.
-     */
-    private static function extractPathAndName($absPath): array {
-        $DS = DIRECTORY_SEPARATOR;
-        $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
-        $pathArr = explode($DS, $cleanPath);
-
-        if (count($pathArr) != 0) {
-            $fPath = '';
-            $name = $pathArr[count($pathArr) - 1];
-
-            for ($x = 0 ; $x < count($pathArr) - 1 ; $x++) {
-                $fPath .= $pathArr[$x].$DS;
-            }
-
-            return [
-                'path' => $fPath,
-                'name' => $name
-            ];
-        }
-
-        return [
-            'name' => $cleanPath,
-            'path' => ''
-        ];
-    }
-    /**
      * Processes file upload data and creates file information array.
      * 
      * This method handles both single and multiple file uploads, performing
@@ -577,7 +568,10 @@ class FileUploader implements JsonI {
 
         if (!$isErr) {
             if ($this->isValidExt($fileInfoArr[UploaderConst::NAME_INDEX])) {
-                if (File::isDirectory($this->getUploadDir())) {
+                if ($this->maxFileSize !== null && (int)$fileInfoArr[UploaderConst::SIZE_INDEX] > $this->maxFileSize) {
+                    $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                    $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_FILE_TOO_LARGE;
+                } else if (File::isDirectory($this->getUploadDir())) {
                     $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
                     $moveFunc = http_response_code() === false ? 'copy' : 'move_uploaded_file';
 

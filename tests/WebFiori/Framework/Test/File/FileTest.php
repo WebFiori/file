@@ -499,4 +499,98 @@ class FileTest extends TestCase {
                 'inline; filename="text-file-2.txt"'
         ], $response->getHeader('content-disposition'));
     }
+    /**
+     * @test
+     */
+    public function testReadWriteEmptyFile() {
+        $file = new File(ROOT_PATH.DS.'tests'.DS.'files'.DS.'empty-test.txt');
+        $file->create(true);
+        $this->assertTrue($file->isExist());
+        $this->assertEquals(0, $file->getSize());
+        $file->remove();
+    }
+    /**
+     * @test
+     */
+    public function testFileWithMultipleDots() {
+        $file = new File('archive.tar.gz', ROOT_PATH.DS.'tests'.DS.'files');
+        $this->assertEquals('archive.tar.gz', $file->getName());
+        $this->assertEquals('gz', $file->getExtension());
+        $this->assertEquals('archive.tar', $file->getNameWithNoExt());
+    }
+    /**
+     * @test
+     */
+    public function testFileWithNoExtension() {
+        $file = new File('Makefile', ROOT_PATH.DS.'tests'.DS.'files');
+        $this->assertEquals('Makefile', $file->getName());
+        $this->assertEquals('bin', $file->getExtension());
+        $this->assertEquals('Makefile', $file->getNameWithNoExt());
+    }
+    /**
+     * @test
+     */
+    public function testFixPathEdgeCases() {
+        $this->assertEquals('', File::fixPath(''));
+        $this->assertEquals('a', File::fixPath('a'));
+        $this->assertEquals('a'.DS.'b'.DS.'c', File::fixPath('a/b/c/'));
+        $this->assertEquals(DS.'root'.DS.'home', File::fixPath('/root/home/'));
+    }
+    /**
+     * @test
+     */
+    public function testSetRawDataEmptyString() {
+        $file = new File();
+        $file->setRawData('hello');
+        $this->assertEquals('hello', $file->getRawData());
+        // Empty string should not overwrite
+        $file->setRawData('');
+        $this->assertEquals('hello', $file->getRawData());
+    }
+    /**
+     * @test
+     */
+    public function testGetChunksLargerThanData() {
+        $file = new File();
+        $file->setRawData('short');
+        $chunks = $file->getChunks(1000, false);
+        $this->assertCount(1, $chunks);
+        $this->assertEquals('short', $chunks[0]);
+    }
+    /**
+     * @test
+     */
+    public function testGetChunksEqualToDataLength() {
+        $file = new File();
+        $file->setRawData('12345');
+        $chunks = $file->getChunks(5, false);
+        $this->assertCount(1, $chunks);
+        $this->assertEquals('12345', $chunks[0]);
+    }
+    /**
+     * @test
+     */
+    public function testGetLastModifiedFormat() {
+        $file = new File('text-file.txt', ROOT_PATH.DS.'tests'.DS.'files');
+        $ts = $file->getLastModified(null);
+        $this->assertIsInt($ts);
+        $this->assertGreaterThan(0, $ts);
+        $formatted = $file->getLastModified('Y');
+        $this->assertMatchesRegularExpression('/^\d{4}$/', $formatted);
+    }
+    /**
+     * @test
+     */
+    public function testGetLastModifiedNonExistent() {
+        $file = new File('does-not-exist.txt', ROOT_PATH.DS.'tests'.DS.'files');
+        $this->assertEquals(0, $file->getLastModified());
+    }
+    /**
+     * @test
+     */
+    public function testGetSizeUnsetFile() {
+        $file = new File();
+        $this->assertNull($file->getSize());
+        $this->assertFalse($file->hasKnownSize());
+    }
 }
