@@ -30,6 +30,11 @@ class ResumableUploader extends AbstractUploader {
     private string $inputSource;
 
     /**
+     * @var string|null
+     */
+    private ?string $partialDir = null;
+
+    /**
      * Creates a new ResumableUploader instance.
      *
      * @param string $uploadDir Directory to store uploaded files.
@@ -39,6 +44,30 @@ class ResumableUploader extends AbstractUploader {
     public function __construct(string $uploadDir = '', array $allowedTypes = [], string $inputSource = 'php://input') {
         parent::__construct($uploadDir, $allowedTypes);
         $this->inputSource = $inputSource;
+    }
+
+    /**
+     * Sets the directory for storing partial (in-progress) uploads.
+     *
+     * If not set, defaults to `.partial/` inside the upload directory.
+     *
+     * @param string $dir Absolute path to the partial files directory.
+     */
+    public function setPartialDir(string $dir): void {
+        $this->partialDir = $dir;
+    }
+
+    /**
+     * Returns the directory used for storing partial uploads.
+     *
+     * @return string The partial directory path.
+     */
+    public function getPartialDir(): string {
+        if ($this->partialDir !== null) {
+            return $this->partialDir;
+        }
+
+        return $this->getUploadDir() . DIRECTORY_SEPARATOR . '.partial';
     }
 
     /**
@@ -190,7 +219,7 @@ class ResumableUploader extends AbstractUploader {
      * @return int Number of partial files removed.
      */
     public function cleanStale(int $maxAgeSeconds): int {
-        $partialDir = $this->getUploadDir() . DIRECTORY_SEPARATOR . '.partial';
+        $partialDir = $this->getPartialDir();
 
         if (!is_dir($partialDir)) {
             return 0;
@@ -258,7 +287,7 @@ class ResumableUploader extends AbstractUploader {
      * @return string Full path to the partial file.
      */
     private function getPartialPath(string $uploadId, string $filename): string {
-        $partialDir = $this->getUploadDir() . DIRECTORY_SEPARATOR . '.partial';
+        $partialDir = $this->getPartialDir();
 
         if (!is_dir($partialDir)) {
             mkdir($partialDir, 0755, true);

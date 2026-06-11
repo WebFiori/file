@@ -493,4 +493,37 @@ class ResumableUploaderTest extends TestCase {
         $this->assertEquals(0, $result['offset']);
         @unlink($emptyInput);
     }
+
+    /**
+     * @test
+     */
+    public function testCustomPartialDir() {
+        $customDir = self::$testDir . DS . 'custom-partials';
+
+        if (!is_dir($customDir)) {
+            mkdir($customDir, 0755, true);
+        }
+
+        $u = new ResumableUploader(self::$testDir, [], self::$inputFile1);
+        $u->setPartialDir($customDir);
+
+        $this->assertEquals($customDir, $u->getPartialDir());
+
+        $result = $u->receiveChunk('custom-dir', 'resumable-customdir.txt', false);
+        $this->assertEquals(4, $result['offset']);
+        $this->assertTrue(file_exists($customDir . DS . 'custom-dir_resumable-customdir.txt'));
+
+        // Cleanup
+        @unlink($customDir . DS . 'custom-dir_resumable-customdir.txt');
+        @rmdir($customDir);
+    }
+
+    /**
+     * @test
+     */
+    public function testDefaultPartialDir() {
+        $u = new ResumableUploader(self::$testDir, [], self::$inputFile1);
+        $expected = self::$testDir . DS . '.partial';
+        $this->assertEquals($expected, $u->getPartialDir());
+    }
 }
