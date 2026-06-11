@@ -85,7 +85,9 @@ echo $file->getRawData();
 - **`FileInterface`** — Contract defining core file operations. Use for type-hinting and mocking.
 - **`File`** — Read, write, create, remove, copy, move, and serve files. Supports byte-range reads, Base64 encoding/decoding, chunked processing, and JSON serialization.
 - **`FileStream`** — Streaming file I/O with constant memory usage. Read chunks, lines, ranges, and serve large files.
-- **`FileUploader`** — Handle file uploads with extension validation, size limits, stream processing, and callback hooks.
+- **`FileUploader`** — Handle multipart form file uploads with extension validation, size limits, stream processing, and callback hooks.
+- **`StreamingUploader`** — Receive files from raw HTTP body (`php://input`) in constant memory. Ideal for single-shot binary uploads.
+- **`ResumableUploader`** — Chunked upload handler with resume-on-failure support. Tracks byte offset on disk for seamless resume after network drops.
 - **`UploadedFile`** — Extends `File` with upload-specific properties (upload status, replacement status, error message).
 - **`ResponseEmitter`** — Interface for abstracting HTTP output when serving files.
 - **`MIME`** — Static lookup of ~600 file extension to MIME type mappings.
@@ -143,6 +145,9 @@ The [examples/](examples/) directory contains runnable PHP scripts covering ever
 | [Atomic Write](examples/atomic-write/) | Crash-safe writes with temp + rename |
 | [Streaming Upload](examples/streaming-upload/) | Receive large files from `php://input` |
 | [Upload Callbacks](examples/upload-callbacks/) | Before/after hooks for validation and logging |
+| [Resumable Upload](examples/resumable-upload/) | Chunked upload with pause/resume support |
+| [Custom FileInterface](examples/custom-file-interface/) | Implement `FileInterface` for DI, mocking, or custom storage |
+| [Custom Emitter](examples/custom-emitter/) | Implement `ResponseEmitter` for framework integration |
 
 Each example has its own README with detailed explanations. Run any example with:
 
