@@ -33,7 +33,7 @@ The `name` attribute of the file input must match the value set via `setAssociat
 ## Run
 
 ```bash
-php examples/file-upload.php
+php examples/file-upload/file-upload.php
 ```
 
 > **Note:** This example uses `addTestFile()` to simulate an upload in CLI mode. The `DS` constant (directory separator) must be defined, which the example handles automatically.

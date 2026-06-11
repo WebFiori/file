@@ -51,5 +51,25 @@ $file = new File($samplePath);
 $fileStream = $file->stream(16); // 16-byte buffer
 echo "Buffer size: ".$fileStream->getBufferSize()."\n";
 
+// --- Writing with a generator (writeFromStream) ---
+echo "\n=== writeFromStream() ===\n";
+$outputPath = __DIR__.'/../tmp/stream-output.txt';
+
+$generator = (function () {
+    yield "Generated line 1\n";
+    yield "Generated line 2\n";
+    yield "Generated line 3\n";
+})();
+
+$output = new FileStream($outputPath);
+$output->writeFromStream($generator, false); // false = overwrite mode
+echo "Written to: ".$output->getName()." (".$output->getSize()." bytes)\n";
+
+// Read it back to verify
+foreach ($output->readLines() as $line) {
+    echo "  ".rtrim($line)."\n";
+}
+
 // Cleanup
 unlink($samplePath);
+unlink($outputPath);
