@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.1.1](https://github.com/WebFiori/file/compare/v2.1.0...v2.1.1) (2026-06-11)
+
+
+### Features
+
+* **upload:** add ResumableUploader class for chunked uploads with resume support ([ac24624](https://github.com/WebFiori/file/commit/ac246240e6dff31903cea2105f1a28f5e3533dba)), closes [#98](https://github.com/WebFiori/file/issues/98)
+* **upload:** add setPartialDir() to ResumableUploader ([272aa79](https://github.com/WebFiori/file/commit/272aa794849258246ec81dccae774710fc103b17))
+
+
+### Bug Fixes
+
+* **upload:** clear stat cache after writing partial file ([0efef26](https://github.com/WebFiori/file/commit/0efef269eca475bbb7bc1509f670e309f8a0529e))
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#99](https://github.com/WebFiori/file/issues/99) from WebFiori/dev ([76c37fe](https://github.com/WebFiori/file/commit/76c37fe1518f4ce0b7798c6957156d5243372ad2))
+
 ## [2.1.0](https://github.com/WebFiori/file/compare/v2.0.4...v2.1.0) (2026-06-10)
 
 
