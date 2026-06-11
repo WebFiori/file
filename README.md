@@ -24,6 +24,7 @@ A PHP library for file operations, providing an object-oriented abstraction laye
 
 - [Supported PHP Versions](#supported-php-versions)
 - [Key Features](#key-features)
+- [Why This Library?](#why-this-library)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Core Classes](#core-classes)
@@ -56,6 +57,15 @@ A PHP library for file operations, providing an object-oriented abstraction laye
 - MIME type detection for ~600 file extensions
 - `ResponseEmitter` interface for framework-agnostic HTTP file serving
 - `FileInterface` for dependency injection and mocking
+
+## Why This Library?
+
+- **All-in-one** — File I/O, uploads, streaming, and HTTP serving in a single package.
+- **Upload-first design** — `FileUploader`, `StreamingUploader`, and `ResumableUploader` handle multipart forms, raw body streams, and chunked uploads with pause/resume — each with extension filtering, size limits, and callback hooks.
+- **Constant-memory streaming** — Generators power reads, writes, uploads, and serving. Process gigabyte files without touching memory limits.
+- **Framework-agnostic HTTP serving** — The `ResponseEmitter` interface decouples file serving from any specific HTTP layer. Plug in PSR-7, any framework, or raw PHP.
+- **Testable by design** — `FileInterface` enables dependency injection and mocking. No filesystem required in your unit tests.
+- **Lightweight** — Single dependency, no framework coupling.
 
 ## Installation
 
