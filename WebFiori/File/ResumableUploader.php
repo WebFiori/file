@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -47,14 +48,65 @@ class ResumableUploader extends AbstractUploader {
     }
 
     /**
-     * Sets the directory for storing partial (in-progress) uploads.
+     * Cancels an in-progress upload by removing the partial file.
      *
-     * If not set, defaults to `.partial/` inside the upload directory.
-     *
-     * @param string $dir Absolute path to the partial files directory.
+     * @param string $uploadId Unique upload session identifier.
+     * @param string $filename The filename.
      */
-    public function setPartialDir(string $dir): void {
-        $this->partialDir = $dir;
+    public function cancel(string $uploadId, string $filename): void {
+        $filename = self::sanitizeFilename($filename);
+        $path = $this->getPartialPath($uploadId, $filename);
+
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+
+    /**
+     * Removes partial files older than the given age.
+     *
+     * @param int $maxAgeSeconds Maximum age in seconds.
+     *
+     * @return int Number of partial files removed.
+     */
+    public function cleanStale(int $maxAgeSeconds): int {
+        $partialDir = $this->getPartialDir();
+
+        if (!is_dir($partialDir)) {
+            return 0;
+        }
+
+        $count = 0;
+        $now = time();
+        $files = glob($partialDir.DIRECTORY_SEPARATOR.'*');
+
+        foreach ($files as $file) {
+            if (is_file($file) && ($now - filemtime($file)) > $maxAgeSeconds) {
+                unlink($file);
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Returns the current byte offset for a given upload session.
+     *
+     * @param string $uploadId Unique upload session identifier.
+     * @param string $filename The filename.
+     *
+     * @return int Current byte offset. Returns 0 if no partial file exists.
+     */
+    public function getOffset(string $uploadId, string $filename): int {
+        $filename = self::sanitizeFilename($filename);
+        $path = $this->getPartialPath($uploadId, $filename);
+
+        if (file_exists($path)) {
+            return filesize($path);
+        }
+
+        return 0;
     }
 
     /**
@@ -67,7 +119,7 @@ class ResumableUploader extends AbstractUploader {
             return $this->partialDir;
         }
 
-        return $this->getUploadDir() . DIRECTORY_SEPARATOR . '.partial';
+        return $this->getUploadDir().DIRECTORY_SEPARATOR.'.partial';
     }
 
     /**
@@ -178,65 +230,14 @@ class ResumableUploader extends AbstractUploader {
     }
 
     /**
-     * Returns the current byte offset for a given upload session.
+     * Sets the directory for storing partial (in-progress) uploads.
      *
-     * @param string $uploadId Unique upload session identifier.
-     * @param string $filename The filename.
+     * If not set, defaults to `.partial/` inside the upload directory.
      *
-     * @return int Current byte offset. Returns 0 if no partial file exists.
+     * @param string $dir Absolute path to the partial files directory.
      */
-    public function getOffset(string $uploadId, string $filename): int {
-        $filename = self::sanitizeFilename($filename);
-        $path = $this->getPartialPath($uploadId, $filename);
-
-        if (file_exists($path)) {
-            return filesize($path);
-        }
-
-        return 0;
-    }
-
-    /**
-     * Cancels an in-progress upload by removing the partial file.
-     *
-     * @param string $uploadId Unique upload session identifier.
-     * @param string $filename The filename.
-     */
-    public function cancel(string $uploadId, string $filename): void {
-        $filename = self::sanitizeFilename($filename);
-        $path = $this->getPartialPath($uploadId, $filename);
-
-        if (file_exists($path)) {
-            unlink($path);
-        }
-    }
-
-    /**
-     * Removes partial files older than the given age.
-     *
-     * @param int $maxAgeSeconds Maximum age in seconds.
-     *
-     * @return int Number of partial files removed.
-     */
-    public function cleanStale(int $maxAgeSeconds): int {
-        $partialDir = $this->getPartialDir();
-
-        if (!is_dir($partialDir)) {
-            return 0;
-        }
-
-        $count = 0;
-        $now = time();
-        $files = glob($partialDir . DIRECTORY_SEPARATOR . '*');
-
-        foreach ($files as $file) {
-            if (is_file($file) && ($now - filemtime($file)) > $maxAgeSeconds) {
-                unlink($file);
-                $count++;
-            }
-        }
-
-        return $count;
+    public function setPartialDir(string $dir): void {
+        $this->partialDir = $dir;
     }
 
     /**
@@ -251,7 +252,7 @@ class ResumableUploader extends AbstractUploader {
      * @throws FileException If finalization fails.
      */
     private function finalize(string $uploadId, string $filename, string $partialPath): array {
-        $finalPath = $this->getUploadDir() . DIRECTORY_SEPARATOR . $filename;
+        $finalPath = $this->getUploadDir().DIRECTORY_SEPARATOR.$filename;
 
         $processor = $this->getStreamProcessor();
 
@@ -293,7 +294,7 @@ class ResumableUploader extends AbstractUploader {
             mkdir($partialDir, 0755, true);
         }
 
-        return $partialDir . DIRECTORY_SEPARATOR . $uploadId . '_' . $filename;
+        return $partialDir.DIRECTORY_SEPARATOR.$uploadId.'_'.$filename;
     }
 
     /**

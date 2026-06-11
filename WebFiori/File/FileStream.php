@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -22,8 +23,8 @@ use WebFiori\File\Exceptions\FileException;
  * @author Ibrahim
  */
 class FileStream implements StreamableInterface {
-    private string $path;
     private int $bufferSize;
+    private string $path;
 
     /**
      * Creates a new FileStream instance.
@@ -41,6 +42,42 @@ class FileStream implements StreamableInterface {
         }
         $this->path = $path;
         $this->setBufferSize($bufferSize);
+    }
+
+    /**
+     * Returns the default buffer size.
+     *
+     * @return int Buffer size in bytes.
+     */
+    public function getBufferSize(): int {
+        return $this->bufferSize;
+    }
+
+    public function getMIME(): string {
+        $ext = pathinfo($this->path, PATHINFO_EXTENSION);
+
+        return MIME::getType($ext);
+    }
+
+    public function getName(): string {
+        return basename($this->path);
+    }
+
+    /**
+     * Returns the absolute path to the file.
+     *
+     * @return string
+     */
+    public function getPath(): string {
+        return $this->path;
+    }
+
+    public function getSize(): int {
+        if (!File::isFileExist($this->path)) {
+            return 0;
+        }
+
+        return filesize($this->path);
     }
 
     public function readChunks(int $bufferSize = 8192): \Generator {
@@ -99,13 +136,79 @@ class FileStream implements StreamableInterface {
         }
     }
 
+    public function serve(bool $asAttachment = false, ?ResponseEmitter $emitter = null): void {
+        if (!File::isFileExist($this->path)) {
+            throw new FileException('File not found: \''.$this->path.'\'.');
+        }
+
+        $emitter = $emitter ?? new DefaultEmitter();
+        $emitter->setStatusCode(200);
+        $emitter->setHeader('Accept-Ranges', 'bytes');
+        $emitter->setHeader('Content-Type', $this->getMIME());
+        $emitter->setHeader('Content-Length', (string) $this->getSize());
+
+        $disposition = $asAttachment ? 'attachment' : 'inline';
+        $emitter->setHeader('Content-Disposition', $disposition.'; filename="'.$this->getName().'"');
+
+        $emitter->sendBody($this->readChunks($this->bufferSize));
+    }
+
+    /**
+     * Sets the default buffer size.
+     *
+     * @param int $size Buffer size in bytes. Must be greater than 0.
+     */
+    public function setBufferSize(int $size): void {
+        $this->bufferSize = $size > 0 ? $size : 8192;
+    }
+
+    /**
+     * Writes data atomically using a temp file and rename.
+     *
+     * Data is written to a temporary file first, then renamed to the target
+     * path. This ensures the target file is never left in a partial state.
+     *
+     * @param iterable $source An iterable yielding string chunks.
+     *
+     * @throws FileException If write or rename fails.
+     */
+    public function writeAtomic(iterable $source): void {
+        $tempPath = $this->path.'.tmp.'.getmypid();
+        $handle = @fopen($tempPath, 'wb');
+
+        if (!is_resource($handle)) {
+            throw new FileException('Unable to create temp file: \''.$tempPath.'\'.');
+        }
+
+        try {
+            foreach ($source as $chunk) {
+                fwrite($handle, $chunk);
+            }
+            fflush($handle);
+            fclose($handle);
+            $handle = null;
+
+            if (!@rename($tempPath, $this->path)) {
+                throw new FileException('Atomic rename failed for \''.$this->path.'\'.');
+            }
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+
+            if (file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+        }
+    }
+
     public function writeFromStream(iterable $source, bool $append = true, bool $lock = true): void {
         $mode = $append ? 'ab' : 'wb';
         $resource = $this->openOrFail($mode);
 
         try {
             if ($lock && !flock($resource, LOCK_EX)) {
-                throw new FileException('Unable to acquire lock on \'' . $this->path . '\'.');
+                throw new FileException('Unable to acquire lock on \''.$this->path.'\'.');
             }
 
             foreach ($source as $chunk) {
@@ -122,107 +225,6 @@ class FileStream implements StreamableInterface {
     }
 
     /**
-     * Writes data atomically using a temp file and rename.
-     *
-     * Data is written to a temporary file first, then renamed to the target
-     * path. This ensures the target file is never left in a partial state.
-     *
-     * @param iterable $source An iterable yielding string chunks.
-     *
-     * @throws FileException If write or rename fails.
-     */
-    public function writeAtomic(iterable $source): void {
-        $tempPath = $this->path . '.tmp.' . getmypid();
-        $handle = @fopen($tempPath, 'wb');
-
-        if (!is_resource($handle)) {
-            throw new FileException('Unable to create temp file: \'' . $tempPath . '\'.');
-        }
-
-        try {
-            foreach ($source as $chunk) {
-                fwrite($handle, $chunk);
-            }
-            fflush($handle);
-            fclose($handle);
-            $handle = null;
-
-            if (!@rename($tempPath, $this->path)) {
-                throw new FileException('Atomic rename failed for \'' . $this->path . '\'.');
-            }
-        } finally {
-            if (is_resource($handle)) {
-                fclose($handle);
-            }
-            if (file_exists($tempPath)) {
-                unlink($tempPath);
-            }
-        }
-    }
-
-    public function serve(bool $asAttachment = false, ?ResponseEmitter $emitter = null): void {
-        if (!File::isFileExist($this->path)) {
-            throw new FileException('File not found: \'' . $this->path . '\'.');
-        }
-
-        $emitter = $emitter ?? new DefaultEmitter();
-        $emitter->setStatusCode(200);
-        $emitter->setHeader('Accept-Ranges', 'bytes');
-        $emitter->setHeader('Content-Type', $this->getMIME());
-        $emitter->setHeader('Content-Length', (string) $this->getSize());
-
-        $disposition = $asAttachment ? 'attachment' : 'inline';
-        $emitter->setHeader('Content-Disposition', $disposition . '; filename="' . $this->getName() . '"');
-
-        $emitter->sendBody($this->readChunks($this->bufferSize));
-    }
-
-    public function getSize(): int {
-        if (!File::isFileExist($this->path)) {
-            return 0;
-        }
-
-        return filesize($this->path);
-    }
-
-    public function getMIME(): string {
-        $ext = pathinfo($this->path, PATHINFO_EXTENSION);
-
-        return MIME::getType($ext);
-    }
-
-    public function getName(): string {
-        return basename($this->path);
-    }
-
-    /**
-     * Returns the default buffer size.
-     *
-     * @return int Buffer size in bytes.
-     */
-    public function getBufferSize(): int {
-        return $this->bufferSize;
-    }
-
-    /**
-     * Sets the default buffer size.
-     *
-     * @param int $size Buffer size in bytes. Must be greater than 0.
-     */
-    public function setBufferSize(int $size): void {
-        $this->bufferSize = $size > 0 ? $size : 8192;
-    }
-
-    /**
-     * Returns the absolute path to the file.
-     *
-     * @return string
-     */
-    public function getPath(): string {
-        return $this->path;
-    }
-
-    /**
      * Opens the file or throws an exception.
      *
      * @param string $mode fopen mode.
@@ -235,7 +237,7 @@ class FileStream implements StreamableInterface {
         $resource = File::createResource($mode, $this->path);
 
         if (!is_resource($resource)) {
-            throw new FileException('Unable to open file: \'' . $this->path . '\'.');
+            throw new FileException('Unable to open file: \''.$this->path.'\'.');
         }
 
         return $resource;

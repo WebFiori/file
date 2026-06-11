@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Resumable Upload Server
  *
@@ -8,7 +9,7 @@
  *
  * Run: php -S localhost:8080 examples/resumable-upload/router.php
  */
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__.'/../../vendor/autoload.php';
 
 use WebFiori\File\Exceptions\FileException;
 use WebFiori\File\ResumableUploader;
@@ -23,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$uploadDir = __DIR__ . '/../tmp/resumable-uploads';
+$uploadDir = __DIR__.'/../tmp/resumable-uploads';
 
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);

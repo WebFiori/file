@@ -19,6 +19,12 @@ class File implements FileInterface, JsonI {
      * 
      */
     const DEFAULT_MIME = 'application/octet-stream';
+    /**
+     * The response emitter used when serving the file.
+     * 
+     * @var ResponseEmitter|null
+     */
+    private $emitter;
     private static $errFunc;
     /**
      * The name of the attachment.
@@ -61,12 +67,6 @@ class File implements FileInterface, JsonI {
      * 
      */
     private $rawData;
-    /**
-     * The response emitter used when serving the file.
-     * 
-     * @var ResponseEmitter|null
-     */
-    private $emitter;
     /**
      * Creates new instance of the class.
      * 
@@ -133,6 +133,33 @@ class File implements FileInterface, JsonI {
         }
     }
     /**
+     * Copies the file to a new destination using streaming for constant memory usage.
+     *
+     * @param string $destination The destination path including filename.
+     *
+     * @return FileInterface A new instance representing the copy.
+     *
+     * @throws FileException If the file does not exist or copy fails.
+     */
+    public function copy(string $destination): FileInterface {
+        if (!$this->isExist()) {
+            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
+        }
+        $dest = self::fixPath($destination);
+        $info = self::extractPathAndName($dest);
+
+        self::isDirectory($info['path'], true);
+
+        $destFile = new File($dest);
+        $destFile->create(true);
+
+        $source = new FileStream($this->getAbsolutePath());
+        $target = new FileStream($destFile->getAbsolutePath());
+        $target->writeFromStream($source->readChunks(), false);
+
+        return new File($dest);
+    }
+    /**
      * Attempt to create the file if it does not exist.
      * 
      * @param bool $createDirIfNotExist If this parameter is set to true and
@@ -177,6 +204,40 @@ class File implements FileInterface, JsonI {
         }
 
         return false;
+    }
+    /**
+     * Extracts directory path and filename from an absolute path.
+     * 
+     * This method splits an absolute file path into its directory component
+     * and filename component, normalizing directory separators in the process.
+     * 
+     * @param string $absPath The absolute path to extract from.
+     * 
+     * @return array An associative array with 'path' and 'name' keys.
+     */
+    public static function extractPathAndName(string $absPath): array {
+        $DS = DIRECTORY_SEPARATOR;
+        $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
+        $pathArr = explode($DS, $cleanPath);
+
+        if (count($pathArr) != 0) {
+            $fPath = '';
+            $name = $pathArr[count($pathArr) - 1];
+
+            for ($x = 0 ; $x < count($pathArr) - 1 ; $x++) {
+                $fPath .= $pathArr[$x].$DS;
+            }
+
+            return [
+                'path' => $fPath,
+                'name' => $name
+            ];
+        }
+
+        return [
+            'name' => $cleanPath,
+            'path' => ''
+        ];
     }
     /**
      * Fixes and normalizes a file path by converting slashes to system directory separator.
@@ -294,6 +355,7 @@ class File implements FileInterface, JsonI {
             $retVal[] = substr($data, $index, $chunkSize);
             $index += $chunkSize;
         }
+
         return $retVal;
     }
     /**
@@ -463,14 +525,6 @@ class File implements FileInterface, JsonI {
         return $this->emitter;
     }
     /**
-     * Sets the response emitter to use when serving the file.
-     *
-     * @param ResponseEmitter|null $emitter The emitter to use. Pass null to reset to default.
-     */
-    public function setResponseEmitter(?ResponseEmitter $emitter): void {
-        $this->emitter = $emitter;
-    }
-    /**
      * Returns the size of the file in bytes.
      *
      * @return int|null Size of the file in bytes. If the raw data of the file
@@ -547,6 +601,39 @@ class File implements FileInterface, JsonI {
         return $isExist;
     }
     /**
+     * Moves the file to a new destination, updating this instance's path and name.
+     *
+     * Tries rename() first (instant on same device), falls back to
+     * streaming copy + remove for cross-device moves.
+     *
+     * @param string $destination The destination path including filename.
+     *
+     * @throws FileException If the file does not exist or move fails.
+     */
+    public function moveTo(string $destination): void {
+        if (!$this->isExist()) {
+            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
+        }
+        $dest = self::fixPath($destination);
+        $info = self::extractPathAndName($dest);
+
+        self::isDirectory($info['path'], true);
+
+        if (@rename($this->getAbsolutePath(), $dest)) {
+            $this->setDir($info['path']);
+            $this->setName($info['name']);
+
+            return;
+        }
+
+        // Cross-device fallback: stream copy + remove
+        $this->copy($dest);
+        $this->rawData = '';
+        unlink($this->getAbsolutePath());
+        $this->setDir($info['path']);
+        $this->setName($info['name']);
+    }
+    /**
      * Reads the file in binary mode.
      *
      * First of all, this method checks the existence of the file. If it
@@ -614,66 +701,6 @@ class File implements FileInterface, JsonI {
         }
 
         return false;
-    }
-    /**
-     * Copies the file to a new destination using streaming for constant memory usage.
-     *
-     * @param string $destination The destination path including filename.
-     *
-     * @return FileInterface A new instance representing the copy.
-     *
-     * @throws FileException If the file does not exist or copy fails.
-     */
-    public function copy(string $destination): FileInterface {
-        if (!$this->isExist()) {
-            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
-        }
-        $dest = self::fixPath($destination);
-        $info = self::extractPathAndName($dest);
-
-        self::isDirectory($info['path'], true);
-
-        $destFile = new File($dest);
-        $destFile->create(true);
-
-        $source = new FileStream($this->getAbsolutePath());
-        $target = new FileStream($destFile->getAbsolutePath());
-        $target->writeFromStream($source->readChunks(), false);
-
-        return new File($dest);
-    }
-    /**
-     * Moves the file to a new destination, updating this instance's path and name.
-     *
-     * Tries rename() first (instant on same device), falls back to
-     * streaming copy + remove for cross-device moves.
-     *
-     * @param string $destination The destination path including filename.
-     *
-     * @throws FileException If the file does not exist or move fails.
-     */
-    public function moveTo(string $destination): void {
-        if (!$this->isExist()) {
-            throw new FileException('File not found: \''.$this->getAbsolutePath().'\'.');
-        }
-        $dest = self::fixPath($destination);
-        $info = self::extractPathAndName($dest);
-
-        self::isDirectory($info['path'], true);
-
-        if (@rename($this->getAbsolutePath(), $dest)) {
-            $this->setDir($info['path']);
-            $this->setName($info['name']);
-
-            return;
-        }
-
-        // Cross-device fallback: stream copy + remove
-        $this->copy($dest);
-        $this->rawData = '';
-        unlink($this->getAbsolutePath());
-        $this->setDir($info['path']);
-        $this->setName($info['name']);
     }
     /**
      * Sets the name of the directory at which the file exist on.
@@ -790,6 +817,24 @@ class File implements FileInterface, JsonI {
         $this->rawData = $decoded;
         $this->setSize(strlen($this->rawData));
     }
+    /**
+     * Sets the response emitter to use when serving the file.
+     *
+     * @param ResponseEmitter|null $emitter The emitter to use. Pass null to reset to default.
+     */
+    public function setResponseEmitter(?ResponseEmitter $emitter): void {
+        $this->emitter = $emitter;
+    }
+    /**
+     * Returns a FileStream instance for streaming operations on this file.
+     *
+     * @param int $bufferSize The buffer size for streaming operations.
+     *
+     * @return FileStream
+     */
+    public function stream(int $bufferSize = 8192): FileStream {
+        return new FileStream($this->getAbsolutePath(), $bufferSize);
+    }
 
     /**
      * Returns an array that contains integer values which represents file data as binary.
@@ -844,16 +889,6 @@ class File implements FileInterface, JsonI {
             'sizeInKBytes' => $size / 1024,
             'sizeInMBytes' => ($size / 1024) / 1024
         ]);
-    }
-    /**
-     * Returns a FileStream instance for streaming operations on this file.
-     *
-     * @param int $bufferSize The buffer size for streaming operations.
-     *
-     * @return FileStream
-     */
-    public function stream(int $bufferSize = 8192): FileStream {
-        return new FileStream($this->getAbsolutePath(), $bufferSize);
     }
     /**
      * Display the file.
@@ -964,40 +999,6 @@ class File implements FileInterface, JsonI {
             $ext = $exp[count($exp) - 1];
             $this->setMIME(MIME::getType($ext));
         }
-    }
-    /**
-     * Extracts directory path and filename from an absolute path.
-     * 
-     * This method splits an absolute file path into its directory component
-     * and filename component, normalizing directory separators in the process.
-     * 
-     * @param string $absPath The absolute path to extract from.
-     * 
-     * @return array An associative array with 'path' and 'name' keys.
-     */
-    public static function extractPathAndName(string $absPath): array {
-        $DS = DIRECTORY_SEPARATOR;
-        $cleanPath = str_replace('\\', $DS, str_replace('/', $DS, trim($absPath)));
-        $pathArr = explode($DS, $cleanPath);
-
-        if (count($pathArr) != 0) {
-            $fPath = '';
-            $name = $pathArr[count($pathArr) - 1];
-
-            for ($x = 0 ; $x < count($pathArr) - 1 ; $x++) {
-                $fPath .= $pathArr[$x].$DS;
-            }
-
-            return [
-                'path' => $fPath,
-                'name' => $name
-            ];
-        }
-
-        return [
-            'name' => $cleanPath,
-            'path' => ''
-        ];
     }
     /**
      * Initializes the error handler function for file operations.
@@ -1116,7 +1117,10 @@ class File implements FileInterface, JsonI {
         $emitter->setHeader('Content-Disposition', $disposition.'; filename="'.$this->getName().'"');
 
         $data = $this->getRawData();
-        $emitter->sendBody((function () use ($data) { yield $data; })());
+        $emitter->sendBody((function () use ($data)
+        {
+            yield $data;
+        })());
     }
 
     /**
@@ -1151,6 +1155,7 @@ class File implements FileInterface, JsonI {
             }
             fwrite($resource, $this->getRawData($encode));
             fflush($resource);
+
             if ($lock) {
                 flock($resource, LOCK_UN);
             }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -21,6 +22,12 @@ namespace WebFiori\File;
  */
 interface ResponseEmitter {
     /**
+     * Sends the response body from a generator of chunks.
+     *
+     * @param \Generator $chunks A generator yielding string chunks.
+     */
+    public function sendBody(\Generator $chunks): void;
+    /**
      * Sets an HTTP response header.
      *
      * @param string $name Header name.
@@ -34,11 +41,4 @@ interface ResponseEmitter {
      * @param int $code HTTP status code.
      */
     public function setStatusCode(int $code): void;
-
-    /**
-     * Sends the response body from a generator of chunks.
-     *
-     * @param \Generator $chunks A generator yielding string chunks.
-     */
-    public function sendBody(\Generator $chunks): void;
 }

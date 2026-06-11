@@ -20,22 +20,16 @@ use WebFiori\File\ResponseEmitter;
 // Useful for testing or transforming output before sending.
 
 class BufferedEmitter implements ResponseEmitter {
-    private int $statusCode = 200;
-    private array $headers = [];
     private string $body = '';
+    private array $headers = [];
+    private int $statusCode = 200;
 
-    public function setHeader(string $name, string $value): void {
-        $this->headers[$name] = $value;
+    public function getBody(): string {
+        return $this->body;
     }
 
-    public function setStatusCode(int $code): void {
-        $this->statusCode = $code;
-    }
-
-    public function sendBody(\Generator $chunks): void {
-        foreach ($chunks as $chunk) {
-            $this->body .= $chunk;
-        }
+    public function getHeaders(): array {
+        return $this->headers;
     }
 
     // Inspection methods
@@ -43,12 +37,18 @@ class BufferedEmitter implements ResponseEmitter {
         return $this->statusCode;
     }
 
-    public function getHeaders(): array {
-        return $this->headers;
+    public function sendBody(Generator $chunks): void {
+        foreach ($chunks as $chunk) {
+            $this->body .= $chunk;
+        }
     }
 
-    public function getBody(): string {
-        return $this->body;
+    public function setHeader(string $name, string $value): void {
+        $this->headers[$name] = $value;
+    }
+
+    public function setStatusCode(int $code): void {
+        $this->statusCode = $code;
     }
 }
 
@@ -63,6 +63,16 @@ class LoggingEmitter implements ResponseEmitter {
         $this->inner = $inner;
     }
 
+    public function getLog(): array {
+        return $this->log;
+    }
+
+    public function sendBody(Generator $chunks): void {
+        $this->log[] = "Body: sending...";
+        $this->inner->sendBody($chunks);
+        $this->log[] = "Body: done";
+    }
+
     public function setHeader(string $name, string $value): void {
         $this->log[] = "Header: $name: $value";
         $this->inner->setHeader($name, $value);
@@ -71,16 +81,6 @@ class LoggingEmitter implements ResponseEmitter {
     public function setStatusCode(int $code): void {
         $this->log[] = "Status: $code";
         $this->inner->setStatusCode($code);
-    }
-
-    public function sendBody(\Generator $chunks): void {
-        $this->log[] = "Body: sending...";
-        $this->inner->sendBody($chunks);
-        $this->log[] = "Body: done";
-    }
-
-    public function getLog(): array {
-        return $this->log;
     }
 }
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -83,7 +84,7 @@ class StreamingUploader extends AbstractUploader {
             throw new FileException('Upload rejected by callback.');
         }
 
-        $destPath = $this->getUploadDir() . DIRECTORY_SEPARATOR . $filename;
+        $destPath = $this->getUploadDir().DIRECTORY_SEPARATOR.$filename;
         $chunks = $this->readInput();
         $processor = $this->getStreamProcessor();
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Streaming Upload Server
  * 
@@ -38,7 +39,8 @@ try {
 
     // Compute SHA-256 hash during upload via stream processor
     $checksum = null;
-    $uploader->setStreamProcessor(function (\Generator $chunks, string $destPath) use (&$checksum) {
+    $uploader->setStreamProcessor(function (Generator $chunks, string $destPath) use (&$checksum)
+    {
         $hash = hash_init('sha256');
         $dest = fopen($destPath, 'wb');
 

@@ -42,7 +42,8 @@ echo "\n=== Upload with Hash Verification ===\n";
 $uploader2 = new StreamingUploader($tmpDir.'/uploads', [], $inputPath);
 $checksum = null;
 
-$uploader2->setStreamProcessor(function(\Generator $chunks, string $destPath) use (&$checksum) {
+$uploader2->setStreamProcessor(function(Generator $chunks, string $destPath) use (&$checksum)
+{
     $hash = hash_init('sha256');
     $dest = fopen($destPath, 'wb');
 
@@ -67,7 +68,7 @@ $uploader3->setMaxFileSize(100); // Only allow 100 bytes
 
 try {
     $uploader3->receive('too-large.bin');
-} catch (\WebFiori\File\Exceptions\FileException $e) {
+} catch (WebFiori\File\Exceptions\FileException $e) {
     echo "Rejected: ".$e->getMessage()."\n";
 }
 

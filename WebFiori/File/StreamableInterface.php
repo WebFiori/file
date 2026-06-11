@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -20,6 +21,26 @@ namespace WebFiori\File;
  * @author Ibrahim
  */
 interface StreamableInterface {
+    /**
+     * Returns the MIME type of the file.
+     *
+     * @return string MIME type.
+     */
+    public function getMIME(): string;
+
+    /**
+     * Returns the name of the file.
+     *
+     * @return string File name.
+     */
+    public function getName(): string;
+
+    /**
+     * Returns the file size in bytes.
+     *
+     * @return int Size in bytes.
+     */
+    public function getSize(): int;
     /**
      * Reads the file in fixed-size chunks.
      *
@@ -48,15 +69,6 @@ interface StreamableInterface {
     public function readRange(int $from, int $to, int $bufferSize = 8192): \Generator;
 
     /**
-     * Writes data from an iterable source to the file.
-     *
-     * @param iterable $source An iterable yielding string chunks.
-     * @param bool $append If true, appends to the file.
-     * @param bool $lock If true, acquires an exclusive lock during write.
-     */
-    public function writeFromStream(iterable $source, bool $append = true, bool $lock = true): void;
-
-    /**
      * Serves the file over HTTP using a ResponseEmitter.
      *
      * @param bool $asAttachment If true, triggers download dialog.
@@ -65,23 +77,11 @@ interface StreamableInterface {
     public function serve(bool $asAttachment = false, ?ResponseEmitter $emitter = null): void;
 
     /**
-     * Returns the file size in bytes.
+     * Writes data from an iterable source to the file.
      *
-     * @return int Size in bytes.
+     * @param iterable $source An iterable yielding string chunks.
+     * @param bool $append If true, appends to the file.
+     * @param bool $lock If true, acquires an exclusive lock during write.
      */
-    public function getSize(): int;
-
-    /**
-     * Returns the MIME type of the file.
-     *
-     * @return string MIME type.
-     */
-    public function getMIME(): string;
-
-    /**
-     * Returns the name of the file.
-     *
-     * @return string File name.
-     */
-    public function getName(): string;
+    public function writeFromStream(iterable $source, bool $append = true, bool $lock = true): void;
 }

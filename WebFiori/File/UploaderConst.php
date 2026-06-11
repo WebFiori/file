@@ -12,6 +12,10 @@ class UploaderConst {
      */
     const ALREADY_EXIST = 'already_uploaded';
     /**
+     * A constant that is used to indicate uploaded file exceeds custom size limit.
+     */
+    const ERR_FILE_TOO_LARGE = 'file_too_large';
+    /**
      * One of the constants which is used to initialize uploaded file array.
      */
     const ERR_INDEX = 'upload-error';
@@ -28,10 +32,6 @@ class UploaderConst {
      * A constant that is used to indicate uploaded file type is not allowed.
      */
     const ERR_NOT_ALLOWED = 'not_allowed_type';
-    /**
-     * A constant that is used to indicate uploaded file exceeds custom size limit.
-     */
-    const ERR_FILE_TOO_LARGE = 'file_too_large';
     /**
      * One of the constants which is used to initialize uploaded file array.
      */
