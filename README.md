@@ -44,6 +44,7 @@ A PHP library for file operations, providing an object-oriented abstraction laye
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php82.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php83.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php84.yaml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php85.yaml"><img src="https://github.com/WebFiori/file/actions/workflows/php85.yaml/badge.svg?branch=main"></a> |
 
 ## Key Features
 
