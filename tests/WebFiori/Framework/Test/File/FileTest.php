@@ -602,4 +602,152 @@ class FileTest extends TestCase {
         $file = new File('nonexistent.txt', ROOT_PATH.DS.'tests'.DS.'tmp');
         $file->moveTo(ROOT_PATH.DS.'tests'.DS.'tmp'.DS.'dest.txt');
     }
+
+    /**
+     * @test
+     */
+    public function testViewInline() {
+        $file = new File();
+        $file->setName('test-view.txt');
+        $file->setRawData('View content');
+
+        $emitter = new \WebFiori\File\DefaultEmitter();
+
+        // Use a buffered emitter to capture output
+        $buffered = new class implements \WebFiori\File\ResponseEmitter {
+            public array $headers = [];
+            public int $status = 0;
+            public string $body = '';
+
+            public function setHeader(string $name, string $value): void {
+                $this->headers[$name] = $value;
+            }
+
+            public function setStatusCode(int $code): void {
+                $this->status = $code;
+            }
+
+            public function sendBody(\Generator $chunks): void {
+                foreach ($chunks as $chunk) {
+                    $this->body .= $chunk;
+                }
+            }
+        };
+
+        $file->setResponseEmitter($buffered);
+        $file->view(false);
+
+        $this->assertEquals('View content', $buffered->body);
+        $this->assertEquals('text/plain', $buffered->headers['Content-Type']);
+        $this->assertStringContainsString('inline', $buffered->headers['Content-Disposition']);
+    }
+
+    /**
+     * @test
+     */
+    public function testViewAsAttachment() {
+        $file = new File();
+        $file->setName('download.txt');
+        $file->setRawData('Download me');
+
+        $buffered = new class implements \WebFiori\File\ResponseEmitter {
+            public array $headers = [];
+            public int $status = 0;
+            public string $body = '';
+
+            public function setHeader(string $name, string $value): void {
+                $this->headers[$name] = $value;
+            }
+
+            public function setStatusCode(int $code): void {
+                $this->status = $code;
+            }
+
+            public function sendBody(\Generator $chunks): void {
+                foreach ($chunks as $chunk) {
+                    $this->body .= $chunk;
+                }
+            }
+        };
+
+        $file->setResponseEmitter($buffered);
+        $file->view(true);
+
+        $this->assertStringContainsString('attachment', $buffered->headers['Content-Disposition']);
+        $this->assertEquals('Download me', $buffered->body);
+    }
+
+    /**
+     * @test
+     */
+    public function testViewWithRange() {
+        $file = new File();
+        $file->setName('ranged.txt');
+        $file->setRawData('ABCDEFGHIJ');
+
+        $_SERVER['HTTP_RANGE'] = 'bytes=2-5';
+
+        $buffered = new class implements \WebFiori\File\ResponseEmitter {
+            public array $headers = [];
+            public int $status = 0;
+            public string $body = '';
+
+            public function setHeader(string $name, string $value): void {
+                $this->headers[$name] = $value;
+            }
+
+            public function setStatusCode(int $code): void {
+                $this->status = $code;
+            }
+
+            public function sendBody(\Generator $chunks): void {
+                foreach ($chunks as $chunk) {
+                    $this->body .= $chunk;
+                }
+            }
+        };
+
+        $file->setResponseEmitter($buffered);
+        $file->setDir(ROOT_PATH.'tests'.DS.'tmp');
+        $file->create(true);
+        $file->write(false);
+        $file->view(false);
+
+        $this->assertEquals(206, $buffered->status);
+        $this->assertArrayHasKey('Content-Range', $buffered->headers);
+        $file->remove();
+        unset($_SERVER['HTTP_RANGE']);
+    }
+
+    /**
+     * @test
+     */
+    public function testGetResponseEmitter() {
+        $file = new File();
+        $this->assertNull($file->getResponseEmitter());
+
+        $emitter = new \WebFiori\File\DefaultEmitter();
+        $file->setResponseEmitter($emitter);
+        $this->assertSame($emitter, $file->getResponseEmitter());
+    }
+
+    /**
+     * @test
+     */
+    public function testWriteEncoded() {
+        $file = new File(ROOT_PATH.'tests'.DS.'tmp'.DS.'encode-test.txt');
+        $file->create(true);
+        $file->setRawData('Encode this content');
+        $file->writeEncoded();
+
+        $binPath = ROOT_PATH.'tests'.DS.'tmp'.DS.'encode-test.txt.bin';
+        $this->assertTrue(file_exists($binPath));
+
+        $binFile = new File($binPath);
+        $binFile->readDecoded();
+        $this->assertEquals('Encode this content', $binFile->getRawData());
+
+        $file->remove();
+        $binFile->remove();
+    }
 }

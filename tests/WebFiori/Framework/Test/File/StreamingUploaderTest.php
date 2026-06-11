@@ -180,4 +180,42 @@ class StreamingUploaderTest extends TestCase {
         $u = new StreamingUploader(self::$testDir, [], self::$inputFile);
         $u->receive('...');
     }
+
+    /**
+     * @test
+     */
+    public function testReceiveContentLengthExceedsLimit() {
+        $_SERVER['CONTENT_LENGTH'] = '1000';
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('File exceeds size limit.');
+        try {
+            $u = new StreamingUploader(self::$testDir, [], self::$inputFile);
+            $u->setMaxFileSize(50);
+            $u->receive('streamed-clength.txt');
+        } finally {
+            unset($_SERVER['CONTENT_LENGTH']);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function testReceiveFromContentDispositionHeader() {
+        $_SERVER['HTTP_CONTENT_DISPOSITION'] = 'attachment; filename="disp-file.txt"';
+        $u = new StreamingUploader(self::$testDir, [], self::$inputFile);
+        $file = $u->receive();
+        $this->assertEquals('disp-file.txt', $file->getName());
+        $file->remove();
+        unset($_SERVER['HTTP_CONTENT_DISPOSITION']);
+    }
+
+    /**
+     * @test
+     */
+    public function testReceiveInvalidInputSource() {
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('Unable to open input stream.');
+        $u = new StreamingUploader(self::$testDir, [], '/nonexistent/path.bin');
+        $u->receive('fail.txt');
+    }
 }

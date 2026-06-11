@@ -403,4 +403,248 @@ class UploaderTest extends TestCase {
         $this->assertEquals('testUpload.txt', $uploadedFile->getName());
         $uploadedFile->remove();
     }
+
+    /**
+     * @test
+     */
+    public function testUploadReplaceExisting() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+
+        // Create existing file
+        $existingPath = $uploadDir . DS . 'text-file.txt';
+        file_put_contents($existingPath, 'old content');
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        FileUploader::addTestFile('files', $samplePath, true);
+
+        $files = $u->uploadAsFileObj(true);
+        $this->assertCount(1, $files);
+        $this->assertTrue($files[0]->isUploaded());
+        $this->assertTrue($files[0]->isReplace());
+        $files[0]->remove();
+    }
+
+    /**
+     * @test
+     */
+    public function testUploadExistingNoReplace() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+
+        // Create existing file
+        $existingPath = $uploadDir . DS . 'text-file.txt';
+        file_put_contents($existingPath, 'old content');
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        FileUploader::addTestFile('files', $samplePath, true);
+
+        $files = $u->uploadAsFileObj(false);
+        $this->assertCount(1, $files);
+        $this->assertFalse($files[0]->isUploaded());
+        $this->assertNotEmpty($files[0]->getUploadError());
+        @unlink($existingPath);
+    }
+
+    /**
+     * @test
+     */
+    public function testGetFilesAsArray() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        FileUploader::addTestFile('files', $samplePath, true);
+        $u->upload();
+
+        $asArr = $u->getFiles(false);
+        $this->assertIsArray($asArr);
+        $this->assertCount(1, $asArr);
+        $this->assertIsArray($asArr[0]);
+        $this->assertArrayHasKey('name', $asArr[0]);
+
+        $asObj = $u->getFiles(true);
+        $this->assertCount(1, $asObj);
+        $this->assertInstanceOf(UploadedFile::class, $asObj[0]);
+        $asObj[0]->remove();
+    }
+
+    /**
+     * @test
+     */
+    public function testToJSON() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $u = new FileUploader($uploadDir, ['txt', 'png']);
+        $json = $u->toJSON();
+        $this->assertInstanceOf(Json::class, $json);
+    }
+
+    /**
+     * @test
+     */
+    public function testUploadNotAllowedExtension() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'tmp' . DS . 'not-allowed.xp';
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        FileUploader::addTestFile('files', $samplePath, true);
+
+        $files = $u->uploadAsFileObj();
+        $this->assertCount(1, $files);
+        $this->assertFalse($files[0]->isUploaded());
+    }
+
+    /**
+     * @test
+     */
+    public function testUploadWithMaxSizeExceeded() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $u->setMaxFileSize(1); // 1 byte
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        FileUploader::addTestFile('files', $samplePath, true);
+
+        $files = $u->uploadAsFileObj();
+        $this->assertCount(1, $files);
+        $this->assertFalse($files[0]->isUploaded());
+    }
+
+    /**
+     * @test
+     */
+    public function testGetMaxFileSizeReturnsPositive() {
+        $size = FileUploader::getMaxFileSize();
+        $this->assertIsInt($size);
+        $this->assertGreaterThan(0, $size);
+    }
+
+    /**
+     * @test
+     */
+    public function testUploadWithBeforeCallbackReject() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $u->setOnBeforeUpload(function ($info) {
+            return false;
+        });
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        FileUploader::addTestFile('files', $samplePath, true);
+
+        $files = $u->uploadAsFileObj();
+        $this->assertCount(1, $files);
+        $this->assertFalse($files[0]->isUploaded());
+    }
+
+    /**
+     * @test
+     */
+    public function testUploadWithAfterCallback() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+        $called = false;
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $u->setOnAfterUpload(function ($file) use (&$called) {
+            $called = true;
+        });
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        FileUploader::addTestFile('files', $samplePath, true);
+
+        $files = $u->uploadAsFileObj();
+        $this->assertTrue($called);
+        $files[0]->remove();
+    }
+
+    /**
+     * @test
+     */
+    public function testMultiFileUpload() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath1 = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+        $samplePath2 = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file-2.txt';
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES = [];
+        FileUploader::addTestFile('files', $samplePath1, true);
+        FileUploader::addTestFile('files', $samplePath2, false);
+
+        $files = $u->uploadAsFileObj();
+        $this->assertCount(2, $files);
+        $this->assertTrue($files[0]->isUploaded());
+        $this->assertTrue($files[1]->isUploaded());
+        $files[0]->remove();
+        $files[1]->remove();
+    }
+
+    /**
+     * @test
+     */
+    public function testAddTestFileEmptyIndex() {
+        $_FILES = [];
+        FileUploader::addTestFile('', '/some/path.txt', true);
+        $this->assertEmpty($_FILES);
+    }
+
+    /**
+     * @test
+     */
+    public function testAddTestFileNotFound() {
+        $this->expectException(FileException::class);
+        FileUploader::addTestFile('files', '/nonexistent/file.txt', true);
+    }
+
+    /**
+     * @test
+     */
+    public function testUploadViaPostFileField() {
+        $uploadDir = ROOT_PATH . 'tests' . DS . 'tmp';
+        $samplePath = ROOT_PATH . 'tests' . DS . 'files' . DS . 'text-file.txt';
+
+        $u = new FileUploader($uploadDir, ['txt']);
+        $u->setAssociatedFileName('my_field');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['file'] = 'my_field';
+        FileUploader::addTestFile('my_field', $samplePath, true);
+
+        $files = $u->uploadAsFileObj();
+        $this->assertCount(1, $files);
+        $this->assertTrue($files[0]->isUploaded());
+        $files[0]->remove();
+        unset($_POST['file']);
+    }
+
+    /**
+     * @test
+     */
+    public function testAbstractUploaderGetCallbacks() {
+        $u = new FileUploader();
+        $this->assertNull($u->getOnBeforeUpload());
+        $this->assertNull($u->getOnAfterUpload());
+
+        $before = function () { return true; };
+        $after = function () {};
+        $u->setOnBeforeUpload($before);
+        $u->setOnAfterUpload($after);
+
+        $this->assertSame($before, $u->getOnBeforeUpload());
+        $this->assertSame($after, $u->getOnAfterUpload());
+    }
+
+    /**
+     * @test
+     */
+    public function testSetUploadDirEmpty() {
+        $this->expectException(FileException::class);
+        $u = new FileUploader();
+        $u->setUploadDir('');
+    }
 }
