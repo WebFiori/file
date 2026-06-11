@@ -3,7 +3,7 @@
 A PHP library for file operations, providing an object-oriented abstraction layer for reading, writing, uploading, and serving files with streaming support, Base64 encoding/decoding, MIME type detection, and chunked file processing.
 
 <p align="center">
-  <a target="_blank" href="https://github.com/WebFiori/file/actions/workflows/php84.yaml">
+  <a href="https://github.com/WebFiori/file/actions">
     <img src="https://github.com/WebFiori/file/actions/workflows/php84.yaml/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/file">
@@ -13,11 +13,12 @@ A PHP library for file operations, providing an object-oriented abstraction laye
       <img src="https://sonarcloud.io/api/project_badges/measure?project=WebFiori_file&metric=alert_status" />
   </a>
   <a href="https://github.com/WebFiori/file/releases">
-    <img src="https://img.shields.io/github/v/release/WebFiori/file">
+      <img src="https://img.shields.io/github/release/WebFiori/file.svg?label=latest" />
   </a>
   <a href="https://packagist.org/packages/webfiori/file">
-    <img src="https://img.shields.io/packagist/dt/webfiori/file?color=light-green">
+      <img src="https://img.shields.io/packagist/dt/webfiori/file?color=light-green">
   </a>
+  <img src="https://img.shields.io/badge/php-%3E%3D8.1-blue" alt="PHP 8.1+">
 </p>
 
 ## Table of Contents
