@@ -5,9 +5,9 @@
  * Usage: php -S localhost:8080 examples/streaming-upload/router.php
  * Then open: http://localhost:8080
  */
-$uri = $_SERVER['REQUEST_URI'];
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-if ($uri === '/server.php' || str_starts_with($uri, '/server.php?')) {
+if ($uri === '/server.php') {
     require __DIR__.'/server.php';
     return true;
 }
