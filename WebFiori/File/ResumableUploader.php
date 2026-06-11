@@ -216,6 +216,7 @@ class ResumableUploader extends AbstractUploader {
             }
         }
 
+        clearstatcache(true, $partialPath);
         $offset = file_exists($partialPath) ? filesize($partialPath) : 0;
 
         if ($isLast) {
