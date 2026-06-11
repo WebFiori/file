@@ -22,5 +22,5 @@ Demonstrates core file I/O operations using the `File` class.
 ## Run
 
 ```bash
-php examples/read-and-write.php
+php examples/read-and-write/read-and-write.php
 ```

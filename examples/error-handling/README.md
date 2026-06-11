@@ -20,5 +20,5 @@ Six error conditions, each caught with `try/catch`:
 ## Run
 
 ```bash
-php examples/error-handling.php
+php examples/error-handling/error-handling.php
 ```

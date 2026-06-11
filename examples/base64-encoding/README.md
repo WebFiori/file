@@ -27,5 +27,5 @@ Demonstrates encoding file data to Base64 and decoding it back, both in-memory a
 ## Run
 
 ```bash
-php examples/base64-encoding.php
+php examples/base64-encoding/base64-encoding.php
 ```

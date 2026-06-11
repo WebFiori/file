@@ -23,5 +23,5 @@ Demonstrates converting file data to byte arrays and hexadecimal string arrays.
 ## Run
 
 ```bash
-php examples/bytes-and-hex.php
+php examples/bytes-and-hex/bytes-and-hex.php
 ```

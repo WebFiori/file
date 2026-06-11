@@ -23,5 +23,5 @@ Demonstrates reading specific byte ranges from a file instead of loading the ent
 ## Run
 
 ```bash
-php examples/partial-read.php
+php examples/partial-read/partial-read.php
 ```

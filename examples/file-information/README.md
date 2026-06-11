@@ -26,5 +26,5 @@ Demonstrates how to retrieve file metadata and shows the two constructor forms.
 ## Run
 
 ```bash
-php examples/file-information.php
+php examples/file-information/file-information.php
 ```

@@ -17,5 +17,5 @@ Demonstrates converting `File` objects to JSON for API responses or metadata sto
 ## Run
 
 ```bash
-php examples/json-serialization.php
+php examples/json-serialization/json-serialization.php
 ```
