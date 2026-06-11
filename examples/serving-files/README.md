@@ -1,30 +1,46 @@
 # Serving Files over HTTP
 
-Demonstrates using `view()` to serve files to the browser with proper HTTP headers.
+Demonstrates serving files using `File::view()` and `FileStream::serve()` with the `ResponseEmitter` interface.
 
 ## What It Covers
 
-- Serving a file inline (displayed in the browser) with `view(false)`
-- Forcing a download dialog with `view(true)`
-- Automatic HTTP header management:
-  - `Content-Type` based on MIME detection
-  - `Accept-Ranges: bytes` for range request support
-  - `Content-Length`
-  - `Content-Disposition` with the filename (inline or attachment)
-  - `Content-Range` for partial content responses (HTTP 206)
+- Serving a file inline in the browser with `File::view(false)`
+- Serving a file as a download (attachment) with `File::view(true)`
+- Streaming large files with constant memory via `FileStream::serve()`
+- The `ResponseEmitter` interface for framework-agnostic HTTP output
+- `DefaultEmitter` (raw `header()` + `echo`) vs custom emitters
 
-## How to Run
-
-This example must be run with a web server, not CLI:
+## Run (CLI demo)
 
 ```bash
-php -S localhost:8080 examples/serving-files.php
+php examples/serving-files/serving-files.php
+```
+
+## Run (Web UI)
+
+```bash
+php -S localhost:8080 examples/serving-files/router.php
 ```
 
 Then visit:
-- `http://localhost:8080` — displays the file inline
-- `http://localhost:8080?download=1` — triggers a download dialog
+- http://localhost:8080/inline — View file inline
+- http://localhost:8080/download — Download as attachment
+- http://localhost:8080/stream — Serve via FileStream
 
 ## Key Methods
 
-- `File::view(bool $asAttachment = false)` — Sends the file content to the client with appropriate HTTP headers. If raw data is empty, it calls `read()` first. Pass `true` to force a download instead of inline display.
+- `File::view(bool $asAttachment = false)` — Sends HTTP headers and outputs the file content. Loads the full file into memory.
+- `FileStream::serve(bool $asAttachment = false, ?ResponseEmitter $emitter = null)` — Streams the file in chunks with constant memory. Ideal for large files.
+- `File::setResponseEmitter(ResponseEmitter $emitter)` — Plug in a custom emitter for PSR-7 or framework integration.
+
+## ResponseEmitter Interface
+
+```php
+interface ResponseEmitter {
+    public function setStatusCode(int $code): void;
+    public function setHeader(string $name, string $value): void;
+    public function sendBody(iterable $chunks): void;
+}
+```
+
+Implement this interface to integrate file serving with any framework (Laravel, Symfony, PSR-7, etc.).

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -16,14 +17,6 @@ namespace WebFiori\File;
  * @author Ibrahim
  */
 class DefaultEmitter implements ResponseEmitter {
-    public function setHeader(string $name, string $value): void {
-        header("$name: $value");
-    }
-
-    public function setStatusCode(int $code): void {
-        http_response_code($code);
-    }
-
     public function sendBody(\Generator $chunks): void {
         foreach ($chunks as $chunk) {
             if (connection_aborted()) {
@@ -32,5 +25,12 @@ class DefaultEmitter implements ResponseEmitter {
             echo $chunk;
             flush();
         }
+    }
+    public function setHeader(string $name, string $value): void {
+        header("$name: $value");
+    }
+
+    public function setStatusCode(int $code): void {
+        http_response_code($code);
     }
 }

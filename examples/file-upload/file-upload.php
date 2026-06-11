@@ -55,7 +55,11 @@ $uploader->setAssociatedFileName('user_files');
 echo "Upload dir:     ".$uploader->getUploadDir()."\n";
 echo "Input name:     ".$uploader->getAssociatedFileName()."\n";
 echo "Allowed types:  ".implode(', ', $uploader->getExts())."\n";
-echo "Max file size:  ".FileUploader::getMaxFileSize()." KB\n";
+echo "PHP max size:   ".FileUploader::getMaxFileSize()." KB\n";
+
+// Set a custom max file size (in bytes) — overrides PHP's upload_max_filesize
+$uploader->setMaxFileSize(5 * 1024 * 1024); // 5MB
+echo "Custom limit:   ".($uploader->getMaxFileSizeLimit() / 1024)." KB\n";
 
 // --- Simulated upload (for testing without a browser) ---
 

@@ -22,5 +22,5 @@ Demonstrates splitting file data into fixed-size chunks for batch processing or 
 ## Run
 
 ```bash
-php examples/chunked-processing.php
+php examples/chunked-processing/chunked-processing.php
 ```

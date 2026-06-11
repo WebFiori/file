@@ -17,5 +17,5 @@ Demonstrates looking up MIME types by file extension using the `MIME` class.
 ## Run
 
 ```bash
-php examples/mime-detection.php
+php examples/mime-detection/mime-detection.php
 ```

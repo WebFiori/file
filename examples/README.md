@@ -28,9 +28,27 @@ Examples that create temporary files use the `examples/tmp/` directory, which is
 | [Path Utilities](path-utilities/) | Normalize paths, check/create directories |
 | [File Upload](file-upload/) | Configure and process file uploads with `FileUploader` |
 | [Serving Files](serving-files/) | Serve files over HTTP with proper headers |
+| [Streaming I/O](streaming/) | Read chunks, lines, ranges, and write with `FileStream` |
+| [Copy and Move](copy-and-move/) | Copy and move files with streaming |
+| [Atomic Write](atomic-write/) | Crash-safe writes with temp + rename |
+| [Streaming Upload](streaming-upload/) | One-shot streaming upload from `php://input` |
+| [Upload Callbacks](upload-callbacks/) | Before/after hooks for validation and logging |
+| [Resumable Upload](resumable-upload/) | Chunked upload with pause/resume support |
+| [Custom FileInterface](custom-file-interface/) | Implement `FileInterface` for DI, mocking, or custom storage |
+| [Custom Emitter](custom-emitter/) | Implement `ResponseEmitter` for framework integration |
+
+## Web Examples
+
+Some examples include a `router.php` for use with PHP's built-in server:
+
+```bash
+php -S localhost:8080 examples/serving-files/router.php
+php -S localhost:8080 examples/streaming-upload/router.php
+php -S localhost:8080 examples/resumable-upload/router.php
+```
 
 ## Notes
 
-- All examples except Serving Files run in CLI mode.
-- Serving Files is meant to be run with PHP's built-in server: `php -S localhost:8080 examples/serving-files/serving-files.php`
+- All examples run in CLI mode for quick testing.
+- Web examples also have a router for browser-based demos.
 - Temporary files are cleaned up at the end of each example.

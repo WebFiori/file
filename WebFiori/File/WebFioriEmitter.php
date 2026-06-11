@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -24,12 +25,13 @@ class WebFioriEmitter implements ResponseEmitter {
         $this->response = $response ?? new Response();
     }
 
-    public function setHeader(string $name, string $value): void {
-        $this->response->addHeader($name, $value);
-    }
-
-    public function setStatusCode(int $code): void {
-        $this->response->setCode($code);
+    /**
+     * Returns the underlying Response object.
+     *
+     * @return Response
+     */
+    public function getResponse(): Response {
+        return $this->response;
     }
 
     public function sendBody(\Generator $chunks): void {
@@ -38,12 +40,11 @@ class WebFioriEmitter implements ResponseEmitter {
         }
     }
 
-    /**
-     * Returns the underlying Response object.
-     *
-     * @return Response
-     */
-    public function getResponse(): Response {
-        return $this->response;
+    public function setHeader(string $name, string $value): void {
+        $this->response->addHeader($name, $value);
+    }
+
+    public function setStatusCode(int $code): void {
+        $this->response->setCode($code);
     }
 }

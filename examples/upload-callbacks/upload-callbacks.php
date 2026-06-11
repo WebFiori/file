@@ -32,14 +32,18 @@ echo "=== Before-Upload Hook ===\n";
 $uploader = new FileUploader($uploadDir, ['txt']);
 $_SERVER['REQUEST_METHOD'] = 'POST';
 
-$uploader->setOnBeforeUpload(function(array $fileInfo) {
+$uploader->setOnBeforeUpload(function(array $fileInfo)
+{
     echo "  Checking: ".$fileInfo['name']."\n";
+
     // Reject files with "blocked" in the name
     if (str_contains($fileInfo['name'], 'blocked')) {
         echo "  REJECTED\n";
+
         return false;
     }
     echo "  ACCEPTED\n";
+
     return true;
 });
 
@@ -57,7 +61,8 @@ echo "\n=== After-Upload Hook ===\n";
 
 $uploader2 = new FileUploader($uploadDir, ['txt']);
 
-$uploader2->setOnAfterUpload(function(UploadedFile $file) {
+$uploader2->setOnAfterUpload(function(UploadedFile $file)
+{
     echo "  Logged upload: ".$file->getName()." at ".$file->getDir()."\n";
     echo "  MIME: ".$file->getMIME()."\n";
 });

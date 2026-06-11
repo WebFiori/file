@@ -200,6 +200,27 @@ class FileUploader extends AbstractUploader implements JsonI {
         return $retVal;
     }
     /**
+     * Returns the value of the directive 'upload_max_filesize' in KB.
+     * 
+     * @return int
+     */
+    public static function getMaxFileSize() : int {
+        $val = ini_get('upload_max_filesize');
+        $lastChar = strtoupper($val[strlen($val) - 1]);
+
+        switch ($lastChar) {
+            case 'M' : {
+                return intval($val) * 1024;
+            } case 'K' : {
+                return intval($val);
+            } case 'G' : {
+                return intval($val) * 1048576;
+            } default : {
+                return intval($val) / 1024;
+            }
+        }
+    }
+    /**
      * Sets The name of the index at which the file is stored in the array $_FILES.
      * 
      * This value is the value of the attribute 'name' in case of HTML file input. 
@@ -380,6 +401,7 @@ class FileUploader extends AbstractUploader implements JsonI {
         if (!$isErr) {
             if ($this->isValidExt($fileInfoArr[UploaderConst::NAME_INDEX])) {
                 $maxSize = $this->getMaxFileSizeLimit();
+
                 if ($maxSize !== null && (int)$fileInfoArr[UploaderConst::SIZE_INDEX] > $maxSize) {
                     $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
                     $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_FILE_TOO_LARGE;
@@ -388,38 +410,38 @@ class FileUploader extends AbstractUploader implements JsonI {
                         $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
                         $fileInfoArr[UploaderConst::ERR_INDEX] = 'rejected_by_callback';
                     } else {
-                    $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
+                        $filePath = $this->getUploadDir().DIRECTORY_SEPARATOR.$fileInfoArr[UploaderConst::NAME_INDEX];
 
-                    if (!File::isFileExist($filePath)) {
-                        $fileInfoArr[UploaderConst::EXIST_INDEX] = false;
-                        $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
-                        $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
-                        $sanitizedName = filter_var($name);
-
-                        if (!$this->moveFile($sanitizedName, $filePath)) {
-                            $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_MOVE_TEMP;
-                        } else {
-                            $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
-                        }
-                    } else {
-                        $fileInfoArr[UploaderConst::EXIST_INDEX] = true;
-
-                        if ($replaceIfExist) {
-                            $fileInfoArr[UploaderConst::REPLACE_INDEX] = true;
-                            unlink($filePath);
+                        if (!File::isFileExist($filePath)) {
+                            $fileInfoArr[UploaderConst::EXIST_INDEX] = false;
+                            $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
                             $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
                             $sanitizedName = filter_var($name);
 
-                            if ($this->moveFile($sanitizedName, $filePath)) {
-                                $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
+                            if (!$this->moveFile($sanitizedName, $filePath)) {
+                                $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_MOVE_TEMP;
                             } else {
-                                $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                                $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
                             }
                         } else {
-                            $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
-                            $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ALREADY_EXIST;
+                            $fileInfoArr[UploaderConst::EXIST_INDEX] = true;
+
+                            if ($replaceIfExist) {
+                                $fileInfoArr[UploaderConst::REPLACE_INDEX] = true;
+                                unlink($filePath);
+                                $name = $idx === null ? $fileOrFiles[$tempIdx] : $fileOrFiles[$tempIdx][$idx];
+                                $sanitizedName = filter_var($name);
+
+                                if ($this->moveFile($sanitizedName, $filePath)) {
+                                    $fileInfoArr[UploaderConst::UPLOADED_INDEX] = true;
+                                } else {
+                                    $fileInfoArr[UploaderConst::UPLOADED_INDEX] = false;
+                                }
+                            } else {
+                                $fileInfoArr[UploaderConst::REPLACE_INDEX] = false;
+                                $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ALREADY_EXIST;
+                            }
                         }
-                    }
                     }
                 } else {
                     $fileInfoArr[UploaderConst::ERR_INDEX] = UploaderConst::ERR_NO_SUCH_DIR;
@@ -439,27 +461,6 @@ class FileUploader extends AbstractUploader implements JsonI {
         }
 
         return $fileInfoArr;
-    }
-    /**
-     * Returns the value of the directive 'upload_max_filesize' in KB.
-     * 
-     * @return int
-     */
-    public static function getMaxFileSize() : int {
-        $val = ini_get('upload_max_filesize');
-        $lastChar = strtoupper($val[strlen($val) - 1]);
-        
-        switch ($lastChar) {
-            case 'M' : {
-                return intval($val) * 1024;
-            } case 'K' : {
-                return intval($val);
-            } case 'G' : {
-                return intval($val) * 1048576;
-            } default : {
-                return intval($val) / 1024;
-            }
-        }
     }
     /**
      * 
@@ -516,6 +517,7 @@ class FileUploader extends AbstractUploader implements JsonI {
      */
     private function moveFile(string $source, string $dest): bool {
         $processor = $this->getStreamProcessor();
+
         if ($processor !== null) {
             try {
                 $stream = new FileStream($source);

@@ -17,5 +17,5 @@ Demonstrates static utility methods for path normalization, directory management
 ## Run
 
 ```bash
-php examples/path-utilities.php
+php examples/path-utilities/path-utilities.php
 ```

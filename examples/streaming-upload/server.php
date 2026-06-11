@@ -1,20 +1,20 @@
 <?php
+
 /**
  * Streaming Upload Server
  * 
- * Receives chunked uploads from the frontend with pause/resume support.
- * Each chunk is appended to the destination file as it arrives.
+ * Receives a single file upload from the raw HTTP body using StreamingUploader.
+ * The file is written to disk in constant memory.
  * 
- * Run: php -S localhost:8080 examples/streaming-upload/server.php
+ * Run: php -S localhost:8080 examples/streaming-upload/router.php
  */
 require_once __DIR__.'/../../vendor/autoload.php';
 
 use WebFiori\File\Exceptions\FileException;
-use WebFiori\File\FileStream;
-use WebFiori\File\AbstractUploader;
+use WebFiori\File\StreamingUploader;
 
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, X-Filename, X-Chunk-Index, X-Total-Chunks, X-Upload-Id');
+header('Access-Control-Allow-Headers: Content-Type, X-Filename');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -34,68 +34,36 @@ if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
-$filename = $_SERVER['HTTP_X_FILENAME'] ?? 'upload.bin';
-$filename = AbstractUploader::sanitizeFilename($filename);
-$chunkIndex = (int)($_SERVER['HTTP_X_CHUNK_INDEX'] ?? 0);
-$totalChunks = (int)($_SERVER['HTTP_X_TOTAL_CHUNKS'] ?? 1);
-$uploadId = $_SERVER['HTTP_X_UPLOAD_ID'] ?? uniqid();
-
-$destPath = $uploadDir . DIRECTORY_SEPARATOR . $uploadId . '_' . $filename;
-
 try {
-    // Read chunk from php://input and append to file
-    $input = fopen('php://input', 'rb');
+    $uploader = new StreamingUploader($uploadDir);
 
-    if (!is_resource($input)) {
-        throw new FileException('Unable to read input.');
-    }
+    // Compute SHA-256 hash during upload via stream processor
+    $checksum = null;
+    $uploader->setStreamProcessor(function (Generator $chunks, string $destPath) use (&$checksum)
+    {
+        $hash = hash_init('sha256');
+        $dest = fopen($destPath, 'wb');
 
-    $dest = fopen($destPath, 'ab'); // append mode
-    $bytesWritten = 0;
-
-    while (!feof($input)) {
-        $chunk = fread($input, 8192);
-
-        if ($chunk === false || strlen($chunk) === 0) {
-            break;
+        foreach ($chunks as $chunk) {
+            hash_update($hash, $chunk);
+            fwrite($dest, $chunk);
         }
 
-        fwrite($dest, $chunk);
-        $bytesWritten += strlen($chunk);
-    }
+        fclose($dest);
+        $checksum = hash_final($hash);
+    });
 
-    fclose($input);
-    fclose($dest);
-
-    $complete = ($chunkIndex + 1) >= $totalChunks;
-
-    $response = [
-        'status' => 'ok',
-        'chunk' => $chunkIndex,
-        'totalChunks' => $totalChunks,
-        'bytesWritten' => $bytesWritten,
-        'complete' => $complete,
-        'filename' => $filename,
-    ];
-
-    if ($complete) {
-        $finalSize = filesize($destPath);
-        $response['finalSize'] = $finalSize;
-        $response['sha256'] = hash_file('sha256', $destPath);
-
-        // Rename to final name (remove upload ID prefix)
-        $finalPath = $uploadDir . DIRECTORY_SEPARATOR . $filename;
-
-        if (file_exists($finalPath)) {
-            unlink($finalPath);
-        }
-        rename($destPath, $finalPath);
-        $response['path'] = $finalPath;
-    }
+    $file = $uploader->receive();
 
     header('Content-Type: application/json');
-    echo json_encode($response);
-} catch (\Throwable $e) {
+    echo json_encode([
+        'status' => 'ok',
+        'filename' => $file->getName(),
+        'size' => filesize($file->getAbsolutePath()),
+        'sha256' => $checksum,
+        'path' => $file->getAbsolutePath(),
+    ]);
+} catch (FileException $e) {
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 }

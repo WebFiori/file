@@ -4,15 +4,24 @@ Demonstrates `StreamingUploader` for receiving files from raw HTTP body in const
 
 ## Features Shown
 
-- Basic streaming upload from `php://input`
-- Hash verification during transfer via stream processor
-- Size limit enforcement during streaming (early rejection)
+- One-shot streaming upload from `php://input`
+- Filename resolved from `X-Filename` header
+- SHA-256 hash verification during transfer via stream processor
+- Size limit enforcement during streaming
 
-## Run
+## Run (CLI demo)
 
 ```bash
 php examples/streaming-upload/streaming-upload.php
 ```
+
+## Run (Web UI)
+
+```bash
+php -S localhost:8080 examples/streaming-upload/router.php
+```
+
+Then open http://localhost:8080 and drop a file.
 
 ## Key Points
 

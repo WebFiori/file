@@ -16,5 +16,5 @@ Demonstrates the `append()` method for building up in-memory file content.
 ## Run
 
 ```bash
-php examples/appending-data.php
+php examples/appending-data/appending-data.php
 ```

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumable Upload</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+        h1 { margin-bottom: 20px; font-size: 1.4em; }
+        .drop-zone {
+            border: 2px dashed #ccc; border-radius: 8px; padding: 40px;
+            text-align: center; margin-bottom: 20px; cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #4a90d9; }
+        input[type="file"] { display: none; }
+        .progress-container { display: none; margin-bottom: 20px; }
+        .progress-bar { width: 100%; height: 24px; background: #eee; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #4a90d9; transition: width 0.2s; width: 0%; }
+        .progress-text { margin-top: 8px; font-size: 0.9em; color: #666; }
+        .controls { display: none; gap: 10px; margin-bottom: 20px; }
+        button {
+            padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;
+            font-size: 0.95em; font-weight: 500;
+        }
+        .btn-pause { background: #f0ad4e; color: white; }
+        .btn-resume { background: #5cb85c; color: white; }
+        .btn-cancel { background: #d9534f; color: white; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 12px; border-radius: 4px; font-size: 0.9em; display: none; }
+        .status.success { display: block; background: #dff0d8; color: #3c763d; }
+        .status.error { display: block; background: #f2dede; color: #a94442; }
+    </style>
+</head>
+<body>
+    <h1>Resumable Upload with Pause/Resume</h1>
+
+    <div class="drop-zone" id="dropZone">
+        <p>Drop a file here or click to select</p>
+        <p style="font-size: 0.85em; color: #999; margin-top: 8px;">Supports pause, resume, and recovery on failure</p>
+        <input type="file" id="fileInput">
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <div class="controls" id="controls">
+        <button class="btn-pause" id="btnPause" onclick="pauseUpload()">Pause</button>
+        <button class="btn-resume" id="btnResume" onclick="resumeUpload()" disabled>Resume</button>
+        <button class="btn-cancel" id="btnCancel" onclick="cancelUpload()">Cancel</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <script>
+    const CHUNK_SIZE = 512 * 1024; // 512KB per chunk
+    const SERVER_URL = '/server.php';
+
+    let file = null;
+    let uploadId = null;
+    let currentOffset = 0;
+    let paused = false;
+    let cancelled = false;
+    let startTime = 0;
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) startUpload(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) startUpload(fileInput.files[0]);
+    });
+
+    async function startUpload(selectedFile) {
+        file = selectedFile;
+        uploadId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        paused = false;
+        cancelled = false;
+        startTime = Date.now();
+
+        // Check if there's an existing partial upload to resume
+        currentOffset = await getServerOffset();
+
+        document.getElementById('progressContainer').style.display = 'block';
+        document.getElementById('controls').style.display = 'flex';
+        document.getElementById('status').className = 'status';
+        document.getElementById('btnPause').disabled = false;
+        document.getElementById('btnResume').disabled = true;
+
+        dropZone.innerHTML = `<p><strong>${file.name}</strong></p><p style="color:#999">${formatSize(file.size)}</p>`;
+
+        sendNextChunk();
+    }
+
+    async function getServerOffset() {
+        try {
+            const resp = await fetch(`${SERVER_URL}?uploadId=${uploadId}&filename=${encodeURIComponent(file.name)}`);
+            const data = await resp.json();
+            return data.offset || 0;
+        } catch {
+            return 0;
+        }
+    }
+
+    async function sendNextChunk() {
+        if (paused || cancelled || currentOffset >= file.size) return;
+
+        const end = Math.min(currentOffset + CHUNK_SIZE, file.size);
+        const chunk = file.slice(currentOffset, end);
+        const isLast = end >= file.size;
+
+        try {
+            const response = await fetch(SERVER_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'X-Filename': file.name,
+                    'X-Upload-Id': uploadId,
+                    'X-Is-Last': isLast ? 'true' : 'false'
+                },
+                body: chunk
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || `Server error: ${response.status}`);
+            }
+
+            const result = await response.json();
+            currentOffset = result.offset;
+            updateProgress();
+
+            if (result.complete) {
+                onComplete(result);
+            } else if (!paused && !cancelled) {
+                sendNextChunk();
+            }
+        } catch (err) {
+            showStatus('error', `Upload failed at ${formatSize(currentOffset)}: ${err.message}. Click Resume to retry.`);
+            document.getElementById('btnPause').disabled = true;
+            document.getElementById('btnResume').disabled = false;
+        }
+    }
+
+    function pauseUpload() {
+        paused = true;
+        document.getElementById('btnPause').disabled = true;
+        document.getElementById('btnResume').disabled = false;
+    }
+
+    async function resumeUpload() {
+        paused = false;
+        cancelled = false;
+        document.getElementById('btnPause').disabled = false;
+        document.getElementById('btnResume').disabled = true;
+        document.getElementById('status').className = 'status';
+
+        // Ask server for actual offset in case of partial chunk failure
+        currentOffset = await getServerOffset();
+        updateProgress();
+        sendNextChunk();
+    }
+
+    function cancelUpload() {
+        cancelled = true;
+        paused = false;
+        document.getElementById('controls').style.display = 'none';
+        showStatus('error', 'Upload cancelled.');
+    }
+
+    function onComplete(result) {
+        document.getElementById('controls').style.display = 'none';
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        showStatus('success',
+            `<strong>Upload complete:</strong> ${result.filename}<br>` +
+            `Size: ${formatSize(result.size)}<br>` +
+            `SHA-256: <code>${result.sha256}</code><br>` +
+            `Time: ${elapsed}s`
+        );
+    }
+
+    function updateProgress() {
+        const pct = Math.min(100, (currentOffset / file.size) * 100).toFixed(1);
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressText').textContent =
+            `${pct}% — ${formatSize(currentOffset)} / ${formatSize(file.size)}`;
+    }
+
+    function showStatus(type, msg) {
+        const el = document.getElementById('status');
+        el.className = 'status ' + type;
+        el.innerHTML = msg;
+    }
+
+    function formatSize(bytes) {
+        if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
+        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+        return bytes + ' B';
+    }
+    </script>
+</body>
+</html>

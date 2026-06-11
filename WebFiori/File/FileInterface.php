@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -20,34 +21,27 @@ namespace WebFiori\File;
  */
 interface FileInterface {
     /**
-     * Returns the name of the file.
+     * Appends data to the file's in-memory content.
      *
-     * @return string The name of the file including extension.
+     * @param string|array $data Data to append.
      */
-    public function getName(): string;
+    public function append(string|array $data): void;
 
     /**
-     * Sets the name of the file.
+     * Copies the file to a new destination.
      *
-     * @param string $name The name of the file including extension.
+     * @param string $destination The destination path including filename.
+     *
+     * @return FileInterface A new instance representing the copy.
      */
-    public function setName(string $name): void;
+    public function copy(string $destination): FileInterface;
 
     /**
-     * Returns the directory at which the file exists.
+     * Creates the file on the filesystem if it does not exist.
      *
-     * @return string The directory path.
+     * @param bool $createDirIfNotExist If true, creates parent directories as needed.
      */
-    public function getDir(): string;
-
-    /**
-     * Sets the directory at which the file exists.
-     *
-     * @param string $dir The directory path.
-     *
-     * @return bool True if set successfully, false otherwise.
-     */
-    public function setDir(string $dir): bool;
+    public function create(bool $createDirIfNotExist = false): void;
 
     /**
      * Returns the full absolute path to the file.
@@ -55,6 +49,13 @@ interface FileInterface {
      * @return string Full path including directory and name.
      */
     public function getAbsolutePath(): string;
+
+    /**
+     * Returns the directory at which the file exists.
+     *
+     * @return string The directory path.
+     */
+    public function getDir(): string;
 
     /**
      * Returns the file extension.
@@ -69,6 +70,21 @@ interface FileInterface {
      * @return string MIME type string.
      */
     public function getMIME(): string;
+    /**
+     * Returns the name of the file.
+     *
+     * @return string The name of the file including extension.
+     */
+    public function getName(): string;
+
+    /**
+     * Returns the raw data of the file.
+     *
+     * @param bool $encode If true, returns base64-encoded data.
+     *
+     * @return string The raw file data.
+     */
+    public function getRawData(bool $encode = false): string;
 
     /**
      * Returns the size of the file in bytes.
@@ -85,13 +101,42 @@ interface FileInterface {
     public function isExist(): bool;
 
     /**
-     * Returns the raw data of the file.
+     * Moves the file to a new destination.
      *
-     * @param bool $encode If true, returns base64-encoded data.
-     *
-     * @return string The raw file data.
+     * @param string $destination The destination path including filename.
      */
-    public function getRawData(bool $encode = false): string;
+    public function moveTo(string $destination): void;
+
+    /**
+     * Reads the file content from the filesystem.
+     *
+     * @param int $from Starting byte offset (-1 for beginning).
+     * @param int $to Ending byte offset (-1 for end of file).
+     */
+    public function read(int $from = -1, int $to = -1): void;
+
+    /**
+     * Removes the file from the filesystem.
+     *
+     * @return bool True if successfully removed.
+     */
+    public function remove(): bool;
+
+    /**
+     * Sets the directory at which the file exists.
+     *
+     * @param string $dir The directory path.
+     *
+     * @return bool True if set successfully, false otherwise.
+     */
+    public function setDir(string $dir): bool;
+
+    /**
+     * Sets the name of the file.
+     *
+     * @param string $name The name of the file including extension.
+     */
+    public function setName(string $name): void;
 
     /**
      * Sets the raw data of the file.
@@ -103,55 +148,10 @@ interface FileInterface {
     public function setRawData(string $raw, bool $decode = false, bool $strict = false): void;
 
     /**
-     * Appends data to the file's in-memory content.
-     *
-     * @param string|array $data Data to append.
-     */
-    public function append(string|array $data): void;
-
-    /**
-     * Reads the file content from the filesystem.
-     *
-     * @param int $from Starting byte offset (-1 for beginning).
-     * @param int $to Ending byte offset (-1 for end of file).
-     */
-    public function read(int $from = -1, int $to = -1): void;
-
-    /**
      * Writes the file content to the filesystem.
      *
      * @param bool $append If true, appends to existing content.
      * @param bool $createIfNotExist If true, creates the file if it doesn't exist.
      */
     public function write(bool $append = true, bool $createIfNotExist = false): void;
-
-    /**
-     * Creates the file on the filesystem if it does not exist.
-     *
-     * @param bool $createDirIfNotExist If true, creates parent directories as needed.
-     */
-    public function create(bool $createDirIfNotExist = false): void;
-
-    /**
-     * Removes the file from the filesystem.
-     *
-     * @return bool True if successfully removed.
-     */
-    public function remove(): bool;
-
-    /**
-     * Copies the file to a new destination.
-     *
-     * @param string $destination The destination path including filename.
-     *
-     * @return FileInterface A new instance representing the copy.
-     */
-    public function copy(string $destination): FileInterface;
-
-    /**
-     * Moves the file to a new destination.
-     *
-     * @param string $destination The destination path including filename.
-     */
-    public function moveTo(string $destination): void;
 }

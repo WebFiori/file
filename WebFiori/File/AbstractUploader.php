@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -24,17 +25,13 @@ abstract class AbstractUploader {
      */
     private $extensions = [];
     /**
-     * @var string
-     */
-    private $uploadDir;
-    /**
      * @var int|null
      */
     private $maxFileSize;
     /**
      * @var callable|null
      */
-    private $streamProcessor;
+    private $onAfterUpload;
     /**
      * @var callable|null
      */
@@ -42,7 +39,11 @@ abstract class AbstractUploader {
     /**
      * @var callable|null
      */
-    private $onAfterUpload;
+    private $streamProcessor;
+    /**
+     * @var string
+     */
+    private $uploadDir;
 
     public function __construct(string $uploadPath = '', array $allowedTypes = []) {
         $this->maxFileSize = null;
@@ -116,6 +117,51 @@ abstract class AbstractUploader {
     }
 
     /**
+     * Returns the custom maximum file size limit.
+     *
+     * @return int|null The limit in bytes, or null if not set.
+     */
+    public function getMaxFileSizeLimit(): ?int {
+        return $this->maxFileSize;
+    }
+
+    /**
+     * Returns the after-upload callback.
+     *
+     * @return callable|null
+     */
+    public function getOnAfterUpload(): ?callable {
+        return $this->onAfterUpload;
+    }
+
+    /**
+     * Returns the before-upload callback.
+     *
+     * @return callable|null
+     */
+    public function getOnBeforeUpload(): ?callable {
+        return $this->onBeforeUpload;
+    }
+
+    /**
+     * Returns the current stream processor.
+     *
+     * @return callable|null
+     */
+    public function getStreamProcessor(): ?callable {
+        return $this->streamProcessor;
+    }
+
+    /**
+     * Returns the directory at which the file or files will be uploaded to.
+     *
+     * @return string upload directory.
+     */
+    public function getUploadDir(): string {
+        return $this->uploadDir;
+    }
+
+    /**
      * Removes an extension from the array of allowed files types.
      *
      * @param string $ext File extension (e.g. jpg, png, pdf).
@@ -142,12 +188,58 @@ abstract class AbstractUploader {
     }
 
     /**
-     * Returns the directory at which the file or files will be uploaded to.
+     * Sanitizes an uploaded filename.
      *
-     * @return string upload directory.
+     * @param string $name The raw filename.
+     *
+     * @return string The sanitized filename.
      */
-    public function getUploadDir(): string {
-        return $this->uploadDir;
+    public static function sanitizeFilename(string $name): string {
+        $name = str_replace("\\", "/", $name);
+        $name = basename($name);
+        $name = str_replace("\0", '', $name);
+        $name = preg_replace('/[^\w\-. ]/', '_', $name);
+        $name = ltrim($name, '.');
+
+        return $name;
+    }
+
+    /**
+     * Sets a custom maximum file size limit.
+     *
+     * @param int $bytes Maximum file size in bytes.
+     */
+    public function setMaxFileSize(int $bytes): void {
+        if ($bytes > 0) {
+            $this->maxFileSize = $bytes;
+        }
+    }
+
+    /**
+     * Sets a callback to be called after each successful file upload.
+     *
+     * @param callable|null $callback Signature: function(UploadedFile $file): void
+     */
+    public function setOnAfterUpload(?callable $callback): void {
+        $this->onAfterUpload = $callback;
+    }
+
+    /**
+     * Sets a callback to be called before each file is uploaded.
+     *
+     * @param callable|null $callback Signature: function(array $fileInfo): bool
+     */
+    public function setOnBeforeUpload(?callable $callback): void {
+        $this->onBeforeUpload = $callback;
+    }
+
+    /**
+     * Sets a stream processor for upload processing.
+     *
+     * @param callable|null $processor Signature: function(\Generator $chunks, string $destPath): void
+     */
+    public function setStreamProcessor(?callable $processor): void {
+        $this->streamProcessor = $processor;
     }
 
     /**
@@ -166,117 +258,24 @@ abstract class AbstractUploader {
 
         try {
             if (!File::isDirectory($fixedPath)) {
-                throw new FileException('Invalid upload directory: ' . $fixedPath);
+                throw new FileException('Invalid upload directory: '.$fixedPath);
             }
 
             $this->uploadDir = $fixedPath;
         } catch (FileException $ex) {
-            throw new FileException('Invalid upload directory: ' . $fixedPath);
+            throw new FileException('Invalid upload directory: '.$fixedPath);
         }
     }
 
     /**
-     * Sets a custom maximum file size limit.
+     * Invokes the after-upload callback.
      *
-     * @param int $bytes Maximum file size in bytes.
+     * @param UploadedFile $file The uploaded file.
      */
-    public function setMaxFileSize(int $bytes): void {
-        if ($bytes > 0) {
-            $this->maxFileSize = $bytes;
+    protected function fireAfterUpload(UploadedFile $file): void {
+        if ($this->onAfterUpload !== null) {
+            ($this->onAfterUpload)($file);
         }
-    }
-
-    /**
-     * Returns the custom maximum file size limit.
-     *
-     * @return int|null The limit in bytes, or null if not set.
-     */
-    public function getMaxFileSizeLimit(): ?int {
-        return $this->maxFileSize;
-    }
-
-    /**
-     * Sets a stream processor for upload processing.
-     *
-     * @param callable|null $processor Signature: function(\Generator $chunks, string $destPath): void
-     */
-    public function setStreamProcessor(?callable $processor): void {
-        $this->streamProcessor = $processor;
-    }
-
-    /**
-     * Returns the current stream processor.
-     *
-     * @return callable|null
-     */
-    public function getStreamProcessor(): ?callable {
-        return $this->streamProcessor;
-    }
-
-    /**
-     * Sets a callback to be called before each file is uploaded.
-     *
-     * @param callable|null $callback Signature: function(array $fileInfo): bool
-     */
-    public function setOnBeforeUpload(?callable $callback): void {
-        $this->onBeforeUpload = $callback;
-    }
-
-    /**
-     * Returns the before-upload callback.
-     *
-     * @return callable|null
-     */
-    public function getOnBeforeUpload(): ?callable {
-        return $this->onBeforeUpload;
-    }
-
-    /**
-     * Sets a callback to be called after each successful file upload.
-     *
-     * @param callable|null $callback Signature: function(UploadedFile $file): void
-     */
-    public function setOnAfterUpload(?callable $callback): void {
-        $this->onAfterUpload = $callback;
-    }
-
-    /**
-     * Returns the after-upload callback.
-     *
-     * @return callable|null
-     */
-    public function getOnAfterUpload(): ?callable {
-        return $this->onAfterUpload;
-    }
-
-    /**
-     * Sanitizes an uploaded filename.
-     *
-     * @param string $name The raw filename.
-     *
-     * @return string The sanitized filename.
-     */
-    public static function sanitizeFilename(string $name): string {
-        $name = str_replace("\\", "/", $name);
-        $name = basename($name);
-        $name = str_replace("\0", '', $name);
-        $name = preg_replace('/[^\w\-. ]/', '_', $name);
-        $name = ltrim($name, '.');
-
-        return $name;
-    }
-
-    /**
-     * Checks if a filename has an allowed extension.
-     *
-     * @param string $fileName The filename to check.
-     *
-     * @return bool True if allowed.
-     */
-    protected function isValidExt(string $fileName): bool {
-        $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-
-        return in_array($ext, $this->getExts(), true) || in_array(strtolower($ext), $this->getExts(), true);
     }
 
     /**
@@ -295,13 +294,15 @@ abstract class AbstractUploader {
     }
 
     /**
-     * Invokes the after-upload callback.
+     * Checks if a filename has an allowed extension.
      *
-     * @param UploadedFile $file The uploaded file.
+     * @param string $fileName The filename to check.
+     *
+     * @return bool True if allowed.
      */
-    protected function fireAfterUpload(UploadedFile $file): void {
-        if ($this->onAfterUpload !== null) {
-            ($this->onAfterUpload)($file);
-        }
+    protected function isValidExt(string $fileName): bool {
+        $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+
+        return in_array($ext, $this->getExts(), true) || in_array(strtolower($ext), $this->getExts(), true);
     }
 }

@@ -27,6 +27,7 @@ foreach ($stream->readChunks(10) as $chunk) {
 
 // --- Reading line by line ---
 echo "\n=== Read Lines ===\n";
+
 foreach ($stream->readLines() as $line) {
     echo "  ".rtrim($line)."\n";
 }
@@ -34,6 +35,7 @@ foreach ($stream->readLines() as $line) {
 // --- Reading a byte range ---
 echo "\n=== Read Range (bytes 0-13) ===\n";
 $data = '';
+
 foreach ($stream->readRange(0, 13) as $chunk) {
     $data .= $chunk;
 }
@@ -51,5 +53,26 @@ $file = new File($samplePath);
 $fileStream = $file->stream(16); // 16-byte buffer
 echo "Buffer size: ".$fileStream->getBufferSize()."\n";
 
+// --- Writing with a generator (writeFromStream) ---
+echo "\n=== writeFromStream() ===\n";
+$outputPath = __DIR__.'/../tmp/stream-output.txt';
+
+$generator = (function ()
+{
+    yield "Generated line 1\n";
+    yield "Generated line 2\n";
+    yield "Generated line 3\n";
+})();
+
+$output = new FileStream($outputPath);
+$output->writeFromStream($generator, false); // false = overwrite mode
+echo "Written to: ".$output->getName()." (".$output->getSize()." bytes)\n";
+
+// Read it back to verify
+foreach ($output->readLines() as $line) {
+    echo "  ".rtrim($line)."\n";
+}
+
 // Cleanup
 unlink($samplePath);
+unlink($outputPath);

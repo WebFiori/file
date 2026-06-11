@@ -2,8 +2,8 @@
 
 /**
  * Router for PHP built-in server.
- * 
- * Usage: php -S localhost:8080 examples/streaming-upload/router.php
+ *
+ * Usage: php -S localhost:8080 examples/resumable-upload/router.php
  * Then open: http://localhost:8080
  */
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
